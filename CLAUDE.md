@@ -94,8 +94,11 @@ present (`docker images`) over introducing a new one.
 
 ## Spring Boot service conventions
 
-> Reference implementation: **`Middleware/customer-service/`** (Customer + Customer Resource
-> CRUD). It is fully built, tested (H2), and runnable — clone its structure for new services.
+> Reference implementation: **`Middleware/company-service/`** (Company + Company Resource
+> CRUD — the admin-facing service that manages onboarded businesses and their resources).
+> It is fully built, tested (H2), and runnable — clone its structure for new services.
+> (Note: "Company" is the README data-model term; the README's "Customer Management Service"
+> is the same admin role, reconciled to Company here.)
 
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 
@@ -106,22 +109,22 @@ Every Spring Boot microservice is a **multi-module Maven project** with these mo
 - **utils** — cross-cutting helpers
 
 **Naming:**
-- Folder + parent artifact: `<domain>-service` (e.g. `customer-service`). Module artifacts:
+- Folder + parent artifact: `<domain>-service` (e.g. `company-service`). Module artifacts:
   `<domain>-common`, `<domain>-utils`, `<domain>-dao`, `<domain>-service-core`, `<domain>-api`.
 - Maven `groupId` + Java base package: **`com.jk.labs.vkp.<domain>`** (`jk` = javakishore,
   `labs` = labs). Layers: `.api`, `.service`, `.dao`, `.common`, `.utils`.
 - **Class names use a short abbreviation of the domain noun** to avoid long names — e.g.
-  `Cust` not `Customer`: `CustDTO`, `CustResourceDTO`, `CreateCustReqDTO`, `CreateCustCtx`,
-  `CustEntity`, `CustRepository`, `CustService`, `CustController`, `CustServiceApplication`.
-- **Field / JSON / DB-column names stay descriptive** (`customerId`, `customer_resource_id`,
-  table `customers`) to match the README data model — only *class* names are abbreviated.
+  `Comp` not `Company`: `CompDTO`, `CompResourceDTO`, `CreateCompReqDTO`, `CreateCompCtx`,
+  `CompEntity`, `CompRepository`, `CompService`, `CompController`, `CompServiceApplication`.
+- **Field / JSON / DB-column names stay descriptive** (`companyId`, `company_resource_id`,
+  table `companies`) to match the README data model — only *class* names are abbreviated.
 
 **Bootable module = `api`.** Run with `mvn -pl api -am spring-boot:run` from the service root
 (the `java-start-all.sh` runner does this automatically). The fat jar is `api/target/<domain>-service.jar`.
 
 **Versioned API routes (mandatory):** `/admin/<domain>/service/v<major>/<group>/<resource>`,
-e.g. `/admin/customer/service/v1/crud/customers/{customerId}/resources`. Define the prefixes
-as constants in `common` (`ApiRoutes.API_BASE` → `.CRUD` → `.CUSTOMERS`/…) and reference them
+e.g. `/admin/company/service/v1/crud/companies/{companyId}/resources`. Define the prefixes
+as constants in `common` (`ApiRoutes.API_BASE` → `.CRUD` → `.COMPANIES`/…) and reference them
 from `@RequestMapping`, so a version bump or new operation group (`/crud`, later `/search`) is
 a one-line change. The `GlobalExceptionHandler` maps `NoResourceFoundException` → 404 so
 unmapped/old paths return 404 (not 500).

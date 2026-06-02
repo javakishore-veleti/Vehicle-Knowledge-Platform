@@ -1,0 +1,15 @@
+package com.jk.labs.vkp.company.common.dto.company;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class GetCompReqDTO {
+
+    @NotBlank
+    private String companyId;
+}
