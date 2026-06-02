@@ -1,0 +1,33 @@
+# Airflow Adapter Service. Stateless gateway - no database.
+server:
+  port: 8083
+
+spring:
+  application:
+    name: airflow-adapter-service
+
+# Target Airflow REST API. Override per environment (e.g. AIRFLOW_BASE_URL).
+airflow:
+  base-url: ${AIRFLOW_BASE_URL:http://localhost:8080}
+  username: ${AIRFLOW_USERNAME:admin}
+  password: ${AIRFLOW_PASSWORD:admin}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Swagger UI -> /swagger-ui.html ; OpenAPI JSON -> /v3/api-docs
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

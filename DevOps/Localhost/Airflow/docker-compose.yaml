@@ -11,6 +11,9 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+    # Enable HTTP basic auth on the REST API so airflow-adapter-service can authenticate
+    # (admin/admin). Session backend kept for the web UI.
+    AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
   volumes:
     # Mount the categorically-organized DAG tree (recursively discovered by Airflow).
     - ../../../Middleware/Workflows/AirflowDAGS:/opt/airflow/dags
@@ -39,8 +42,10 @@ services:
     <<: *airflow-common
     container_name: vkp-airflow-init
     entrypoint: /bin/bash
+    # Run migrate, then ALWAYS attempt admin creation (';' not '&&' so a migrate no-op
+    # can't skip user creation). '|| true' makes re-runs idempotent.
     command: >
-      -c "airflow db migrate &&
+      -c "airflow db migrate;
           airflow users create --username admin --password admin
           --firstname admin --lastname admin --role Admin
           --email admin@example.com || true"

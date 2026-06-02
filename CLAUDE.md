@@ -102,6 +102,12 @@ present (`docker images`) over introducing a new one.
 > - **`Middleware/user-service/`** — customer-facing auth (signup, signin, forgot/reset
 >   password, profile) over `customer_users`. Adds BCrypt password hashing + JWT (jjwt), and
 >   shows the customer audience + non-CRUD operation groups (`/auth`, `/profile`).
+> - **`Middleware/airflow-adapter-service/`** — the single gateway every service uses to
+>   invoke Apache Airflow (trigger/status/tasks/retry/cancel). Stateless (no `dao`), calls
+>   Airflow's REST API via Spring `RestClient`; routes `/internal/airflow/service/v1/...`
+>   (audience `internal`), port 8083. **No other service may call Airflow directly.**
+>   Requires Airflow REST basic-auth — our `DevOps/Localhost/Airflow` compose enables it
+>   (`AIRFLOW__API__AUTH_BACKENDS=...basic_auth,...session`, admin/admin).
 
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 

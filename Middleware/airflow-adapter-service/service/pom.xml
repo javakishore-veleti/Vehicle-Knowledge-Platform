@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.jk.labs.vkp</groupId>
+    <artifactId>airflow-adapter-service</artifactId>
+    <version>0.1.0</version>
+  </parent>
+
+  <artifactId>airflow-adapter-service-core</artifactId>
+  <name>airflow-adapter-service-core</name>
+  <description>Business logic + the Airflow REST client (RestClient)</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.jk.labs.vkp</groupId>
+      <artifactId>airflow-adapter-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    <!-- RestClient lives in spring-web; JSON (de)serialization via starter-json -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-json</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+</project>
