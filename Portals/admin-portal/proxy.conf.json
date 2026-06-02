@@ -8,5 +8,10 @@
     "target": "http://localhost:8084",
     "secure": false,
     "changeOrigin": true
+  },
+  "/admin/ingestion": {
+    "target": "http://localhost:8085",
+    "secure": false,
+    "changeOrigin": true
   }
 }

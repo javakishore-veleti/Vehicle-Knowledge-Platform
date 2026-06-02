@@ -116,12 +116,18 @@ present (`docker images`) over introducing a new one.
 > - **`Middleware/data-collection-service/`** — admin control plane for link discovery
 >   (port 8084). Records the `company_resource_graph` root, then triggers the
 >   `vkp_discover_resources` DAG **through airflow-adapter-service** (a `RestClient` to the
->   adapter — never Airflow directly). Demonstrates the full chain
->   service → adapter → Airflow → DAG, verified live.
+>   adapter — never Airflow directly). The DAG really crawls the seed, extracts links, and
+>   calls back (`POST …/graph/record`) to persist them.
+> - **`Middleware/ingestion-service/`** — admin control plane for content ingestion
+>   (port 8085). Triggers `vkp_process_resources`, whose DAG fetches discovered links from
+>   data-collection, crawls each, extracts title + clean text (+ sha256), and calls back
+>   (`POST …/content/record`) to persist into `company_resource_content`. Same template.
 >
-> The first real DAG lives at `Middleware/Workflows/AirflowDAGS/Vehicles/DataCollection/
-> vkp_discover_resources.py` (Python). Pattern to repeat: a **Java service** owns the data
-> model + triggers via the adapter; the **Python DAG** does the actual work.
+> Real DAGs live under `Middleware/Workflows/AirflowDAGS/Vehicles/` —
+> `DataCollection/vkp_discover_resources.py` and `Ingestion/vkp_process_resources.py`
+> (Python, stdlib only). **Pipeline verified live: Companies → Discovery → Ingestion.**
+> Pattern to repeat: a **Java service** owns the data model + triggers via the adapter; the
+> **Python DAG** does the actual work and calls back to persist.
 
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 

@@ -1,0 +1,21 @@
+# MongoDB profile: SCAFFOLD ONLY.
+#
+# The dao module is currently JPA-based (h2 / postgres). Running this profile requires the
+# Mongo document adapter (a sibling of the JPA dao: @Document entities + MongoRepository,
+# profile-gated with @Profile("mongodb")) plus the spring-boot-starter-data-mongodb
+# dependency. That adapter is the next increment - see CLAUDE.md "persistence profiles".
+#
+# Connection target = the localhost container from DevOps/Localhost/MongoDB/docker-compose.yaml.
+server:
+  port: 8081
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://vkp:vkp@localhost:27017/vkp?authSource=admin
+  # Exclude JPA/datasource autoconfig under this profile so the app does not require a
+  # relational datasource. (Enable once the Mongo adapter is in place.)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
