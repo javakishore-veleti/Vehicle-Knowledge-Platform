@@ -11,6 +11,8 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+    # Local convenience: new DAGs are unpaused so a triggered run executes immediately.
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
     # Enable HTTP basic auth on the REST API so airflow-adapter-service can authenticate
     # (admin/admin). Session backend kept for the web UI.
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"

@@ -107,7 +107,17 @@ present (`docker images`) over introducing a new one.
 >   Airflow's REST API via Spring `RestClient`; routes `/internal/airflow/service/v1/...`
 >   (audience `internal`), port 8083. **No other service may call Airflow directly.**
 >   Requires Airflow REST basic-auth — our `DevOps/Localhost/Airflow` compose enables it
->   (`AIRFLOW__API__AUTH_BACKENDS=...basic_auth,...session`, admin/admin).
+>   (`AIRFLOW__API__AUTH_BACKENDS=...basic_auth,...session`, admin/admin) and unpauses DAGs
+>   at creation (`DAGS_ARE_PAUSED_AT_CREATION=false`).
+> - **`Middleware/data-collection-service/`** — admin control plane for link discovery
+>   (port 8084). Records the `company_resource_graph` root, then triggers the
+>   `vkp_discover_resources` DAG **through airflow-adapter-service** (a `RestClient` to the
+>   adapter — never Airflow directly). Demonstrates the full chain
+>   service → adapter → Airflow → DAG, verified live.
+>
+> The first real DAG lives at `Middleware/Workflows/AirflowDAGS/Vehicles/DataCollection/
+> vkp_discover_resources.py` (Python). Pattern to repeat: a **Java service** owns the data
+> model + triggers via the adapter; the **Python DAG** does the actual work.
 
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 
