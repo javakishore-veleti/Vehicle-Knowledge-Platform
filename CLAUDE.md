@@ -25,7 +25,11 @@ The system uses **PascalCase top-level folders**: `Portals/` (Angular UIs) and
 `package.json` as the operations entrypoint.
 
 - **`Portals/`** — user-facing **Angular** UIs. Two or more portals (at minimum an Admin
-  Portal and a Vehicle Search Portal; more may be added).
+  Portal and a Vehicle Search Portal; more may be added). **`Portals/admin-portal/`** is built
+  (Angular 19 + **PrimeNG**, light theme, fixed top bar + contextual left sidebar): Companies
+  CRUD/search and a Data Management section (Data Collection/Ingestion/Indexing → Overview +
+  Workflows). It uses a dev proxy (`proxy.conf.json`) to reach the Spring services — no CORS
+  config needed. Run: `npm run localhost:portals:admin:start` (→ `:4200`).
 - **`Middleware/`** — everything backend. Holds **both** Spring Boot (Java 21) **and**
   Python (Flask / FastAPI) microservices, **and** the Airflow **DAG workflows** under
   `Middleware/Workflows/AirflowDAGS/`. DAGs are organized **categorically by functionality /

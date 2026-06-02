@@ -21,4 +21,7 @@ public final class ApiRoutes {
 
     /** Read the status of a discovery DAG run (proxied via the adapter). */
     public static final String RUN_STATUS = API_BASE + "/runs/{dagId}/{runId}/status";
+
+    /** List recent workflow (DAG) runs for a category's DAG (proxied via the adapter). */
+    public static final String WORKFLOWS = API_BASE + "/workflows/{dagId}";
 }

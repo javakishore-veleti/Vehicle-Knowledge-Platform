@@ -18,6 +18,9 @@
 
     "localhost:services:start-all": "npm run localhost:services:java:start-all && npm run localhost:services:python:start-all",
     "localhost:services:stop-all": "npm run localhost:services:java:stop-all && npm run localhost:services:python:stop-all",
-    "localhost:services:status-all": "npm run localhost:services:java:status-all && npm run localhost:services:python:status-all"
+    "localhost:services:status-all": "npm run localhost:services:java:status-all && npm run localhost:services:python:status-all",
+
+    "localhost:portals:admin:install": "npm --prefix Portals/admin-portal install",
+    "localhost:portals:admin:start": "npm --prefix Portals/admin-portal start"
   }
 }

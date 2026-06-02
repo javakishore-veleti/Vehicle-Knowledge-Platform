@@ -5,6 +5,9 @@ import com.jk.labs.vkp.airflow.common.dto.TaskInstanceDTO;
 import com.jk.labs.vkp.airflow.common.dto.cancel.CancelRunCtx;
 import com.jk.labs.vkp.airflow.common.dto.cancel.CancelRunReqDTO;
 import com.jk.labs.vkp.airflow.common.dto.cancel.CancelRunRespDTO;
+import com.jk.labs.vkp.airflow.common.dto.list.ListRunsCtx;
+import com.jk.labs.vkp.airflow.common.dto.list.ListRunsReqDTO;
+import com.jk.labs.vkp.airflow.common.dto.list.ListRunsRespDTO;
 import com.jk.labs.vkp.airflow.common.dto.retry.RetryRunCtx;
 import com.jk.labs.vkp.airflow.common.dto.retry.RetryRunReqDTO;
 import com.jk.labs.vkp.airflow.common.dto.retry.RetryRunRespDTO;
@@ -41,6 +44,12 @@ public class AirflowService {
         DagRunDTO run = client.triggerDagRun(req.getDagId(), req.getConf(), req.getNote());
         log.info("Triggered DAG {} -> run {} (by {})", req.getDagId(), run.getDagRunId(), req.getTriggeredBy());
         ctx.setRespDTO(new TriggerDagRespDTO(run));
+    }
+
+    public void listRuns(ListRunsCtx ctx) {
+        ListRunsReqDTO req = ctx.getReqDTO();
+        List<DagRunDTO> runs = client.listDagRuns(req.getDagId(), req.getLimit());
+        ctx.setRespDTO(new ListRunsRespDTO(runs, runs.size()));
     }
 
     public void getRun(GetRunCtx ctx) {

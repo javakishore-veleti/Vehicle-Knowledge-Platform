@@ -1,6 +1,7 @@
 package com.jk.labs.vkp.datacollection.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.WorkflowRunDTO;
 import com.jk.labs.vkp.datacollection.common.error.AirflowGatewayException;
 import com.jk.labs.vkp.datacollection.common.error.ResourceNotFoundException;
 import org.springframework.http.HttpStatusCode;
@@ -9,7 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,6 +51,22 @@ public class AirflowAdapterClient {
         JsonNode resp = execute(rest.get().uri(RUN, dagId, runId),
                 "DAG run not found: " + dagId + "/" + runId);
         return toRef(resp);
+    }
+
+    public List<WorkflowRunDTO> listRuns(String dagId) {
+        JsonNode resp = execute(rest.get().uri(RUNS + "?limit=25", dagId), "DAG not found: " + dagId);
+        List<WorkflowRunDTO> runs = new ArrayList<>();
+        JsonNode arr = resp == null ? null : resp.get("runs");
+        if (arr != null && arr.isArray()) {
+            arr.forEach(n -> runs.add(WorkflowRunDTO.builder()
+                    .dagId(text(n, "dagId"))
+                    .dagRunId(text(n, "dagRunId"))
+                    .state(text(n, "state"))
+                    .startDate(text(n, "startDate"))
+                    .endDate(text(n, "endDate"))
+                    .build()));
+        }
+        return runs;
     }
 
     private JsonNode execute(RestClient.RequestHeadersSpec<?> spec, String notFoundMsg) {

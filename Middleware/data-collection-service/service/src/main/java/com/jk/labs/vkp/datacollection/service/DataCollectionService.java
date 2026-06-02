@@ -9,6 +9,9 @@ import com.jk.labs.vkp.datacollection.common.dto.graph.ResourceGraphNodeDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusCtx;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusRespDTO;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.ListWorkflowsCtx;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.ListWorkflowsRespDTO;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.WorkflowRunDTO;
 import com.jk.labs.vkp.datacollection.common.enums.CrawlStatus;
 import com.jk.labs.vkp.datacollection.common.enums.Status;
 import com.jk.labs.vkp.datacollection.dao.entity.ResourceGraphNodeEntity;
@@ -86,6 +89,12 @@ public class DataCollectionService {
                 .map(ResourceGraphNodeMapper::toDTO)
                 .toList();
         ctx.setRespDTO(new GetGraphRespDTO(nodes, nodes.size()));
+    }
+
+    public void listWorkflows(ListWorkflowsCtx ctx) {
+        String dagId = ctx.getReqDTO().getDagId();
+        List<WorkflowRunDTO> runs = adapterClient.listRuns(dagId);
+        ctx.setRespDTO(new ListWorkflowsRespDTO(runs, runs.size()));
     }
 
     public void getStatus(GetStatusCtx ctx) {

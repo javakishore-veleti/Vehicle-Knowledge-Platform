@@ -7,6 +7,9 @@ import com.jk.labs.vkp.airflow.common.dto.cancel.CancelRunRespDTO;
 import com.jk.labs.vkp.airflow.common.dto.retry.RetryRunCtx;
 import com.jk.labs.vkp.airflow.common.dto.retry.RetryRunReqDTO;
 import com.jk.labs.vkp.airflow.common.dto.retry.RetryRunRespDTO;
+import com.jk.labs.vkp.airflow.common.dto.list.ListRunsCtx;
+import com.jk.labs.vkp.airflow.common.dto.list.ListRunsReqDTO;
+import com.jk.labs.vkp.airflow.common.dto.list.ListRunsRespDTO;
 import com.jk.labs.vkp.airflow.common.dto.run.GetRunCtx;
 import com.jk.labs.vkp.airflow.common.dto.run.GetRunReqDTO;
 import com.jk.labs.vkp.airflow.common.dto.run.GetRunRespDTO;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,6 +49,15 @@ public class AirflowController {
         TriggerDagCtx ctx = new TriggerDagCtx();
         ctx.setReqDTO(req);
         airflowService.trigger(ctx);
+        return ctx.getRespDTO();
+    }
+
+    @GetMapping(ApiRoutes.DAG_RUNS)
+    public ListRunsRespDTO listRuns(@PathVariable String dagId,
+                                    @RequestParam(defaultValue = "25") int limit) {
+        ListRunsCtx ctx = new ListRunsCtx();
+        ctx.setReqDTO(new ListRunsReqDTO(dagId, limit));
+        airflowService.listRuns(ctx);
         return ctx.getRespDTO();
     }
 

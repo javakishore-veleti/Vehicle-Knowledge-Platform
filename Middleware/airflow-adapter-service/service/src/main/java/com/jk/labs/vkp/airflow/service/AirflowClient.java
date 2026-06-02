@@ -52,6 +52,19 @@ public class AirflowClient {
         return toDagRun(resp);
     }
 
+    public List<DagRunDTO> listDagRuns(String dagId, int limit) {
+        int safeLimit = limit <= 0 ? 25 : Math.min(limit, 100);
+        JsonNode resp = execute(
+                rest.get().uri("/api/v1/dags/{d}/dagRuns?order_by=-execution_date&limit={l}", dagId, safeLimit),
+                "DAG not found: " + dagId);
+        List<DagRunDTO> runs = new ArrayList<>();
+        JsonNode arr = resp.get("dag_runs");
+        if (arr != null && arr.isArray()) {
+            arr.forEach(n -> runs.add(toDagRun(n)));
+        }
+        return runs;
+    }
+
     public DagRunDTO getDagRun(String dagId, String runId) {
         JsonNode resp = execute(rest.get().uri("/api/v1/dags/{d}/dagRuns/{r}", dagId, runId),
                 "DAG run not found: " + dagId + "/" + runId);

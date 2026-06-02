@@ -10,6 +10,9 @@ import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusCtx;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusRespDTO;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.ListWorkflowsCtx;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.ListWorkflowsReqDTO;
+import com.jk.labs.vkp.datacollection.common.dto.workflow.ListWorkflowsRespDTO;
 import com.jk.labs.vkp.datacollection.service.DataCollectionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +52,14 @@ public class DataCollectionController {
         GetGraphCtx ctx = new GetGraphCtx();
         ctx.setReqDTO(new GetGraphReqDTO(companyId));
         dataCollectionService.getGraph(ctx);
+        return ctx.getRespDTO();
+    }
+
+    @GetMapping(ApiRoutes.WORKFLOWS)
+    public ListWorkflowsRespDTO workflows(@PathVariable String dagId) {
+        ListWorkflowsCtx ctx = new ListWorkflowsCtx();
+        ctx.setReqDTO(new ListWorkflowsReqDTO(dagId));
+        dataCollectionService.listWorkflows(ctx);
         return ctx.getRespDTO();
     }
 
