@@ -57,7 +57,8 @@ export class AppComponent {
       label: 'Data Collection', icon: 'pi pi-compass', expanded: true,
       items: [
         { label: 'Overview', icon: 'pi pi-info-circle', routerLink: '/data-management/data-collection/overview' },
-        { label: 'Workflows', icon: 'pi pi-bolt', routerLink: '/data-management/data-collection/workflows' }
+        { label: 'Workflows', icon: 'pi pi-bolt', routerLink: '/data-management/data-collection/workflows' },
+        { label: 'Resource Graph', icon: 'pi pi-sitemap', routerLink: '/data-management/data-collection/graph' }
       ]
     },
     {

@@ -17,6 +17,26 @@ export interface WorkflowRun {
   endDate?: string;
 }
 
+export interface ResourceGraphNode {
+  resourceGraphId: string;
+  companyId: string;
+  companyResourceId?: string;
+  parentResourceGraphId?: string;
+  resourceUrl: string;
+  resourceType?: string;
+  crawlStatus?: string;
+  status?: string;
+  createdDt?: string;
+  updatedDt?: string;
+}
+
+export interface DiscoverResult {
+  rootResourceGraphId: string;
+  dagId: string;
+  dagRunId: string;
+  state: string;
+}
+
 /** Data Management section -> Airflow DAG id. */
 export const SECTION_DAGS: Record<string, string> = {
   'data-collection': 'vkp_discover_resources',

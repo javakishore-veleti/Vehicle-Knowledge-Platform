@@ -4,6 +4,9 @@ import com.jk.labs.vkp.datacollection.common.api.ApiRoutes;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverCtx;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverRespDTO;
+import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredCtx;
+import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredReqDTO;
+import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphCtx;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphRespDTO;
@@ -44,6 +47,14 @@ public class DataCollectionController {
         DiscoverCtx ctx = new DiscoverCtx();
         ctx.setReqDTO(req);
         dataCollectionService.discover(ctx);
+        return ctx.getRespDTO();
+    }
+
+    @PostMapping(ApiRoutes.GRAPH_RECORD)
+    public RecordDiscoveredRespDTO recordDiscovered(@Valid @RequestBody RecordDiscoveredReqDTO req) {
+        RecordDiscoveredCtx ctx = new RecordDiscoveredCtx();
+        ctx.setReqDTO(req);
+        dataCollectionService.recordDiscovered(ctx);
         return ctx.getRespDTO();
     }
 

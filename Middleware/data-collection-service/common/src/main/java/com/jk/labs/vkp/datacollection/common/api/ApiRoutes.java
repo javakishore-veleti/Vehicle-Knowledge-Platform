@@ -24,4 +24,7 @@ public final class ApiRoutes {
 
     /** List recent workflow (DAG) runs for a category's DAG (proxied via the adapter). */
     public static final String WORKFLOWS = API_BASE + "/workflows/{dagId}";
+
+    /** Callback the discovery DAG posts its found links to (persisted into the graph). */
+    public static final String GRAPH_RECORD = API_BASE + "/graph/record";
 }
