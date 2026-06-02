@@ -94,13 +94,47 @@ present (`docker images`) over introducing a new one.
 
 ## Spring Boot service conventions
 
+> Reference implementation: **`Middleware/customer-service/`** (Customer + Customer Resource
+> CRUD). It is fully built, tested (H2), and runnable — clone its structure for new services.
+
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 
-- **api** — controllers / REST layer
+- **api** — controllers / REST layer **+ the Spring Boot `@SpringBootApplication` entrypoint**
 - **service** — business logic
 - **dao** — persistence (Spring Data JPA repositories / Mongo repositories)
-- **common** — shared domain types, DTOs, constants
+- **common** — shared domain types, DTOs, Ctx, enums, constants
 - **utils** — cross-cutting helpers
+
+**Naming:**
+- Folder + parent artifact: `<domain>-service` (e.g. `customer-service`). Module artifacts:
+  `<domain>-common`, `<domain>-utils`, `<domain>-dao`, `<domain>-service-core`, `<domain>-api`.
+- Maven `groupId` + Java base package: **`com.jk.labs.vkp.<domain>`** (`jk` = javakishore,
+  `labs` = labs). Layers: `.api`, `.service`, `.dao`, `.common`, `.utils`.
+- **Class names use a short abbreviation of the domain noun** to avoid long names — e.g.
+  `Cust` not `Customer`: `CustDTO`, `CustResourceDTO`, `CreateCustReqDTO`, `CreateCustCtx`,
+  `CustEntity`, `CustRepository`, `CustService`, `CustController`, `CustServiceApplication`.
+- **Field / JSON / DB-column names stay descriptive** (`customerId`, `customer_resource_id`,
+  table `customers`) to match the README data model — only *class* names are abbreviated.
+
+**Bootable module = `api`.** Run with `mvn -pl api -am spring-boot:run` from the service root
+(the `java-start-all.sh` runner does this automatically). The fat jar is `api/target/<domain>-service.jar`.
+
+**Versioned API routes (mandatory):** `/admin/<domain>/service/v<major>/<group>/<resource>`,
+e.g. `/admin/customer/service/v1/crud/customers/{customerId}/resources`. Define the prefixes
+as constants in `common` (`ApiRoutes.API_BASE` → `.CRUD` → `.CUSTOMERS`/…) and reference them
+from `@RequestMapping`, so a version bump or new operation group (`/crud`, later `/search`) is
+a one-line change. The `GlobalExceptionHandler` maps `NoResourceFoundException` → 404 so
+unmapped/old paths return 404 (not 500).
+
+**Cross-cutting standards every microservice MUST include:**
+- **Swagger UI / OpenAPI** via `springdoc-openapi-starter-webmvc-ui` → UI at `/swagger-ui.html`,
+  spec at `/v3/api-docs`. Add an `OpenApiConfig` `@Bean` for title/version.
+- **Metrics** via Spring Boot Actuator + `micrometer-registry-prometheus` → scrape at
+  `/actuator/prometheus` (tagged `application=<name>`); health at `/actuator/health`.
+- **Logging** via **SLF4J** — use Lombok `@Slf4j` (over Spring Boot's Logback). Never call a
+  concrete logger directly.
+- Lombok throughout: `@Data`/`@Builder`/`@NoArgsConstructor`/`@AllArgsConstructor` on DTOs,
+  `@Getter`/`@Setter` on entities, `@RequiredArgsConstructor` for constructor injection.
 
 **DTO + Context method-argument pattern (mandatory):** every method from controller down to
 DAO takes a **single context object**, never independent/positional arguments. For each use

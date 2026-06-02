@@ -30,7 +30,14 @@ if [[ -d "$MIDDLEWARE" ]]; then
       echo "==> $name already running (pid $(cat "$pidfile"))"; found=1; continue
     fi
     echo "==> Starting Java service: $name"
-    ( cd "$svc_dir" && nohup $(mvn_cmd) spring-boot:run > "$RUN_DIR/java-$name.log" 2>&1 & echo $! > "$pidfile" )
+    # Multi-module convention: the bootable Spring Boot app is the 'api' module.
+    # Run it (and build its in-repo deps) via -pl api -am; fall back to the service root.
+    if [[ -f "$svc_dir/api/pom.xml" ]]; then
+      run_args=(-pl api -am spring-boot:run)
+    else
+      run_args=(spring-boot:run)
+    fi
+    ( cd "$svc_dir" && nohup $(mvn_cmd) "${run_args[@]}" > "$RUN_DIR/java-$name.log" 2>&1 & echo $! > "$pidfile" )
     found=1
   done < <(find "$MIDDLEWARE" -maxdepth 2 -name pom.xml 2>/dev/null)
 fi
