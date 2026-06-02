@@ -12,12 +12,15 @@ theme with a fixed top bar and a contextual left sidebar.
 ## Run (dev)
 From the repo root:
 ```bash
-npm run localhost:portals:admin:install   # first time only
 npm run localhost:containers:start-all     # MongoDB / Postgres / Airflow
 npm run localhost:services:java:start-all  # company / adapter / data-collection / …
 npm run localhost:portals:admin:start      # ng serve on http://localhost:4200
 ```
 Or directly: `cd Portals/admin-portal && npm start`.
+
+> `npm start` auto-runs `npm install` first (via the `prestart` hook), so there is **no
+> separate install step** — it's a fast no-op once dependencies are present. (A standalone
+> `npm run localhost:portals:admin:install` still exists for CI/pre-warming if you want it.)
 
 The dev server proxies API calls to the backends (see `proxy.conf.json`):
 - `/admin/company/**` → `http://localhost:8081` (company-service)
