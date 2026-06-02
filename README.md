@@ -537,3 +537,89 @@ Monitoring
 - Human-in-the-loop Validation
 - Agentic Research Assistants
 - Vehicle Ontology Management
+
+# Future Enhancements - Detailed
+
+## Future Enhancements Roadmap
+
+These enhancements evolve VKP from a search platform into a comprehensive Vehicle Intelligence Platform.
+
+| Enhancement | What It Means | Example Use Case | Business Value |
+|------------|---------------|------------------|----------------|
+| Knowledge Graph Generation | Automatically create relationships between vehicles, manufacturers, technologies, features, documents, images, and people. | Vehicle A uses Battery Technology B supplied by Company C. | Enables relationship discovery, recommendations, and explainable AI. |
+| Neo4j Integration | Store and query graph relationships using Neo4j in addition to MongoDB. | Find all vehicles using a specific ADAS technology. | High-performance graph traversal and relationship analytics. |
+| Image Embeddings | Convert images into vectors for semantic image search. | User uploads a dashboard photo and searches for similar vehicle interiors. | Visual search capabilities beyond text. |
+| Video Embeddings | Convert video frames and transcripts into searchable embeddings. | Search videos mentioning autonomous driving features. | Search across video content, demonstrations, and reviews. |
+| Multi-modal Search | Search across text, images, videos, PDFs, and metadata simultaneously. | Show vehicles with panoramic sunroofs using images and descriptions. | Richer search experiences and better recall. |
+| Personalized Search | Search results adapt to user behavior and preferences. | User prefers SUVs and hybrid vehicles. | Improved relevance and customer engagement. |
+| Recommendation Engines | AI recommends related content, vehicles, documents, or resources. | User views an electric SUV and receives related comparisons. | Increased user retention and discovery. |
+| Search Analytics Dashboard | Track search behavior, popular topics, failed searches, and content gaps. | Identify the most searched vehicle technologies this month. | Product insights and content strategy. |
+| Human-in-the-loop Validation | Humans review AI-generated extractions, classifications, and indexing decisions. | Reviewer corrects an incorrectly classified vehicle feature. | Improves data quality and governance. |
+| Agentic Research Assistants | AI agents perform multi-step research tasks autonomously. | Research all vehicles with Level 2 autonomous driving and summarize findings. | Moves beyond search into automated research. |
+| Vehicle Ontology Management | Define a formal vocabulary and hierarchy for vehicle concepts. | SUV → Compact SUV → Electric Compact SUV. | Standardized data model and better search/filtering. |
+
+---
+
+# Recommended Implementation Order
+
+| Phase | Enhancement | Priority |
+|---------|---------|---------|
+| Phase 1 | Search Analytics Dashboard | High |
+| Phase 1 | Human-in-the-loop Validation | High |
+| Phase 2 | Recommendation Engines | Medium |
+| Phase 2 | Personalized Search | Medium |
+| Phase 3 | Image Embeddings | High |
+| Phase 3 | Multi-modal Search | High |
+| Phase 4 | Video Embeddings | Medium |
+| Phase 4 | Agentic Research Assistants | High |
+| Phase 5 | Vehicle Ontology Management | High |
+| Phase 5 | Knowledge Graph Generation | High |
+| Phase 5 | Neo4j Integration | Optional |
+
+---
+
+# Suggested Strategic Roadmap
+
+## Phase 1 - Platform Foundation
+
+- Admin Portal
+- Customer Portal
+- Airflow
+- LangGraph
+- MongoDB
+- Vector Search
+
+## Phase 2 - Operational Intelligence
+
+- Search Analytics Dashboard
+- Feedback Loop
+- Human Validation
+
+## Phase 3 - Multi-modal Intelligence
+
+- Image Embeddings
+- Multi-modal Search
+
+## Phase 4 - Agentic Intelligence
+
+- Agentic Research Assistants
+
+## Phase 5 - Knowledge Intelligence
+
+- Vehicle Ontology Management
+- Knowledge Graph Generation
+- Neo4j Integration
+
+---
+
+# Long-Term Vision
+
+The most strategically valuable future capabilities are:
+
+1. Agentic Research Assistants
+2. Multi-modal Search
+3. Knowledge Graph Generation
+4. Vehicle Ontology Management
+
+Together these transform VKP from a search engine into a Vehicle Intelligence Platform where users can ask complex questions, navigate relationships, discover insights, and receive synthesized knowledge rather than simple search results.
+
