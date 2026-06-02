@@ -1,0 +1,24 @@
+# Postgres + pgVector for localhost.
+# Uses the pgvector image already present on this machine (pgvector/pgvector:pg16) -
+# do NOT introduce a new postgres image.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: vkp-postgres
+    environment:
+      POSTGRES_USER: vkp
+      POSTGRES_PASSWORD: vkp
+      POSTGRES_DB: vkp
+    ports:
+      - "5432:5432"
+    volumes:
+      - vkp-postgres-data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "vkp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vkp-postgres-data:

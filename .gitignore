@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# VKP localhost runtime (pids/logs from npm run localhost:services:*)
+DevOps/Localhost/.run/
+
+# Node
+node_modules/

@@ -1,0 +1,23 @@
+{
+  "name": "vehicle-knowledge-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Operations entrypoint for the Vehicle Knowledge Platform (VKP). Used to run localhost containers and microservices. Not an application package.",
+  "scripts": {
+    "localhost:containers:start-all": "bash DevOps/Localhost/docker-all-up.sh",
+    "localhost:containers:stop-all": "bash DevOps/Localhost/docker-all-down.sh",
+    "localhost:containers:status-all": "bash DevOps/Localhost/docker-all-status.sh",
+
+    "localhost:services:java:start-all": "bash DevOps/Localhost/Services/java-start-all.sh",
+    "localhost:services:java:stop-all": "bash DevOps/Localhost/Services/java-stop-all.sh",
+    "localhost:services:java:status-all": "bash DevOps/Localhost/Services/java-status-all.sh",
+
+    "localhost:services:python:start-all": "bash DevOps/Localhost/Services/python-start-all.sh",
+    "localhost:services:python:stop-all": "bash DevOps/Localhost/Services/python-stop-all.sh",
+    "localhost:services:python:status-all": "bash DevOps/Localhost/Services/python-status-all.sh",
+
+    "localhost:services:start-all": "npm run localhost:services:java:start-all && npm run localhost:services:python:start-all",
+    "localhost:services:stop-all": "npm run localhost:services:java:stop-all && npm run localhost:services:python:stop-all",
+    "localhost:services:status-all": "npm run localhost:services:java:status-all && npm run localhost:services:python:status-all"
+  }
+}

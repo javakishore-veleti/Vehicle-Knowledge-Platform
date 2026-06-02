@@ -1,0 +1,25 @@
+# MongoDB (with local Atlas-style Vector Search) for localhost.
+#
+# NOTE: As of writing, no MongoDB image is present on this machine, so the first
+# `up` will PULL the image below. mongodb-atlas-local bundles the search/vector
+# capability so Atlas Vector Search can be exercised locally. If you only need a
+# plain document store, swap the image for `mongo:7`.
+services:
+  mongodb:
+    image: mongodb/mongodb-atlas-local:8.0
+    container_name: vkp-mongodb
+    environment:
+      MONGODB_INITDB_ROOT_USERNAME: vkp
+      MONGODB_INITDB_ROOT_PASSWORD: vkp
+    ports:
+      - "27017:27017"
+    volumes:
+      - vkp-mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  vkp-mongodb-data:
