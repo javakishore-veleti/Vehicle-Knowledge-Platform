@@ -94,11 +94,14 @@ present (`docker images`) over introducing a new one.
 
 ## Spring Boot service conventions
 
-> Reference implementation: **`Middleware/company-service/`** (Company + Company Resource
-> CRUD — the admin-facing service that manages onboarded businesses and their resources).
-> It is fully built, tested (H2), and runnable — clone its structure for new services.
-> (Note: "Company" is the README data-model term; the README's "Customer Management Service"
-> is the same admin role, reconciled to Company here.)
+> Reference implementations (both fully built, tested on H2, runnable — clone their structure):
+> - **`Middleware/company-service/`** — admin-facing CRUD (Company + Company Resource). The
+>   canonical example of the multi-module + DTO/Ctx + versioned-CRUD pattern. ("Company" is
+>   the README data-model term; the README's "Customer Management Service" is the same admin
+>   role, reconciled to Company here.)
+> - **`Middleware/user-service/`** — customer-facing auth (signup, signin, forgot/reset
+>   password, profile) over `customer_users`. Adds BCrypt password hashing + JWT (jjwt), and
+>   shows the customer audience + non-CRUD operation groups (`/auth`, `/profile`).
 
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 
@@ -122,12 +125,14 @@ Every Spring Boot microservice is a **multi-module Maven project** with these mo
 **Bootable module = `api`.** Run with `mvn -pl api -am spring-boot:run` from the service root
 (the `java-start-all.sh` runner does this automatically). The fat jar is `api/target/<domain>-service.jar`.
 
-**Versioned API routes (mandatory):** `/admin/<domain>/service/v<major>/<group>/<resource>`,
-e.g. `/admin/company/service/v1/crud/companies/{companyId}/resources`. Define the prefixes
-as constants in `common` (`ApiRoutes.API_BASE` → `.CRUD` → `.COMPANIES`/…) and reference them
-from `@RequestMapping`, so a version bump or new operation group (`/crud`, later `/search`) is
-a one-line change. The `GlobalExceptionHandler` maps `NoResourceFoundException` → 404 so
-unmapped/old paths return 404 (not 500).
+**Versioned API routes (mandatory):** `/<audience>/<domain>/service/v<major>/<group>/<resource>`
+where `<audience>` is `admin` (operator-facing) or `customer` (end-user-facing). Examples:
+`/admin/company/service/v1/crud/companies/{companyId}/resources` (company-service) and
+`/customer/user/service/v1/auth/signin` + `/customer/user/service/v1/profile/{userId}`
+(user-service). Define the prefixes as constants in `common` (`ApiRoutes.API_BASE` → group
+consts like `.CRUD` / `.AUTH` / `.PROFILE`) and reference them from `@RequestMapping`, so a
+version bump or new operation group is a one-line change. The `GlobalExceptionHandler` maps
+`NoResourceFoundException` → 404 so unmapped/old paths return 404 (not 500).
 
 **Cross-cutting standards every microservice MUST include:**
 - **Swagger UI / OpenAPI** via `springdoc-openapi-starter-webmvc-ui` → UI at `/swagger-ui.html`,
