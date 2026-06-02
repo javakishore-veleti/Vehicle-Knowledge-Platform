@@ -31,13 +31,21 @@ if [[ -d "$MIDDLEWARE" ]]; then
     fi
     echo "==> Starting Java service: $name"
     # Multi-module convention: the bootable Spring Boot app is the 'api' module.
-    # Run it (and build its in-repo deps) via -pl api -am; fall back to the service root.
-    if [[ -f "$svc_dir/api/pom.xml" ]]; then
-      run_args=(-pl api -am spring-boot:run)
-    else
-      run_args=(spring-boot:run)
+    # Prefer the already-built fat jar (fast, reliable). Fall back to spring-boot:run
+    # scoped to the api module only (NOT -am: that would run the goal on the non-app
+    # modules too, which have no main class).
+    jar=""
+    if [[ -d "$svc_dir/api/target" ]]; then
+      jar="$(find "$svc_dir/api/target" -maxdepth 1 -name '*.jar' ! -name '*.original' ! -name '*-plain.jar' 2>/dev/null | head -1)"
     fi
-    ( cd "$svc_dir" && nohup $(mvn_cmd) "${run_args[@]}" > "$RUN_DIR/java-$name.log" 2>&1 & echo $! > "$pidfile" )
+    if [[ -n "$jar" ]]; then
+      ( cd "$svc_dir" && nohup java -jar "$jar" > "$RUN_DIR/java-$name.log" 2>&1 & echo $! > "$pidfile" )
+    elif [[ -f "$svc_dir/api/pom.xml" ]]; then
+      echo "    (no jar yet — building/running via Maven; run 'mvn -q install' for faster starts)"
+      ( cd "$svc_dir" && nohup $(mvn_cmd) -pl api spring-boot:run > "$RUN_DIR/java-$name.log" 2>&1 & echo $! > "$pidfile" )
+    else
+      ( cd "$svc_dir" && nohup $(mvn_cmd) spring-boot:run > "$RUN_DIR/java-$name.log" 2>&1 & echo $! > "$pidfile" )
+    fi
     found=1
   done < <(find "$MIDDLEWARE" -maxdepth 2 -name pom.xml 2>/dev/null)
 fi
