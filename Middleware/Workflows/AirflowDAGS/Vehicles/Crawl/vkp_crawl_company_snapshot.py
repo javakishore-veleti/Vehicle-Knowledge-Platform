@@ -23,7 +23,11 @@ Expected conf:
   { "company_id": "<uuid>",
     "company_base_url": "http://host.docker.internal:8081",   # company-service (roots source)
     "max_pages": 1000, "max_depth": 100, "max_images_per_page": 8,
-    "storage_backend": "local", "storage_location": null }
+    "storage_backend": "local", "storage_location": null,
+    # Responsible-crawling controls:
+    "respect_robots": true,            # obey robots.txt (default on)
+    "request_delay_seconds": 1.0,      # polite delay between page fetches (honors robots Crawl-delay)
+    "user_agent": null }               # honest UA override (used for robots + the browser)
 """
 from __future__ import annotations
 
@@ -31,6 +35,7 @@ import json
 import logging
 import os
 import re
+import time
 import urllib.request
 from collections import deque
 from datetime import datetime, timezone
@@ -170,6 +175,62 @@ def _now() -> str:
 
 
 # ------------------------------- crawl --------------------------------------
+class RobotsGate:
+    """Per-host robots.txt gate + polite rate-limit (the responsible-crawling controls).
+
+    Honors Disallow rules and Crawl-delay for the configured user-agent. Permissive on errors
+    (unreachable robots.txt -> allow), strict on explicit Disallow. When disabled, allows all but
+    still applies the configured delay.
+    """
+
+    def __init__(self, enabled: bool, user_agent: str, default_delay: float):
+        self.enabled = enabled
+        self.user_agent = user_agent
+        self.default_delay = max(0.0, default_delay)
+        self._parsers: dict = {}
+
+    def _parser(self, url: str):
+        from urllib.parse import urlsplit
+        from urllib.robotparser import RobotFileParser
+        parts = urlsplit(url)
+        key = (parts.scheme, parts.netloc)
+        if key in self._parsers:
+            return self._parsers[key]
+        rp = RobotFileParser()
+        try:
+            rp.set_url(f"{parts.scheme}://{parts.netloc}/robots.txt")
+            rp.read()
+        except Exception as exc:  # noqa: BLE001 — unreachable robots.txt -> be permissive
+            log.warning("robots.txt unreadable for %s://%s (%s) — allowing", parts.scheme, parts.netloc, exc)
+            rp = None
+        self._parsers[key] = rp
+        return rp
+
+    def allowed(self, url: str) -> bool:
+        if not self.enabled:
+            return True
+        rp = self._parser(url)
+        if rp is None:
+            return True
+        try:
+            return rp.can_fetch(self.user_agent, url)
+        except Exception:  # noqa: BLE001
+            return True
+
+    def delay(self, url: str) -> float:
+        d = self.default_delay
+        if self.enabled:
+            rp = self._parser(url)
+            if rp is not None:
+                try:
+                    cd = rp.crawl_delay(self.user_agent)
+                    if cd:
+                        d = max(d, float(cd))
+                except Exception:  # noqa: BLE001
+                    pass
+        return d
+
+
 def _crawl(company_name, roots, conf, storage):
     from playwright.sync_api import sync_playwright  # lazy: keeps DAG parseable without playwright
 
@@ -183,6 +244,12 @@ def _crawl(company_name, roots, conf, storage):
     max_img = int(conf.get("max_images_per_page") or 100000)
     # Stay within each root's registered domain (e.g. honda.com), across subdomains.
     allowed = {_reg_domain(r) for r in roots}
+
+    # Responsible crawling: honest UA + robots.txt + polite rate-limit (all configurable).
+    user_agent = conf.get("user_agent") or REAL_UA
+    gate = RobotsGate(bool(conf.get("respect_robots", True)), user_agent,
+                      float(conf.get("request_delay_seconds") or 0.0))
+    robots_skipped = 0
 
     visited: set[str] = set()
     queue: deque[tuple[str, int]] = deque((r, 0) for r in roots)
@@ -206,7 +273,7 @@ def _crawl(company_name, roots, conf, storage):
             "--disable-blink-features=AutomationControlled",
         ])
         context = browser.new_context(
-            user_agent=REAL_UA,
+            user_agent=user_agent,
             locale="en-US",
             timezone_id="America/New_York",
             viewport={"width": 1366, "height": 900},
@@ -220,6 +287,13 @@ def _crawl(company_name, roots, conf, storage):
                 if url in visited:
                     continue
                 visited.add(url)
+                if not gate.allowed(url):
+                    robots_skipped += 1
+                    log.info("robots.txt disallows — skipping %s", url)
+                    continue
+                wait = gate.delay(url)   # polite rate-limit (honors robots Crawl-delay)
+                if wait:
+                    time.sleep(wait)
                 try:
                     page.goto(url, wait_until="domcontentloaded", timeout=15000)
                     page.wait_for_timeout(1200)  # let SPA + any anti-bot sensor run
@@ -287,6 +361,8 @@ def _crawl(company_name, roots, conf, storage):
     manifest = {
         "company": company_name, "roots": roots,
         "pages": page_count, "files": file_idx, "images": img_total,
+        "robots_skipped": robots_skipped, "user_agent": user_agent,
+        "respect_robots": gate.enabled, "request_delay_seconds": gate.default_delay,
         "completed_at": _now(),
     }
     storage.write_text(f"{folder}/__COMPLETED__/manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
