@@ -10,4 +10,6 @@ import java.util.List;
 public interface ResourceGraphNodeRepository extends JpaRepository<ResourceGraphNodeEntity, String> {
 
     List<ResourceGraphNodeEntity> findByCompanyId(String companyId);
+
+    List<ResourceGraphNodeEntity> findByCompanyIdAndResourceType(String companyId, String resourceType);
 }

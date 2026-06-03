@@ -48,6 +48,30 @@ public class SnapshotService {
     public record ImageData(byte[] data, String contentType) {
     }
 
+    /** Lightweight page reference (no text/images) for registering pages as graph rows. */
+    public record PageRef(String url, String title, int depth) {
+    }
+
+    /** Read every page's url/title/depth across all crawl files (used by graph registration). */
+    public List<PageRef> collectPageRefs(String company) {
+        Path dir = resolveCompanyDir(company);
+        List<PageRef> out = new ArrayList<>();
+        for (Path f : crawlFiles(dir)) {
+            JsonNode arr = readJson(f);
+            if (arr == null || !arr.isArray()) {
+                continue;
+            }
+            for (JsonNode el : arr) {
+                String url = el.path("url").asText(null);
+                if (url == null || url.isBlank()) {
+                    continue;
+                }
+                out.add(new PageRef(url, el.path("title").asText(null), el.path("depth").asInt(0)));
+            }
+        }
+        return out;
+    }
+
     public void listCompanies(ListSnapshotsCtx ctx) {
         Path base = Path.of(snapshotDir);
         List<SnapshotCompanyDTO> out = new ArrayList<>();

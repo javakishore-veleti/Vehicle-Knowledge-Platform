@@ -35,4 +35,8 @@ public final class ApiRoutes {
     public static final String SNAPSHOTS = API_BASE + "/snapshots";
     public static final String SNAPSHOT_PAGES = SNAPSHOTS + "/{company}/pages";
     public static final String SNAPSHOT_IMAGE = SNAPSHOTS + "/{company}/images/{imageId}";
+
+    /** Register a company's snapshot pages as company_resource_graph rows (stable doc PKs). */
+    public static final String SNAPSHOT_REGISTER =
+            API_BASE + "/companies/{companyId}/snapshots/{company}/register";
 }

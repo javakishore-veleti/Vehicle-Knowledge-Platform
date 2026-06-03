@@ -12,6 +12,9 @@ import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredRespDT
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphCtx;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.ResourceGraphNodeDTO;
+import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotCtx;
+import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotReqDTO;
+import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusCtx;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusRespDTO;
@@ -35,6 +38,8 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Control plane for link discovery. It records the resource-graph root and triggers the
@@ -50,10 +55,13 @@ public class DataCollectionService {
     private static final String SNAPSHOT_DAG_ID = "vkp_crawl_company_snapshot";
     private static final String SEED_RESOURCE_TYPE = "SEED";
     private static final String LINK_RESOURCE_TYPE = "LINK";
+    private static final String SNAPSHOT_PAGE_TYPE = "SNAPSHOT_PAGE";
+    private static final String CRAWLED_STATUS = "CRAWLED";
     private static final int MAX_URL_LEN = 1000;
 
     private final ResourceGraphNodeRepository graphRepository;
     private final AirflowAdapterClient adapterClient;
+    private final SnapshotService snapshotService;
 
     /** Base URL the DAG (running in the Airflow container) uses to call back into this service. */
     @Value("${datacollection.callback-base-url:http://host.docker.internal:8084}")
@@ -145,6 +153,51 @@ public class DataCollectionService {
                 .map(ResourceGraphNodeMapper::toDTO)
                 .toList();
         ctx.setRespDTO(new GetGraphRespDTO(nodes, nodes.size()));
+    }
+
+    /**
+     * Register a company's filesystem-snapshot pages as {@code company_resource_graph} rows
+     * (resource_type {@code SNAPSHOT_PAGE}) so each page has a stable PK the admin UI can select
+     * for targeted indexing. Idempotent: pages already registered (by URL) are skipped.
+     */
+    @Transactional
+    public void registerSnapshotAsGraph(RegisterSnapshotCtx ctx) {
+        RegisterSnapshotReqDTO req = ctx.getReqDTO();
+        String actor = AuditUtils.actorOrDefault(req.getTriggeredBy());
+        String companyResourceId = req.getCompanyResourceId() != null ? req.getCompanyResourceId() : req.getCompanyId();
+        Instant now = Instant.now();
+
+        Set<String> seen = graphRepository
+                .findByCompanyIdAndResourceType(req.getCompanyId(), SNAPSHOT_PAGE_TYPE).stream()
+                .map(ResourceGraphNodeEntity::getResourceUrl)
+                .collect(Collectors.toCollection(java.util.HashSet::new));
+
+        List<SnapshotService.PageRef> refs = snapshotService.collectPageRefs(req.getCompany());
+        int registered = 0;
+        int skipped = 0;
+        for (SnapshotService.PageRef ref : refs) {
+            String url = ref.url().length() > MAX_URL_LEN ? ref.url().substring(0, MAX_URL_LEN) : ref.url();
+            if (!seen.add(url)) {     // already registered or duplicate within this snapshot
+                skipped++;
+                continue;
+            }
+            graphRepository.save(ResourceGraphNodeEntity.builder()
+                    .resourceGraphId(IdGenerator.newId())
+                    .companyId(req.getCompanyId())
+                    .companyResourceId(companyResourceId)
+                    .resourceUrl(url)
+                    .resourceType(SNAPSHOT_PAGE_TYPE)
+                    .crawlStatus(CRAWLED_STATUS)
+                    .status(Status.DEFAULT)
+                    .createdDt(now).updatedDt(now)
+                    .createdBy(actor).updatedBy(actor)
+                    .build());
+            registered++;
+        }
+        log.info("Registered {} snapshot page(s) as graph rows for company {} (skipped {} existing)",
+                registered, req.getCompanyId(), skipped);
+        ctx.setRespDTO(RegisterSnapshotRespDTO.builder()
+                .registered(registered).skipped(skipped).total(refs.size()).build());
     }
 
     public void triggerCrawl(TriggerCrawlCtx ctx) {

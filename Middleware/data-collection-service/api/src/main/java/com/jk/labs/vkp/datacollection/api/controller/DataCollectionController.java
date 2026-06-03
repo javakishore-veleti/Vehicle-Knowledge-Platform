@@ -13,6 +13,9 @@ import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredRespDT
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphCtx;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphRespDTO;
+import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotCtx;
+import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotReqDTO;
+import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusCtx;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.status.GetStatusRespDTO;
@@ -78,6 +81,19 @@ public class DataCollectionController {
         GetGraphCtx ctx = new GetGraphCtx();
         ctx.setReqDTO(new GetGraphReqDTO(companyId));
         dataCollectionService.getGraph(ctx);
+        return ctx.getRespDTO();
+    }
+
+    @PostMapping(ApiRoutes.SNAPSHOT_REGISTER)
+    public RegisterSnapshotRespDTO registerSnapshot(@PathVariable String companyId,
+                                                    @PathVariable String company,
+                                                    @RequestBody(required = false) RegisterSnapshotReqDTO body) {
+        RegisterSnapshotReqDTO req = body != null ? body : new RegisterSnapshotReqDTO();
+        req.setCompanyId(companyId);
+        req.setCompany(company);
+        RegisterSnapshotCtx ctx = new RegisterSnapshotCtx();
+        ctx.setReqDTO(req);
+        dataCollectionService.registerSnapshotAsGraph(ctx);
         return ctx.getRespDTO();
     }
 

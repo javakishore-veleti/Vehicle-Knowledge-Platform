@@ -28,6 +28,7 @@ from airflow.operators.python import PythonOperator
 log = logging.getLogger(__name__)
 
 PAGES_PATH = "/admin/data-collection/service/v1/snapshots/{company}/pages"
+GRAPH_PATH = "/admin/data-collection/service/v1/companies/{company_id}/resource-graph"
 CALLBACK_PATH = "/admin/indexing/service/v1/index-logs/{log_id}/callback"
 DEFAULT_DIM = 384
 PAGE_LIMIT = 100
@@ -59,6 +60,16 @@ def _fetch_pages(base_url: str, company: str) -> list[dict]:
         if offset >= total or not rows:
             break
     return pages
+
+
+def _allowed_urls(base_url: str, company_id: str, doc_ids: list) -> set | None:
+    """Map selected resource_graph PKs -> their URLs. None = index the whole company."""
+    if not doc_ids:
+        return None
+    url = f"{base_url.rstrip('/')}{GRAPH_PATH.format(company_id=company_id)}"
+    nodes = json.loads(_get(url)).get("nodes", [])
+    wanted = set(doc_ids)
+    return {n.get("resourceUrl") for n in nodes if n.get("resourceGraphId") in wanted}
 
 
 def _chunk(text: str, size: int, overlap: int) -> list[str]:
@@ -95,8 +106,13 @@ def index_company(**context):
         model_id = model_name if "/" in model_name else f"sentence-transformers/{model_name}"
         log.info("Indexing company '%s' -> %s (model=%s dim=%d)", company_name, vector_target, model_id, dim)
 
+        allowed = _allowed_urls(dc_base, company_id, conf.get("doc_ids") or [])
         pages = _fetch_pages(dc_base, company_name)
-        log.info("Fetched %d snapshot page(s)", len(pages))
+        if allowed is not None:
+            pages = [p for p in pages if p.get("url") in allowed]
+            log.info("Doc selection: %d of the company's pages match %d selected id(s)", len(pages), len(allowed))
+        else:
+            log.info("Whole-company scope: %d snapshot page(s)", len(pages))
 
         records = []  # (source_url, chunk_index, chunk_text)
         for p in pages:
