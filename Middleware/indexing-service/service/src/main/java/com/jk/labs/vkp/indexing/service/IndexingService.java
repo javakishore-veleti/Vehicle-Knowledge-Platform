@@ -116,7 +116,15 @@ public class IndexingService {
             runRef = "wfs-" + logId;
             markInProgress(logRow, runRef, now);
             try {
-                wfsClient.execute(wf.getTargetRef(), logId, WfsClient.params(req.getCompanyId(), req.getDocIds(), scope));
+                java.util.Map<String, Object> rp = new java.util.LinkedHashMap<>();
+                rp.put("companyId", req.getCompanyId());
+                rp.put("companyName", req.getCompanyName());
+                rp.put("scope", scope);
+                rp.put("docIds", req.getDocIds() == null ? List.of() : req.getDocIds());
+                rp.put("vectorTarget", vectorTarget);
+                rp.put("embeddingModel", formula.getEmbeddingModel());
+                rp.put("params", formula.getParams());
+                wfsClient.execute(wf.getTargetRef(), logId, rp);
             } catch (RuntimeException ex) {
                 fail(logRow, ex.getMessage());
                 ctx.setRespDTO(new TriggerIndexRespDTO(logId, wf.getWfType(), IndexStatus.FAILED.name(),

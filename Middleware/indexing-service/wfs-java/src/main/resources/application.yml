@@ -5,10 +5,24 @@ server:
 spring:
   application:
     name: indexing-service-wfs-java
+  # pgVector datasource for vector writes (vec_<model> tables). Startup tolerates pg being down.
+  datasource:
+    url: ${WFS_PG_URL:jdbc:postgresql://localhost:5432/vkp}
+    username: ${WFS_PG_USER:vkp}
+    password: ${WFS_PG_PASSWORD:vkp}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 0
+      connection-timeout: 5000
+      initialization-fail-timeout: -1
 
-# Control-plane base URL for status callbacks.
+# Executor settings.
 wfs:
   control-base-url: ${WFS_CONTROL_BASE_URL:http://localhost:8086}
+  data-collection-base-url: ${WFS_DC_BASE_URL:http://localhost:8084}
+  chunk-size: 512
+  chunk-overlap: 64
+  dim: 384
 
 management:
   endpoints:

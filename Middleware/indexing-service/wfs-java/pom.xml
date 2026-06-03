@@ -14,7 +14,38 @@
   <name>indexing-service-wfs-java</name>
   <description>Horizontally-scalable Spring-AI executor for indexing workflows (port 8087)</description>
 
+  <properties>
+    <spring-ai.version>1.0.0</spring-ai.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
+    <!-- Spring AI local ONNX embeddings (sentence-transformers/all-MiniLM-L6-v2, 384d, no API key) -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-transformers</artifactId>
+    </dependency>
+    <!-- pgVector write via JdbcTemplate (same vec_<model> schema as the Airflow route) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
