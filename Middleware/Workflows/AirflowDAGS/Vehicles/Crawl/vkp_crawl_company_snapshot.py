@@ -120,6 +120,14 @@ def _host(url: str) -> str:
     return urlparse(url).netloc.lower().removeprefix("www.")
 
 
+def _reg_domain(url_or_host: str) -> str:
+    """Registered domain (eTLD+1 heuristic): last two labels, e.g.
+    automobiles.honda.com -> honda.com. Lets a root on one subdomain crawl its siblings."""
+    host = url_or_host if "/" not in url_or_host else urlparse(url_or_host).netloc
+    parts = host.split(":")[0].lower().split(".")
+    return ".".join(parts[-2:]) if len(parts) >= 2 else host
+
+
 def _folder(name: str) -> str:
     return re.sub(r"[^\w .\-]", "_", name).strip() or "company"
 
@@ -148,7 +156,8 @@ def _crawl(company_name, roots, conf, storage):
     max_pages = int(conf.get("max_pages") or 25)
     max_depth = int(conf.get("max_depth") or 1)
     max_img = int(conf.get("max_images_per_page") or 8)
-    allowed = {_host(r) for r in roots}
+    # Stay within each root's registered domain (e.g. honda.com), across subdomains.
+    allowed = {_reg_domain(r) for r in roots}
 
     visited: set[str] = set()
     queue: deque[tuple[str, int]] = deque((r, 0) for r in roots)
@@ -177,12 +186,13 @@ def _crawl(company_name, roots, conf, storage):
                     continue
                 visited.add(url)
                 try:
-                    page.goto(url, wait_until="domcontentloaded", timeout=25000)
-                    page.wait_for_timeout(900)  # let some JS settle
+                    page.goto(url, wait_until="domcontentloaded", timeout=15000)
+                    page.wait_for_timeout(800)  # let SPA links/content render
                 except Exception as exc:  # noqa: BLE001
                     log.warning("goto failed %s: %s", url, exc)
                     continue
                 page_count += 1
+                log.info("[%d/%d] depth=%d queued=%d  %s", page_count, max_pages, depth, len(queue), url)
 
                 title = (page.title() or "")[:250]
                 text = (page.inner_text("body") or "")[:MAX_TEXT]
@@ -198,7 +208,7 @@ def _crawl(company_name, roots, conf, storage):
                         continue
                     seen_src.add(src)
                     try:
-                        resp = context.request.get(src, timeout=15000)
+                        resp = context.request.get(src, timeout=8000)
                         if not resp.ok:
                             continue
                         data = resp.body()
@@ -222,7 +232,7 @@ def _crawl(company_name, roots, conf, storage):
                 if depth < max_depth:
                     for href in links:
                         nxt = (href or "").split("#")[0]
-                        if nxt.startswith("http") and _host(nxt) in allowed and nxt not in visited:
+                        if nxt.startswith("http") and _reg_domain(nxt) in allowed and nxt not in visited:
                             queue.append((nxt, depth + 1))
         finally:
             browser.close()
