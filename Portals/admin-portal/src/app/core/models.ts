@@ -9,6 +9,17 @@ export interface Company {
   updatedDt?: string;
 }
 
+export interface CompanyResource {
+  companyResourceId?: string;
+  companyId?: string;
+  resourceName: string;
+  resourceLink: string;
+  resourceType?: string;
+  status?: string;
+  createdDt?: string;
+  updatedDt?: string;
+}
+
 export interface WorkflowRun {
   dagId: string;
   dagRunId: string;

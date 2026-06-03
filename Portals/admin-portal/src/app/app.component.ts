@@ -49,7 +49,7 @@ export class AppComponent {
 
   private readonly companiesMenu: MenuItem[] = [
     { label: 'Companies', icon: 'pi pi-building', routerLink: '/companies' },
-    { label: 'Resources', icon: 'pi pi-link', disabled: true }
+    { label: 'Resources', icon: 'pi pi-link', routerLink: '/companies/resources' }
   ];
 
   private readonly dataMenu: MenuItem[] = [
