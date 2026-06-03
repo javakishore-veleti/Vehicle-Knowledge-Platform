@@ -48,6 +48,22 @@ BATCH = 250
 COMPANY_PATH = "/admin/company/service/v1/crud/companies/{cid}"
 RESOURCES_PATH = "/admin/company/service/v1/crud/companies/{cid}/resources"
 
+# Look like a real browser to reduce anti-bot (Akamai etc.) blocks. Not guaranteed.
+REAL_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+           "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
+BLOCK_MARKERS = ("access denied", "pardon our interruption", "unusual traffic",
+                 "are you a human", "verify you are human", "request unsuccessful")
+# Masks the most obvious automation tells before any page script runs.
+STEALTH_JS = """
+Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+window.chrome = window.chrome || { runtime: {} };
+const _q = window.navigator.permissions && window.navigator.permissions.query;
+if (_q) { window.navigator.permissions.query = (p) =>
+  p && p.name === 'notifications' ? Promise.resolve({state: Notification.permission}) : _q(p); }
+"""
+
 _CT_EXT = {
     "image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png", "image/gif": ".gif",
     "image/webp": ".webp", "image/svg+xml": ".svg", "image/avif": ".avif", "image/bmp": ".bmp",
@@ -132,6 +148,15 @@ def _folder(name: str) -> str:
     return re.sub(r"[^\w .\-]", "_", name).strip() or "company"
 
 
+def _looks_blocked(page) -> bool:
+    try:
+        title = (page.title() or "").lower()
+        body = (page.inner_text("body") or "")[:400].lower()
+    except Exception:  # noqa: BLE001
+        return False
+    return any(m in title or m in body for m in BLOCK_MARKERS)
+
+
 def _ext(content_type: str, url: str) -> str:
     ext = _CT_EXT.get((content_type or "").split(";")[0].strip().lower())
     if ext:
@@ -176,8 +201,18 @@ def _crawl(company_name, roots, conf, storage):
         elements = []
 
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
-        context = browser.new_context(user_agent="VKP-Crawler/0.1 (+vehicle-knowledge-platform)")
+        browser = pw.chromium.launch(headless=True, args=[
+            "--no-sandbox", "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled",
+        ])
+        context = browser.new_context(
+            user_agent=REAL_UA,
+            locale="en-US",
+            timezone_id="America/New_York",
+            viewport={"width": 1366, "height": 900},
+            extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
+        )
+        context.add_init_script(STEALTH_JS)
         page = context.new_page()
         try:
             while queue and page_count < max_pages:
@@ -187,12 +222,20 @@ def _crawl(company_name, roots, conf, storage):
                 visited.add(url)
                 try:
                     page.goto(url, wait_until="domcontentloaded", timeout=15000)
-                    page.wait_for_timeout(800)  # let SPA links/content render
+                    page.wait_for_timeout(1200)  # let SPA + any anti-bot sensor run
+                    if _looks_blocked(page):
+                        # Akamai-style: first hit denied, then the sensor cookie is set —
+                        # a reload often passes.
+                        page.wait_for_timeout(2500)
+                        page.reload(wait_until="domcontentloaded", timeout=15000)
+                        page.wait_for_timeout(1500)
                 except Exception as exc:  # noqa: BLE001
                     log.warning("goto failed %s: %s", url, exc)
                     continue
                 page_count += 1
-                log.info("[%d/%d] depth=%d queued=%d  %s", page_count, max_pages, depth, len(queue), url)
+                blocked = _looks_blocked(page)
+                log.info("[%d/%d] depth=%d queued=%d%s  %s",
+                         page_count, max_pages, depth, len(queue), " BLOCKED" if blocked else "", url)
 
                 title = (page.title() or "")[:250]
                 text = (page.inner_text("body") or "")[:MAX_TEXT]
