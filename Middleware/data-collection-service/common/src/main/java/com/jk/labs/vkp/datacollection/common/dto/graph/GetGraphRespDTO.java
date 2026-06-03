@@ -13,5 +13,7 @@ import java.util.List;
 public class GetGraphRespDTO {
 
     private List<ResourceGraphNodeDTO> nodes = new ArrayList<>();
-    private int count;
+    private int count;          // size of this page (or full set when unpaginated)
+    private long total;         // total rows for the company (for server-side paginators)
+    private int offset;         // offset of this page
 }

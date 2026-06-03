@@ -10,6 +10,7 @@ import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredCtx;
 import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphCtx;
+import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.GetGraphRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.graph.ResourceGraphNodeDTO;
 import com.jk.labs.vkp.datacollection.common.dto.register.RegisterSnapshotCtx;
@@ -30,6 +31,9 @@ import com.jk.labs.vkp.datacollection.utils.AuditUtils;
 import com.jk.labs.vkp.datacollection.utils.IdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -148,11 +152,24 @@ public class DataCollectionService {
 
     @Transactional(readOnly = true)
     public void getGraph(GetGraphCtx ctx) {
-        String companyId = ctx.getReqDTO().getCompanyId();
+        GetGraphReqDTO req = ctx.getReqDTO();
+        String companyId = req.getCompanyId();
+        // Opt-in server-side paging: with a limit the graph (potentially 100k+ rows) is paged;
+        // without one the full set is returned (executors resolving doc ids rely on that).
+        if (req.getLimit() != null && req.getLimit() > 0) {
+            int limit = req.getLimit();
+            int offset = req.getOffset() == null ? 0 : Math.max(0, req.getOffset());
+            Page<ResourceGraphNodeEntity> page = graphRepository.findByCompanyId(companyId,
+                    PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.ASC, "createdDt")));
+            List<ResourceGraphNodeDTO> nodes = page.getContent().stream()
+                    .map(ResourceGraphNodeMapper::toDTO).toList();
+            ctx.setRespDTO(new GetGraphRespDTO(nodes, nodes.size(), page.getTotalElements(), offset));
+            return;
+        }
         List<ResourceGraphNodeDTO> nodes = graphRepository.findByCompanyId(companyId).stream()
                 .map(ResourceGraphNodeMapper::toDTO)
                 .toList();
-        ctx.setRespDTO(new GetGraphRespDTO(nodes, nodes.size()));
+        ctx.setRespDTO(new GetGraphRespDTO(nodes, nodes.size(), nodes.size(), 0));
     }
 
     /**

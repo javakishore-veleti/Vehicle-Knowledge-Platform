@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -77,9 +78,11 @@ public class DataCollectionController {
     }
 
     @GetMapping(ApiRoutes.RESOURCE_GRAPH)
-    public GetGraphRespDTO resourceGraph(@PathVariable String companyId) {
+    public GetGraphRespDTO resourceGraph(@PathVariable String companyId,
+                                         @RequestParam(required = false) Integer offset,
+                                         @RequestParam(required = false) Integer limit) {
         GetGraphCtx ctx = new GetGraphCtx();
-        ctx.setReqDTO(new GetGraphReqDTO(companyId));
+        ctx.setReqDTO(new GetGraphReqDTO(companyId, offset, limit));
         dataCollectionService.getGraph(ctx);
         return ctx.getRespDTO();
     }

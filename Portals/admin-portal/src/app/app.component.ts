@@ -49,7 +49,8 @@ export class AppComponent {
 
   private readonly companiesMenu: MenuItem[] = [
     { label: 'Companies', icon: 'pi pi-building', routerLink: '/companies' },
-    { label: 'Resources', icon: 'pi pi-link', routerLink: '/companies/resources' }
+    { label: 'Resources', icon: 'pi pi-link', routerLink: '/companies/resources' },
+    { label: 'Resource Graph', icon: 'pi pi-sitemap', routerLink: '/companies/graph' }
   ];
 
   private readonly dataMenu: MenuItem[] = [
