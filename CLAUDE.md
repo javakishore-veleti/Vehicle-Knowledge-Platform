@@ -128,6 +128,15 @@ present (`docker images`) over introducing a new one.
 > (Python, stdlib only). **Pipeline verified live: Companies → Discovery → Ingestion.**
 > Pattern to repeat: a **Java service** owns the data model + triggers via the adapter; the
 > **Python DAG** does the actual work and calls back to persist.
+>
+> **Snapshot crawl** — `Crawl/vkp_crawl_company_snapshot.py` does a real **Playwright/Chromium**
+> recursive crawl (pulls a company's root links from company-service) and writes a **filesystem
+> snapshot** (NOT Postgres) under `~/runtime_data/ai_projects/Vehicle-Knowledge-Platform/
+> Crawling-Snapshot/<Company>/`: `crawl-NNNNN.json` (≤250 page elements each), `images/<uuid>.<ext>`,
+> and `__COMPLETED__/manifest.json` (its presence makes re-runs skip — so dropping Postgres never
+> forces a re-crawl). Storage is pluggable via `conf.storage_backend` (`local` now; `s3`/`azure`/`gcs`
+> stubs for cloud). Requires the **custom Airflow image** (`DevOps/Localhost/Airflow/Dockerfile`:
+> Airflow + Playwright + Chromium) and the snapshot host-dir volume mount (both in the Airflow compose).
 
 Every Spring Boot microservice is a **multi-module Maven project** with these modules:
 

@@ -5,7 +5,12 @@
 # DAGs are mounted from Middleware/Workflows/AirflowDAGS, which is organized
 # categorically (e.g. Vehicles/DataCollection, Vehicles/Ingestion).
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.10.0-python3.12
+  # Custom image: Airflow + Playwright/Chromium (see Dockerfile). Build with:
+  #   docker compose -f DevOps/Localhost/Airflow/docker-compose.yaml build
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: vkp-airflow:2.10.0-playwright
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
@@ -16,10 +21,15 @@ x-airflow-common: &airflow-common
     # Enable HTTP basic auth on the REST API so airflow-adapter-service can authenticate
     # (admin/admin). Session backend kept for the web UI.
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
+    # Where the crawl DAG writes filesystem snapshots (mounted from the host below).
+    VKP_CRAWL_SNAPSHOT_DIR: /opt/airflow/crawl-snapshot
   volumes:
     # Mount the categorically-organized DAG tree (recursively discovered by Airflow).
     - ../../../Middleware/Workflows/AirflowDAGS:/opt/airflow/dags
     - vkp-airflow-logs:/opt/airflow/logs
+    # Crawl snapshots persist on the host (outside the repo), so deleting Postgres
+    # never forces a re-crawl. Cloud (S3/Blob/GCS) is a storage-toggle alternative.
+    - ${HOME}/runtime_data/ai_projects/Vehicle-Knowledge-Platform/Crawling-Snapshot:/opt/airflow/crawl-snapshot
   depends_on:
     airflow-postgres:
       condition: service_healthy
