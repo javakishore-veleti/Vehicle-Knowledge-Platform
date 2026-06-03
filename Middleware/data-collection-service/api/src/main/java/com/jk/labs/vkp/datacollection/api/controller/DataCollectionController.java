@@ -1,6 +1,9 @@
 package com.jk.labs.vkp.datacollection.api.controller;
 
 import com.jk.labs.vkp.datacollection.common.api.ApiRoutes;
+import com.jk.labs.vkp.datacollection.common.dto.crawl.TriggerCrawlCtx;
+import com.jk.labs.vkp.datacollection.common.dto.crawl.TriggerCrawlReqDTO;
+import com.jk.labs.vkp.datacollection.common.dto.crawl.TriggerCrawlRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverCtx;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverRespDTO;
@@ -47,6 +50,18 @@ public class DataCollectionController {
         DiscoverCtx ctx = new DiscoverCtx();
         ctx.setReqDTO(req);
         dataCollectionService.discover(ctx);
+        return ctx.getRespDTO();
+    }
+
+    @PostMapping(ApiRoutes.CRAWL)
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public TriggerCrawlRespDTO crawl(@PathVariable String companyId,
+                                     @RequestBody(required = false) TriggerCrawlReqDTO body) {
+        TriggerCrawlReqDTO req = body != null ? body : new TriggerCrawlReqDTO();
+        req.setCompanyId(companyId);
+        TriggerCrawlCtx ctx = new TriggerCrawlCtx();
+        ctx.setReqDTO(req);
+        dataCollectionService.triggerCrawl(ctx);
         return ctx.getRespDTO();
     }
 

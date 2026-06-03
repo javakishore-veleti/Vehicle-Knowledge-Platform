@@ -3,6 +3,9 @@ package com.jk.labs.vkp.datacollection.service;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverCtx;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.DiscoverRespDTO;
+import com.jk.labs.vkp.datacollection.common.dto.crawl.TriggerCrawlCtx;
+import com.jk.labs.vkp.datacollection.common.dto.crawl.TriggerCrawlReqDTO;
+import com.jk.labs.vkp.datacollection.common.dto.crawl.TriggerCrawlRespDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredCtx;
 import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredReqDTO;
 import com.jk.labs.vkp.datacollection.common.dto.discover.RecordDiscoveredRespDTO;
@@ -44,6 +47,7 @@ import java.util.Map;
 public class DataCollectionService {
 
     private static final String DISCOVER_DAG_ID = "vkp_discover_resources";
+    private static final String SNAPSHOT_DAG_ID = "vkp_crawl_company_snapshot";
     private static final String SEED_RESOURCE_TYPE = "SEED";
     private static final String LINK_RESOURCE_TYPE = "LINK";
     private static final int MAX_URL_LEN = 1000;
@@ -54,6 +58,10 @@ public class DataCollectionService {
     /** Base URL the DAG (running in the Airflow container) uses to call back into this service. */
     @Value("${datacollection.callback-base-url:http://host.docker.internal:8084}")
     private String callbackBaseUrl;
+
+    /** company-service base URL the snapshot crawl DAG uses to fetch a company's root links. */
+    @Value("${datacollection.company-base-url:http://host.docker.internal:8081}")
+    private String companyBaseUrl;
 
     @Transactional
     public void discover(DiscoverCtx ctx) {
@@ -137,6 +145,24 @@ public class DataCollectionService {
                 .map(ResourceGraphNodeMapper::toDTO)
                 .toList();
         ctx.setRespDTO(new GetGraphRespDTO(nodes, nodes.size()));
+    }
+
+    public void triggerCrawl(TriggerCrawlCtx ctx) {
+        TriggerCrawlReqDTO req = ctx.getReqDTO();
+        String actor = AuditUtils.actorOrDefault(req.getTriggeredBy());
+        Map<String, Object> conf = new LinkedHashMap<>();
+        conf.put("company_id", req.getCompanyId());
+        conf.put("company_base_url", companyBaseUrl);
+        if (req.getMaxPages() > 0) {
+            conf.put("max_pages", req.getMaxPages());
+        }
+        if (req.getMaxDepth() > 0) {
+            conf.put("max_depth", req.getMaxDepth());
+        }
+        AirflowAdapterClient.DagRunRef run = adapterClient.triggerDag(SNAPSHOT_DAG_ID, conf, actor);
+        log.info("Snapshot crawl triggered: company={} -> dagRun={}", req.getCompanyId(), run.dagRunId());
+        ctx.setRespDTO(new TriggerCrawlRespDTO(
+                run.dagId() != null ? run.dagId() : SNAPSHOT_DAG_ID, run.dagRunId(), run.state()));
     }
 
     public void listWorkflows(ListWorkflowsCtx ctx) {

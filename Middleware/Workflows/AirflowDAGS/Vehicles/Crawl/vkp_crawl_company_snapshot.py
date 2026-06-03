@@ -22,7 +22,7 @@ DAG deployed in AWS/Azure/GCP writes to S3 / Blob / GCS instead.
 Expected conf:
   { "company_id": "<uuid>",
     "company_base_url": "http://host.docker.internal:8081",   # company-service (roots source)
-    "max_pages": 25, "max_depth": 1, "max_images_per_page": 8,
+    "max_pages": 1000, "max_depth": 100, "max_images_per_page": 8,
     "storage_backend": "local", "storage_location": null }
 """
 from __future__ import annotations
@@ -153,8 +153,8 @@ def _crawl(company_name, roots, conf, storage):
         log.info("Snapshot for '%s' already completed — skipping.", company_name)
         return {"skipped": True, "company": company_name}
 
-    max_pages = int(conf.get("max_pages") or 25)
-    max_depth = int(conf.get("max_depth") or 1)
+    max_pages = int(conf.get("max_pages") or 1000)
+    max_depth = int(conf.get("max_depth") or 100)
     max_img = int(conf.get("max_images_per_page") or 8)
     # Stay within each root's registered domain (e.g. honda.com), across subdomains.
     allowed = {_reg_domain(r) for r in roots}
