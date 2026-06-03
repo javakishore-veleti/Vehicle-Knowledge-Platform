@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import frameworks
+from . import config, frameworks
 
 app = FastAPI(title="VKP Vehicle Explore Service", version="0.1.0")
 
@@ -26,6 +26,7 @@ class SearchReq(BaseModel):
     query: str
     companyId: Optional[str] = None
     topK: int = 5
+    store: Optional[str] = None   # pgvector | mongodb (defaults to VKP_VECTOR_STORE)
 
 
 @app.get("/health")
@@ -48,11 +49,20 @@ def search(framework_name: str, req: SearchReq):
     if not req.query or not req.query.strip():
         raise HTTPException(status_code=400, detail="query is required")
     top_k = max(1, min(req.topK, 20))
-    answer, results = frameworks.run(framework_name, req.query.strip(), req.companyId, top_k)
+    store = (req.store or config.DEFAULT_STORE).lower()
+    if store not in ("pgvector", "mongodb"):
+        raise HTTPException(status_code=400, detail="store must be 'pgvector' or 'mongodb'")
+    try:
+        answer, answer_source, results = frameworks.run(
+            framework_name, req.query.strip(), req.companyId, top_k, store)
+    except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
+        raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
     return {
         "framework": framework_name,
+        "store": store,
         "query": req.query,
         "answer": answer,
+        "answerSource": answer_source,
         "results": results,
         "count": len(results),
     }
