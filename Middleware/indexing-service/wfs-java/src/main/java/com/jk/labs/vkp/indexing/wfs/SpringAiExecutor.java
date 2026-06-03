@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.transformers.TransformersEmbeddingModel;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +27,8 @@ public class SpringAiExecutor {
 
     private final WfsControlClient control;
     private final SnapshotReader snapshots;
-    private final VectorWriter vectors;
-    private final TransformersEmbeddingModel embeddingModel;
+    private final EmbeddingModels embeddingModels;
+    private final VectorStores vectorStores;
     private final WfsProperties props;
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -52,6 +52,14 @@ public class SpringAiExecutor {
                 dim = params.path("dim").asInt(dim);
             }
 
+            // Config-driven provider + store: formula picks the embedding model and the vector store.
+            String provider = str(rp, "embeddingProvider");
+            String modelName = str(rp, "embeddingModel");
+            String store = str(rp, "indexedTo");
+            EmbeddingModel model = embeddingModels.resolve(provider, modelName);
+            VectorStoreWriter writer = vectorStores.resolve(store);
+            log.info("Provider={} model={} -> store={} target={} (dim={})", provider, modelName, writer.store(), vectorTarget, dim);
+
             @SuppressWarnings("unchecked")
             List<String> docIds = (List<String>) rp.getOrDefault("docIds", List.of());
             Set<String> allowed = snapshots.allowedUrls(companyId, docIds);
@@ -65,12 +73,12 @@ public class SpringAiExecutor {
             }
 
             List<String> texts = new ArrayList<>();
-            List<VectorWriter.Row> rows = new ArrayList<>();
+            List<VectorStoreWriter.Row> rows = new ArrayList<>();
             for (SnapshotReader.Page p : pages) {
                 List<String> chunks = chunk(p.getText(), chunkSize, chunkOverlap);
                 for (int ci = 0; ci < chunks.size(); ci++) {
                     texts.add(chunks.get(ci));
-                    rows.add(new VectorWriter.Row(p.getUrl(), ci, chunks.get(ci), null));
+                    rows.add(new VectorStoreWriter.Row(p.getUrl(), ci, chunks.get(ci), null));
                 }
             }
             if (rows.isEmpty()) {
@@ -79,17 +87,17 @@ public class SpringAiExecutor {
                 return;
             }
 
-            List<float[]> embeddings = embeddingModel.embed(texts);
-            List<VectorWriter.Row> finalRows = new ArrayList<>(rows.size());
+            List<float[]> embeddings = model.embed(texts);
+            List<VectorStoreWriter.Row> finalRows = new ArrayList<>(rows.size());
             for (int i = 0; i < rows.size(); i++) {
-                VectorWriter.Row r = rows.get(i);
-                finalRows.add(new VectorWriter.Row(r.url(), r.chunkIndex(), r.text(), embeddings.get(i)));
+                VectorStoreWriter.Row r = rows.get(i);
+                finalRows.add(new VectorStoreWriter.Row(r.url(), r.chunkIndex(), r.text(), embeddings.get(i)));
             }
-            vectors.writeCompany(vectorTarget, dim, companyId, finalRows);
+            writer.writeCompany(vectorTarget, dim, companyId, finalRows);
 
             control.callback(indexLogId, "INDEXED", finalRows.size(), null, runRef);
-            log.info("Executor '{}' indexed {} chunk(s) into {} for log {}",
-                    executorId, finalRows.size(), vectorTarget, indexLogId);
+            log.info("Executor '{}' indexed {} chunk(s) into {} ({}) for log {}",
+                    executorId, finalRows.size(), vectorTarget, writer.store(), indexLogId);
         } catch (Exception e) {  // noqa: BLE001
             log.error("Executor '{}' failed for log {}", executorId, indexLogId, e);
             control.callback(indexLogId, "FAILED", null, e.getMessage(), runRef);

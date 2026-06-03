@@ -28,7 +28,7 @@ from airflow.operators.python import PythonOperator
 
 log = logging.getLogger(__name__)
 
-MAX_LINKS = 25
+MAX_LINKS = 25000
 CALLBACK_PATH = "/admin/data-collection/service/v1/graph/record"
 
 

@@ -94,7 +94,7 @@ public class IndexingService {
 
         String scope = (req.getDocIds() == null || req.getDocIds().isEmpty()) ? "WHOLE" : "SELECTED";
         int docCount = "SELECTED".equals(scope) ? req.getDocIds().size() : 0;
-        String indexedTo = props.getDefaultVectorStore();
+        String indexedTo = formula.getVectorStore() != null ? formula.getVectorStore() : props.getDefaultVectorStore();
         String vectorTarget = "vec_" + sanitize(formula.getEmbeddingModel());
         Instant now = Instant.now();
         String logId = IdGenerator.newId();
@@ -122,7 +122,9 @@ public class IndexingService {
                 rp.put("scope", scope);
                 rp.put("docIds", req.getDocIds() == null ? List.of() : req.getDocIds());
                 rp.put("vectorTarget", vectorTarget);
+                rp.put("embeddingProvider", formula.getEmbeddingProvider());
                 rp.put("embeddingModel", formula.getEmbeddingModel());
+                rp.put("indexedTo", indexedTo);
                 rp.put("params", formula.getParams());
                 wfsClient.execute(wf.getTargetRef(), logId, rp);
             } catch (RuntimeException ex) {
@@ -222,6 +224,7 @@ public class IndexingService {
     private static FormulaDTO toFormula(IndexFormulaEntity e) {
         return FormulaDTO.builder().indexFormulaId(e.getIndexFormulaId()).name(e.getName())
                 .embeddingProvider(e.getEmbeddingProvider()).embeddingModel(e.getEmbeddingModel())
+                .vectorStore(e.getVectorStore())
                 .params(e.getParams()).status(e.getStatus()).build();
     }
 

@@ -8,9 +8,9 @@ services:
   mongodb:
     image: mongodb/mongodb-atlas-local:8.0
     container_name: vkp-mongodb
-    environment:
-      MONGODB_INITDB_ROOT_USERNAME: vkp
-      MONGODB_INITDB_ROOT_PASSWORD: vkp
+    # No auth for localhost dev: atlas-local runs as a single-node replica set, and enabling
+    # root auth requires an internal-auth keyfile it doesn't auto-provision (it crash-loops on
+    # "Unable to acquire security key[s]"). Services connect with mongodb://localhost:27017/vkp.
     ports:
       - "27017:27017"
     volumes:

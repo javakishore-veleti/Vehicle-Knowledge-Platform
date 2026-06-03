@@ -15,6 +15,11 @@ spring:
       minimum-idle: 0
       connection-timeout: 5000
       initialization-fail-timeout: -1
+  # MongoDB Atlas Vector Search store (used when a formula's vector_store = mongodb).
+  data:
+    mongodb:
+      uri: ${WFS_MONGO_URI:mongodb://localhost:27017/vkp?directConnection=true}
+      auto-index-creation: false
 
 # Executor settings.
 wfs:
@@ -25,6 +30,11 @@ wfs:
   dim: 384
 
 management:
+  health:
+    # Mongo is only used for the mongodb vector store; a flaky/absent Mongo must not fail the
+    # executor's own liveness. Per-run Mongo errors are reported on the index log instead.
+    mongo:
+      enabled: false
   endpoints:
     web:
       exposure:

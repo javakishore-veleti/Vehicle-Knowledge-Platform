@@ -36,6 +36,16 @@
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-transformers</artifactId>
     </dependency>
+    <!-- Spring AI OpenAI embeddings (text-embedding-3-*, needs OPENAI_API_KEY) -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-openai</artifactId>
+    </dependency>
+    <!-- MongoDB vector store (Atlas Vector Search) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-mongodb</artifactId>
+    </dependency>
     <!-- pgVector write via JdbcTemplate (same vec_<model> schema as the Airflow route) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

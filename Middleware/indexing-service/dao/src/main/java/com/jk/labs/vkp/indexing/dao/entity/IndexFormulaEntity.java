@@ -36,6 +36,10 @@ public class IndexFormulaEntity {
     @Column(name = "embedding_model", length = 100)
     private String embeddingModel;
 
+    /** Target vector store for this formula: pgvector | mongodb. */
+    @Column(name = "vector_store", length = 30)
+    private String vectorStore;
+
     /** JSON: chunk_size, chunk_overlap, dim, temperature, top_p, ... */
     @Lob
     @Column(name = "params")

@@ -1,0 +1,84 @@
+databaseChangeLog:
+  # Vector store is now per-formula (pgvector | mongodb).
+  - changeSet:
+      id: 003-add-vector-store-column
+      author: vkp
+      changes:
+        - addColumn:
+            tableName: index_formula
+            columns:
+              - column: { name: vector_store, type: VARCHAR(30) }
+        - update:
+            tableName: index_formula
+            columns:
+              - column: { name: vector_store, value: "pgvector" }
+            where: vector_store IS NULL
+
+  # OpenAI embeddings -> pgVector (text-embedding-3-small, 1536d).
+  - changeSet:
+      id: 003-seed-openai-formula
+      author: vkp
+      changes:
+        - insert:
+            tableName: index_formula
+            columns:
+              - { column: { name: index_formula_id, value: "f0000000-0000-4000-8000-000000000002" } }
+              - { column: { name: name, value: "openai-small" } }
+              - { column: { name: embedding_provider, value: "openai" } }
+              - { column: { name: embedding_model, value: "text-embedding-3-small" } }
+              - { column: { name: vector_store, value: "pgvector" } }
+              - { column: { name: params, value: '{"chunk_size":1000,"chunk_overlap":100,"dim":1536}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+
+  # Sentence-Transformers -> MongoDB Atlas Vector Search (all-MiniLM-L6-v2, 384d).
+  - changeSet:
+      id: 003-seed-mongo-formula
+      author: vkp
+      changes:
+        - insert:
+            tableName: index_formula
+            columns:
+              - { column: { name: index_formula_id, value: "f0000000-0000-4000-8000-000000000003" } }
+              - { column: { name: name, value: "minilm-mongo" } }
+              - { column: { name: embedding_provider, value: "sentence-transformers" } }
+              - { column: { name: embedding_model, value: "all-MiniLM-L6-v2" } }
+              - { column: { name: vector_store, value: "mongodb" } }
+              - { column: { name: params, value: '{"chunk_size":512,"chunk_overlap":64,"dim":384}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+
+  - changeSet:
+      id: 003-seed-provider-credentials
+      author: vkp
+      changes:
+        - insert:
+            tableName: provider_credentials
+            columns:
+              - { column: { name: provider_credential_id, value: "c0000000-0000-4000-8000-000000000003" } }
+              - { column: { name: provider_type, value: "openai" } }
+              - { column: { name: name, value: "openai-default" } }
+              - { column: { name: config, value: '{"model":"text-embedding-3-small","api_key_env":"OPENAI_API_KEY"}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: provider_credentials
+            columns:
+              - { column: { name: provider_credential_id, value: "c0000000-0000-4000-8000-000000000004" } }
+              - { column: { name: provider_type, value: "mongodb" } }
+              - { column: { name: name, value: "local-mongodb-atlas" } }
+              - { column: { name: config, value: '{"uri":"mongodb://localhost:27017/vkp","database":"vkp","collection_prefix":"vec_"}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-03T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }

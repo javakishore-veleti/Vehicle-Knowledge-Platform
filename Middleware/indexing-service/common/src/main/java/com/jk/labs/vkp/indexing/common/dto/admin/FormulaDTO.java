@@ -15,6 +15,7 @@ public class FormulaDTO {
     private String name;
     private String embeddingProvider;
     private String embeddingModel;
+    private String vectorStore;
     private String params;
     private String status;
 }

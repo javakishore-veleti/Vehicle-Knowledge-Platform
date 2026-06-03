@@ -11,23 +11,25 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * Writes embeddings into a per-model pgVector table ({@code vec_<model>}), using the SAME schema
- * the Airflow indexing DAG creates — so the AIRFLOW and SPRING_AI routes are interchangeable.
- * Re-index is clean: existing rows for the company are deleted before insert.
+ * pgVector store writer — writes into a per-model {@code vec_<model>} table using the SAME schema
+ * the Airflow indexing DAG creates, so the AIRFLOW and SPRING_AI routes are interchangeable.
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class VectorWriter {
+public class PgVectorWriter implements VectorStoreWriter {
 
     /** Guards the table name interpolated into DDL/DML (never user free-text, but defensive). */
     private static final Pattern SAFE_TABLE = Pattern.compile("[a-z0-9_]{1,63}");
 
     private final JdbcTemplate jdbc;
 
-    public record Row(String url, int chunkIndex, String text, float[] embedding) {
+    @Override
+    public String store() {
+        return "pgvector";
     }
 
+    @Override
     @Transactional
     public void writeCompany(String table, int dim, String companyId, List<Row> rows) {
         if (!SAFE_TABLE.matcher(table).matches()) {
@@ -49,7 +51,7 @@ public class VectorWriter {
             ps.setString(5, r.text());
             ps.setString(6, toVectorLiteral(r.embedding()));
         });
-        log.info("Wrote {} vector row(s) into {} for company {}", rows.size(), table, companyId);
+        log.info("Wrote {} vector row(s) into pgVector {} for company {}", rows.size(), table, companyId);
     }
 
     /** pgvector text input format: [v1,v2,...]. */
