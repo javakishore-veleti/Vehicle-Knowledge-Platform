@@ -13,7 +13,10 @@ MONGO_URI = os.getenv("VKP_MONGO_URI", "mongodb://localhost:27017/vkp?directConn
 MONGO_DB = os.getenv("VKP_MONGO_DB", "vkp")
 MONGO_VECTOR_INDEX = os.getenv("VKP_MONGO_VECTOR_INDEX", "vkp_vector_index")
 
-# The query is embedded with the SAME model whose vectors fill the table/collection below.
+# The query must be embedded with the SAME provider+model whose vectors fill the table/collection.
+#   sentence-transformers -> fastembed local (default; vec_all_minilm_l6_v2, 384d)
+#   openai                -> OpenAI embeddings (text-embedding-3-small -> vec_text_embedding_3_small, 1536d)
+EMBED_PROVIDER = os.getenv("VKP_EMBED_PROVIDER", "sentence-transformers")
 EMBED_MODEL = os.getenv("VKP_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 VECTOR_TABLE = os.getenv("VKP_VECTOR_TABLE", "vec_all_minilm_l6_v2")
 

@@ -35,10 +35,20 @@ where `answerSource` ∈ `llm | extractive | none`.
 ## Run (localhost)
 ```bash
 python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
-./.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8090
+cp .env.example .env        # pick provider profiles (Groq LLM, OpenAI embeddings, ...)
+./scripts/run.sh            # loads .env, serves on :8090
 ```
-Config via env (defaults shown): `VKP_PG_HOST=localhost VKP_PG_PORT=5432 VKP_PG_DB=vkp
-VKP_PG_USER=vkp VKP_PG_PASSWORD=vkp VKP_EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
-VKP_VECTOR_TABLE=vec_all_minilm_l6_v2`.
+`scripts/run.sh` sources `.env` (gitignored) for provider config, then runs uvicorn.
+
+### Provider profiles (.env)
+- **LLM answer** (OpenAI-compatible, default OpenAI). Groq (free) — verified:
+  `VKP_LLM_BASE_URL=https://api.groq.com/openai/v1 VKP_LLM_API_KEY=${GROQ_API_KEY} VKP_LLM_MODEL=llama-3.3-70b-versatile`
+- **Store**: `VKP_VECTOR_STORE=pgvector|mongodb`.
+- **Query embedding** (must match the indexed table): default `sentence-transformers` (local, 384d,
+  `vec_all_minilm_l6_v2`); or OpenAI — `VKP_EMBED_PROVIDER=openai VKP_EMBED_MODEL=text-embedding-3-small
+  VKP_VECTOR_TABLE=vec_text_embedding_3_small` (1536d; needs OpenAI credit).
+
+Other env (defaults): `VKP_PG_HOST=localhost VKP_PG_PORT=5432 VKP_PG_DB=vkp VKP_PG_USER=vkp
+VKP_PG_PASSWORD=vkp VKP_MONGO_URI=mongodb://localhost:27017/vkp?directConnection=true`.
 
 Consumed by the **vehicle-search-portal** (end-user search UI).

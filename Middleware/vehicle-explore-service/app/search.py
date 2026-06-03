@@ -12,13 +12,22 @@ from . import config
 
 
 @lru_cache(maxsize=1)
-def _model():
+def _st_model():
     from fastembed import TextEmbedding
     return TextEmbedding(model_name=config.EMBED_MODEL)
 
 
 def embed_query(text: str) -> list[float]:
-    return list(_model().embed([text]))[0].tolist()
+    """Embed the query with the configured provider — MUST match the indexed table's model.
+
+    OpenAI embeddings (1536d) require an OpenAI key/quota; Groq has no embeddings API, so the
+    query-side provider is sentence-transformers (local) or openai — never Groq.
+    """
+    if config.EMBED_PROVIDER == "openai":
+        from openai import OpenAI
+        client = OpenAI(api_key=config.OPENAI_API_KEY)
+        return client.embeddings.create(model=config.EMBED_MODEL, input=[text]).data[0].embedding
+    return list(_st_model().embed([text]))[0].tolist()
 
 
 def _vec_literal(vec: list[float]) -> str:
