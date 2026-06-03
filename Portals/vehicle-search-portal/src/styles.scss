@@ -1,0 +1,82 @@
+/* VKP Vehicle Search Portal — global styles (light, consumer-facing). */
+@import "primeicons/primeicons.css";
+
+:root {
+  --vs-brand: #1f4e79;
+  --vs-brand-2: #2e6da4;
+  --vs-bg: #f4f6f9;
+  --vs-surface: #ffffff;
+  --vs-border: #e3e8ef;
+  --vs-text: #1f2933;
+  --vs-muted: #6b7280;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--vs-text);
+  background: var(--vs-bg);
+}
+
+/* Top bar */
+.vs-topbar {
+  height: 56px; display: flex; align-items: center; padding: 0 1.5rem;
+  background: var(--vs-surface); border-bottom: 1px solid var(--vs-border);
+}
+.vs-brand { display: flex; align-items: center; gap: .5rem; font-weight: 800; color: var(--vs-brand); }
+.vs-brand span { font-weight: 600; color: var(--vs-text); }
+.vs-brand .pi { font-size: 1.3rem; }
+.vs-topbar-right { margin-left: auto; color: var(--vs-muted); font-size: .85rem; display: flex; align-items: center; gap: .4rem; }
+
+.vs-main { max-width: 860px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+
+/* Hero / search */
+.vs-hero { text-align: center; padding: 3rem 0 1.5rem; transition: padding .2s ease; }
+.vs-hero.compact { padding: 1.25rem 0 1rem; }
+.vs-hero h1 { font-size: 1.9rem; margin: 0 0 .4rem; color: var(--vs-brand); }
+.vs-hero.compact h1 { font-size: 1.35rem; }
+.vs-sub { color: var(--vs-muted); margin: 0 0 1.5rem; }
+.vs-hero.compact .vs-sub { display: none; }
+
+.vs-searchbar {
+  display: flex; align-items: center; gap: .5rem;
+  background: var(--vs-surface); border: 1px solid var(--vs-border); border-radius: 999px;
+  padding: .35rem .35rem .35rem 1rem; box-shadow: 0 2px 10px rgba(16,24,40,.06);
+  max-width: 640px; margin: 0 auto;
+}
+.vs-searchbar .pi-search { color: var(--vs-muted); }
+.vs-searchbar input { flex: 1; border: 0; outline: none; font-size: 1rem; padding: .55rem .25rem; background: transparent; color: var(--vs-text); }
+.vs-searchbar button {
+  border: 0; border-radius: 999px; padding: .6rem 1.3rem; font-weight: 600; cursor: pointer;
+  background: var(--vs-brand); color: #fff;
+}
+.vs-searchbar button:disabled { opacity: .5; cursor: default; }
+
+.vs-examples { margin-top: 1rem; color: var(--vs-muted); font-size: .9rem; display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+.vs-examples a { color: var(--vs-brand-2); cursor: pointer; text-decoration: underline; }
+
+/* Results */
+.vs-results { margin-top: 1rem; }
+.vs-error { background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; padding: .7rem 1rem; border-radius: 8px; }
+.vs-skeleton { color: var(--vs-muted); text-align: center; padding: 2rem; }
+
+.vs-answer {
+  background: #eef4fb; border: 1px solid #cfe0f2; border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1rem;
+}
+.vs-answer-label { font-weight: 700; color: var(--vs-brand); display: flex; align-items: center; gap: .4rem; margin-bottom: .35rem; }
+.vs-answer p { margin: 0; line-height: 1.5; }
+
+.vs-count { color: var(--vs-muted); font-size: .85rem; margin: 0 .2rem .75rem; }
+
+.vs-card { background: var(--vs-surface); border: 1px solid var(--vs-border); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: .85rem; }
+.vs-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .4rem; }
+.vs-src { font-weight: 700; color: var(--vs-brand-2); text-decoration: none; }
+.vs-score { font-size: .78rem; color: #1c7a3f; background: #e6f4ea; border-radius: 999px; padding: .15rem .55rem; font-weight: 600; }
+.vs-snippet { margin: 0 0 .5rem; line-height: 1.55; color: #2b3440; }
+.vs-link { font-size: .82rem; color: var(--vs-muted); text-decoration: none; word-break: break-all; }
+.vs-link .pi { font-size: .7rem; }
+
+.vs-empty { color: var(--vs-muted); text-align: center; padding: 2rem; }

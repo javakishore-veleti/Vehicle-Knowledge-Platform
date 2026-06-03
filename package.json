@@ -21,6 +21,8 @@
     "localhost:services:status-all": "npm run localhost:services:java:status-all && npm run localhost:services:python:status-all",
 
     "localhost:portals:admin:install": "npm --prefix Portals/admin-portal install",
-    "localhost:portals:admin:start": "npm --prefix Portals/admin-portal start"
+    "localhost:portals:admin:start": "npm --prefix Portals/admin-portal start",
+    "localhost:portals:search:install": "npm --prefix Portals/vehicle-search-portal install",
+    "localhost:portals:search:start": "npm --prefix Portals/vehicle-search-portal start"
   }
 }
