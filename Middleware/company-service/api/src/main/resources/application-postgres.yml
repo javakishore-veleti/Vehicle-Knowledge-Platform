@@ -10,8 +10,9 @@ spring:
     username: vkp
     password: vkp
   jpa:
+    # Liquibase owns the schema + seed data; Hibernate must not alter it.
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate:

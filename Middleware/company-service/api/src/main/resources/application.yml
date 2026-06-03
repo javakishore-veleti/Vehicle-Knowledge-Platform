@@ -11,12 +11,15 @@ spring:
     username: sa
     password: ""
   jpa:
+    # Liquibase owns the schema + seed data; Hibernate must not alter it.
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   h2:
     console:
       enabled: true

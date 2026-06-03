@@ -31,6 +31,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+    <!-- Liquibase: schema + seed data (initial companies dataset) -->
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+    </dependency>
     <!-- Swagger UI + OpenAPI docs at /swagger-ui.html and /v3/api-docs -->
     <dependency>
       <groupId>org.springdoc</groupId>

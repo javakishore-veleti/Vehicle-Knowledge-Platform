@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -49,10 +51,10 @@ class CompServiceApplicationTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.company.name").value("Acme Motors"));
 
-        // list companies
+        // list companies (5 seeded by Liquibase + the one just created)
         mockMvc.perform(get("/admin/company/service/v1/crud/companies"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.count").value(1));
+                .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(6)));
 
         // add a resource to the company
         mockMvc.perform(post("/admin/company/service/v1/crud/companies/{id}/resources", companyId)
@@ -71,6 +73,23 @@ class CompServiceApplicationTests {
         mockMvc.perform(delete("/admin/company/service/v1/crud/companies/{id}", companyId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.deleted").value(true));
+    }
+
+    @Test
+    void liquibaseSeedLoaded() throws Exception {
+        // The 5 auto-maker companies are preloaded by Liquibase.
+        mockMvc.perform(get("/admin/company/service/v1/crud/companies"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(5)))
+                .andExpect(jsonPath("$.companies[*].name", hasItem("General Motors")))
+                .andExpect(jsonPath("$.companies[*].name", hasItem("BMW")));
+
+        // General Motors has its four brand root links seeded.
+        mockMvc.perform(get("/admin/company/service/v1/crud/companies/{id}/resources",
+                        "10000000-0000-4000-8000-000000000001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.count").value(4))
+                .andExpect(jsonPath("$.resources[*].resourceName", hasItem("Chevrolet")));
     }
 
     @Test

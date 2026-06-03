@@ -1,0 +1,167 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-companies
+      author: vkp
+      comment: Initial company dataset (auto-makers)
+      changes:
+        - insert:
+            tableName: companies
+            columns:
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: name, value: "General Motors" } }
+              - { column: { name: description, value: "GM brands: Chevrolet, Buick, GMC, Cadillac" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: companies
+            columns:
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000002" } }
+              - { column: { name: name, value: "Ford" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: companies
+            columns:
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000003" } }
+              - { column: { name: name, value: "Honda" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: companies
+            columns:
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000004" } }
+              - { column: { name: name, value: "Toyota" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: companies
+            columns:
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000005" } }
+              - { column: { name: name, value: "BMW" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+
+  - changeSet:
+      id: 002-seed-company-resources
+      author: vkp
+      comment: Initial root resource links per company
+      changes:
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000001" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: resource_name, value: "Chevrolet" } }
+              - { column: { name: resource_link, value: "https://www.chevrolet.com/?evar25=gm_com_our_brands" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000002" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: resource_name, value: "Buick" } }
+              - { column: { name: resource_link, value: "https://www.buick.com/?evar25=gm_com_our_brands" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000003" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: resource_name, value: "GMC" } }
+              - { column: { name: resource_link, value: "https://www.gmc.com/?evar25=gm_com_our_brands" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000004" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: resource_name, value: "Cadillac" } }
+              - { column: { name: resource_link, value: "https://www.cadillac.com/?evar25=gm_com_our_brands" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000005" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000002" } }
+              - { column: { name: resource_name, value: "Ford New Cars" } }
+              - { column: { name: resource_link, value: "https://www.ford.com/new-cars/" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000006" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000003" } }
+              - { column: { name: resource_name, value: "Honda Electrification" } }
+              - { column: { name: resource_link, value: "https://automobiles.honda.com/vehicle-electrification#hybrid-vehicles" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000007" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000004" } }
+              - { column: { name: resource_name, value: "Toyota" } }
+              - { column: { name: resource_link, value: "https://www.toyota.com/" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resources
+            columns:
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000008" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000005" } }
+              - { column: { name: resource_name, value: "BMW USA" } }
+              - { column: { name: resource_link, value: "https://www.bmwusa.com/" } }
+              - { column: { name: resource_type, value: "WEBSITE" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }

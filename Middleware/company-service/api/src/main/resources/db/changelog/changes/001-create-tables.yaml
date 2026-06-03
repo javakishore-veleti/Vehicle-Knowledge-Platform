@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-companies
+      author: vkp
+      changes:
+        - createTable:
+            tableName: companies
+            columns:
+              - column: { name: company_id, type: VARCHAR(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: name, type: VARCHAR(100), constraints: { nullable: false } }
+              - column: { name: description, type: VARCHAR(250) }
+              - column: { name: status, type: VARCHAR(15) }
+              - column: { name: created_dt, type: TIMESTAMP }
+              - column: { name: updated_dt, type: TIMESTAMP }
+              - column: { name: created_by, type: VARCHAR(50) }
+              - column: { name: updated_by, type: VARCHAR(50) }
+
+  - changeSet:
+      id: 001-create-company-resources
+      author: vkp
+      changes:
+        - createTable:
+            tableName: company_resources
+            columns:
+              - column: { name: company_resource_id, type: VARCHAR(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: company_id, type: VARCHAR(36), constraints: { nullable: false } }
+              - column: { name: resource_name, type: VARCHAR(150), constraints: { nullable: false } }
+              - column: { name: resource_link, type: VARCHAR(1000), constraints: { nullable: false } }
+              - column: { name: resource_type, type: VARCHAR(50) }
+              - column: { name: status, type: VARCHAR(15) }
+              - column: { name: created_dt, type: TIMESTAMP }
+              - column: { name: updated_dt, type: TIMESTAMP }
+              - column: { name: created_by, type: VARCHAR(50) }
+              - column: { name: updated_by, type: VARCHAR(50) }
+        - createIndex:
+            indexName: idx_company_resources_company_id
+            tableName: company_resources
+            columns:
+              - column: { name: company_id }
