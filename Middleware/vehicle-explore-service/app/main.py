@@ -27,6 +27,7 @@ class SearchReq(BaseModel):
     companyId: Optional[str] = None
     topK: int = 5
     store: Optional[str] = None   # pgvector | mongodb (defaults to VKP_VECTOR_STORE)
+    useLlm: bool = True           # when false (or no key/quota), returns the extractive answer
 
 
 @app.get("/health")
@@ -54,7 +55,7 @@ def search(framework_name: str, req: SearchReq):
         raise HTTPException(status_code=400, detail="store must be 'pgvector' or 'mongodb'")
     try:
         answer, answer_source, results = frameworks.run(
-            framework_name, req.query.strip(), req.companyId, top_k, store)
+            framework_name, req.query.strip(), req.companyId, top_k, store, req.useLlm)
     except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
     return {

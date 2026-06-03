@@ -48,11 +48,11 @@ def _llm_answer(query: str, results: list[dict]) -> str:
     return resp.choices[0].message.content.strip()
 
 
-def synthesize_answer(query: str, results: list[dict]) -> tuple[str, str]:
+def synthesize_answer(query: str, results: list[dict], use_llm: bool = True) -> tuple[str, str]:
     """Returns (answer, answerSource). answerSource ∈ {llm, extractive, none}."""
     if not results:
         return "No relevant vehicle content was found for this query.", "none"
-    if config.LLM_ENABLED and config.OPENAI_API_KEY:
+    if use_llm and config.LLM_ENABLED and config.OPENAI_API_KEY:
         try:
             return _llm_answer(query, results), "llm"
         except Exception as e:  # noqa: BLE001 — quota/network/etc. -> graceful fallback
@@ -61,7 +61,11 @@ def synthesize_answer(query: str, results: list[dict]) -> tuple[str, str]:
 
 
 def run(framework: str, query: str, company_id: Optional[str], top_k: int,
-        store: str) -> tuple[str, str, list[dict]]:
+        store: str, use_llm: bool = True) -> tuple[str, str, list[dict]]:
+    if framework == "langgraph":
+        from . import langgraph_agent  # real LangGraph StateGraph (lazy import)
+        return langgraph_agent.run(query, company_id, top_k, store, use_llm)
+    # Fallback simple pipeline (not reached: only 'langgraph' is in IMPLEMENTED).
     results = _retrieve(query, company_id, top_k, store)
-    answer, source = synthesize_answer(query, results)
+    answer, source = synthesize_answer(query, results, use_llm)
     return answer, source, results
