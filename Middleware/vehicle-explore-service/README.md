@@ -17,14 +17,20 @@ GET  /health
 { "query": "electric and hybrid vehicles", "companyId": "<optional uuid>", "topK": 5 }
 ```
 
-Response: `{ framework, query, answer, results: [{ sourceUrl, snippet, score }], count }`.
+Request body also accepts `store` (`pgvector` | `mongodb`) and `useLlm` (bool).
+Response: `{ framework, store, query, answer, answerSource, results: [{ sourceUrl, snippet, score }], count }`
+where `answerSource` ∈ `llm | extractive | none`.
 
 ## How it works
 1. The query is embedded locally with **fastembed** (`sentence-transformers/all-MiniLM-L6-v2`,
    384d) — the same model whose vectors fill `vec_all_minilm_l6_v2`.
-2. **pgvector** cosine distance (`<=>`) ranks the nearest chunks (optionally scoped to a company).
-3. `answer` is an extractive summary of the top snippets. The LLM-backed answer (OpenAI/Azure)
-   slots into `frameworks.synthesize_answer()` behind the same contract once a key/quota exists.
+2. Retrieval: **pgvector** cosine (`<=>`), or **MongoDB** Atlas `$vectorSearch` (when `store=mongodb`;
+   index via `scripts/create_mongo_index.py`). Optionally scoped to a company.
+3. The `langgraph` framework runs a real **LangGraph** graph (`retrieve → generate | empty`). The
+   `generate` node produces an **LLM-backed** RAG answer (cites sources `[n]`) and falls back to an
+   extractive summary on any error/missing key. The LLM provider is **OpenAI-compatible and pluggable**:
+   default OpenAI, or point `VKP_LLM_BASE_URL`/`VKP_LLM_API_KEY`/`VKP_LLM_MODEL` at Groq, Azure, etc.
+   (e.g. Groq: `VKP_LLM_BASE_URL=https://api.groq.com/openai/v1 VKP_LLM_MODEL=llama-3.3-70b-versatile`).
 
 ## Run (localhost)
 ```bash

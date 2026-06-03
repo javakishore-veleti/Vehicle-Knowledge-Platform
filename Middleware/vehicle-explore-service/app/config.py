@@ -21,6 +21,10 @@ VECTOR_TABLE = os.getenv("VKP_VECTOR_TABLE", "vec_all_minilm_l6_v2")
 DEFAULT_STORE = os.getenv("VKP_VECTOR_STORE", "pgvector")
 
 # --- LLM answer (optional; falls back to extractive on any error / missing key) ---
+# Provider is pluggable via the OpenAI-compatible API: default is OpenAI, but pointing
+# VKP_LLM_BASE_URL + VKP_LLM_API_KEY at Groq/Azure/etc. works unchanged.
 LLM_ENABLED = os.getenv("VKP_LLM_ENABLED", "true").lower() in ("1", "true", "yes")
 LLM_MODEL = os.getenv("VKP_LLM_MODEL", "gpt-4o-mini")
+LLM_BASE_URL = os.getenv("VKP_LLM_BASE_URL", "")          # empty -> OpenAI default endpoint
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+LLM_API_KEY = os.getenv("VKP_LLM_API_KEY", "") or OPENAI_API_KEY
