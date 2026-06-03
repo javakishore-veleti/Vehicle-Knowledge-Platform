@@ -14,4 +14,7 @@ public class ListPagesReqDTO {
     private String company;
     private int offset;
     private int limit;
+
+    /** When true, return full page text (for indexing) instead of the truncated list-view preview. */
+    private boolean full;
 }

@@ -37,9 +37,10 @@ public class SnapshotController {
     @GetMapping(ApiRoutes.SNAPSHOT_PAGES)
     public ListPagesRespDTO pages(@PathVariable String company,
                                   @RequestParam(defaultValue = "0") int offset,
-                                  @RequestParam(defaultValue = "50") int limit) {
+                                  @RequestParam(defaultValue = "50") int limit,
+                                  @RequestParam(defaultValue = "false") boolean full) {
         ListPagesCtx ctx = new ListPagesCtx();
-        ctx.setReqDTO(new ListPagesReqDTO(company, offset, limit));
+        ctx.setReqDTO(new ListPagesReqDTO(company, offset, limit, full));
         snapshotService.listPages(ctx);
         return ctx.getRespDTO();
     }

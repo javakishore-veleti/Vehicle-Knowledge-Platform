@@ -64,7 +64,8 @@ public class SnapshotReader {
         String enc = UriUtils.encodePathSegment(company, StandardCharsets.UTF_8);
         while (true) {
             PagesResp resp = rest.get()
-                    .uri("/admin/data-collection/service/v1/snapshots/{c}/pages?offset={o}&limit={l}", enc, offset, PAGE_LIMIT)
+                    .uri("/admin/data-collection/service/v1/snapshots/{c}/pages?offset={o}&limit={l}&full=true",
+                            enc, offset, PAGE_LIMIT)
                     .retrieve().body(PagesResp.class);
             if (resp == null || resp.getPages().isEmpty()) {
                 break;

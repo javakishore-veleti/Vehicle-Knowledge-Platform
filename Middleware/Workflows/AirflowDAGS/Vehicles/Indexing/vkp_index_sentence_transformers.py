@@ -51,7 +51,8 @@ def _fetch_pages(base_url: str, company: str) -> list[dict]:
     from urllib.parse import quote
     pages, offset = [], 0
     while True:
-        url = f"{base_url.rstrip('/')}{PAGES_PATH.format(company=quote(company))}?offset={offset}&limit={PAGE_LIMIT}"
+        url = (f"{base_url.rstrip('/')}{PAGES_PATH.format(company=quote(company))}"
+               f"?offset={offset}&limit={PAGE_LIMIT}&full=true")
         batch = json.loads(_get(url))
         rows = batch.get("pages", [])
         pages.extend(rows)

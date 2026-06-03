@@ -104,7 +104,7 @@ public class SnapshotService {
             }
             int start = (fi == startIdx) ? within : 0;
             for (int i = start; i < arr.size() && pages.size() < limit; i++) {
-                pages.add(toPage(arr.get(i)));
+                pages.add(toPage(arr.get(i), req.isFull()));
             }
         }
         ctx.setRespDTO(new ListPagesRespDTO(req.getCompany(), pages, pages.size(), total, offset));
@@ -180,7 +180,7 @@ public class SnapshotService {
         return (files.size() - 1) * PAGE_SIZE + lastCount;
     }
 
-    private SnapshotPageDTO toPage(JsonNode el) {
+    private SnapshotPageDTO toPage(JsonNode el, boolean full) {
         String text = el.path("text").asText("");
         List<SnapshotImageRefDTO> images = new ArrayList<>();
         JsonNode imgs = el.path("images");
@@ -191,11 +191,12 @@ public class SnapshotService {
                     .file(im.path("file").asText(null))
                     .build()));
         }
+        String outText = (full || text.length() <= TEXT_PREVIEW) ? text : text.substring(0, TEXT_PREVIEW);
         return SnapshotPageDTO.builder()
                 .url(el.path("url").asText(null))
                 .depth(el.path("depth").asInt(0))
                 .title(el.path("title").asText(null))
-                .text(text.length() > TEXT_PREVIEW ? text.substring(0, TEXT_PREVIEW) : text)
+                .text(outText)
                 .textLength(text.length())
                 .images(images)
                 .linksCount(el.path("links_count").asInt(0))
