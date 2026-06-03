@@ -40,13 +40,36 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
     <div *ngIf="loading" class="vs-skeleton">Searching the vehicle knowledge base…</div>
 
     <ng-container *ngIf="response && !loading">
-      <div class="vs-answer" *ngIf="response.count > 0">
+      <!-- Multi-provider comparison: one accordion per LLM provider -->
+      <div class="vs-providers" *ngIf="response.count > 0 && response.answers.length">
+        <div class="vs-providers-head">
+          <span><i class="pi pi-sparkles"></i> AI answers — compare {{ response.answers.length }} provider(s)</span>
+          <span class="vs-badge store">{{ response.store === 'mongodb' ? 'MongoDB' : 'pgVector' }}</span>
+        </div>
+        <div class="vs-acc" *ngFor="let a of response.answers; let i = index" [class.fail]="!a.ok">
+          <button type="button" class="vs-acc-head" (click)="toggle(i)">
+            <span class="vs-acc-title">
+              <i class="pi" [ngClass]="open.has(i) ? 'pi-chevron-down' : 'pi-chevron-right'"></i>
+              {{ a.label }}
+            </span>
+            <span class="vs-acc-meta">
+              <span class="vs-badge" [ngClass]="a.ok ? 'ok' : 'err'">{{ a.ok ? 'OK' : 'FAILED' }}</span>
+              <span class="vs-lat">{{ a.latencyMs }} ms</span>
+            </span>
+          </button>
+          <div class="vs-acc-body" *ngIf="open.has(i)">
+            <p *ngIf="a.ok" class="vs-snippet" style="margin:0">{{ a.answer }}</p>
+            <p *ngIf="!a.ok" class="vs-acc-err">{{ a.error }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single answer (extractive / LLM off) -->
+      <div class="vs-answer" *ngIf="response.count > 0 && !response.answers.length">
         <div class="vs-answer-label">
           <span><i class="pi pi-sparkles"></i> Answer</span>
           <span class="vs-badges">
-            <span class="vs-badge" [class.ai]="response.answerSource === 'llm'">
-              {{ response.answerSource === 'llm' ? 'AI-generated' : 'Extractive' }}
-            </span>
+            <span class="vs-badge">Extractive</span>
             <span class="vs-badge store">{{ response.store === 'mongodb' ? 'MongoDB' : 'pgVector' }}</span>
           </span>
         </div>
@@ -78,6 +101,11 @@ export class SearchComponent {
   loading = false;
   error = '';
   response: SearchResponse | null = null;
+  open = new Set<number>();   // expanded provider accordions
+
+  toggle(i: number): void {
+    if (this.open.has(i)) { this.open.delete(i); } else { this.open.add(i); }
+  }
 
   readonly examples = [
     'electric and hybrid vehicles',
@@ -92,7 +120,7 @@ export class SearchComponent {
     if (!q) { return; }
     this.loading = true; this.error = ''; this.response = null;
     this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 6 }).subscribe({
-      next: r => { this.response = r; this.loading = false; },
+      next: r => { this.response = r; this.open = new Set(r.answers.map((_, i) => i)); this.loading = false; },
       error: () => { this.error = 'Search is unavailable (is vehicle-explore-service on :8090 running?).'; this.loading = false; }
     });
   }

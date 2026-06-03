@@ -10,12 +10,23 @@ export interface SearchResultItem {
 
 export type VectorStore = 'pgvector' | 'mongodb';
 
+export interface ProviderAnswer {
+  provider: string;
+  label: string;
+  model: string;
+  answer: string | null;
+  ok: boolean;
+  error: string | null;
+  latencyMs: number;
+}
+
 export interface SearchResponse {
   framework: string;
   store: VectorStore;
   query: string;
   answer: string;
   answerSource: 'llm' | 'extractive' | 'none';
+  answers: ProviderAnswer[];
   results: SearchResultItem[];
   count: number;
 }

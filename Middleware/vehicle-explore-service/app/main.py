@@ -54,7 +54,7 @@ def search(framework_name: str, req: SearchReq):
     if store not in ("pgvector", "mongodb"):
         raise HTTPException(status_code=400, detail="store must be 'pgvector' or 'mongodb'")
     try:
-        answer, answer_source, results = frameworks.run(
+        answer, answer_source, results, answers = frameworks.run(
             framework_name, req.query.strip(), req.companyId, top_k, store, req.useLlm)
     except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
@@ -64,6 +64,7 @@ def search(framework_name: str, req: SearchReq):
         "query": req.query,
         "answer": answer,
         "answerSource": answer_source,
+        "answers": answers,        # per-provider answers for side-by-side comparison
         "results": results,
         "count": len(results),
     }

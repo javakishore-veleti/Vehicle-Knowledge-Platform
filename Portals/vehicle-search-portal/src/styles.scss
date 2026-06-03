@@ -84,6 +84,24 @@ html, body {
 .vs-answer-label > span:first-child { display: flex; align-items: center; gap: .4rem; }
 .vs-answer p { margin: 0; line-height: 1.5; }
 
+/* Multi-provider comparison accordions */
+.vs-providers { margin-bottom: 1.25rem; }
+.vs-providers-head { display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: var(--vs-brand); margin-bottom: .55rem; }
+.vs-providers-head > span:first-child { display: flex; align-items: center; gap: .4rem; }
+.vs-acc { border: 1px solid var(--vs-border); border-radius: 8px; margin-bottom: .55rem; overflow: hidden; background: var(--vs-surface); }
+.vs-acc.fail { border-color: #f3c8c8; }
+.vs-acc-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  padding: .65rem .9rem; background: #f8fafc; border: 0; cursor: pointer; font: inherit; color: var(--vs-text); }
+.vs-acc.fail .vs-acc-head { background: #fdf3f3; }
+.vs-acc-title { display: flex; align-items: center; gap: .5rem; font-weight: 700; }
+.vs-acc-title .pi { font-size: .75rem; color: var(--vs-muted); }
+.vs-acc-meta { display: flex; align-items: center; gap: .6rem; }
+.vs-lat { font-size: .76rem; color: var(--vs-muted); }
+.vs-acc-body { padding: .8rem .9rem; line-height: 1.55; }
+.vs-acc-err { margin: 0; color: #9b1c1c; font-size: .82rem; word-break: break-word; }
+.vs-badge.ok { background: #e6f4ea; color: #1c7a3f; }
+.vs-badge.err { background: #fde8e8; color: #9b1c1c; }
+
 .vs-count { color: var(--vs-muted); font-size: .85rem; margin: 0 .2rem .75rem; }
 
 .vs-card { background: var(--vs-surface); border: 1px solid var(--vs-border); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: .85rem; }

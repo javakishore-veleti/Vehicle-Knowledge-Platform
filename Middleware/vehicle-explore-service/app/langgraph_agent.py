@@ -24,6 +24,7 @@ class AgentState(TypedDict, total=False):
     results: list
     answer: str
     answer_source: str
+    answers: list
 
 
 def _retrieve_node(state: AgentState) -> dict:
@@ -32,12 +33,12 @@ def _retrieve_node(state: AgentState) -> dict:
 
 
 def _generate_node(state: AgentState) -> dict:
-    answer, source = frameworks.synthesize_answer(state["query"], state["results"], state.get("use_llm", True))
-    return {"answer": answer, "answer_source": source}
+    answer, source, answers = frameworks.synthesize(state["query"], state["results"], state.get("use_llm", True))
+    return {"answer": answer, "answer_source": source, "answers": answers}
 
 
 def _empty_node(state: AgentState) -> dict:
-    return {"answer": "No relevant vehicle content was found for this query.", "answer_source": "none"}
+    return {"answer": "No relevant vehicle content was found for this query.", "answer_source": "none", "answers": []}
 
 
 def _route_after_retrieve(state: AgentState) -> str:
@@ -59,8 +60,8 @@ def _graph():
 
 
 def run(query: str, company_id: Optional[str], top_k: int, store: str,
-        use_llm: bool = True) -> tuple[str, str, list[dict]]:
+        use_llm: bool = True) -> tuple[str, str, list[dict], list[dict]]:
     out = _graph().invoke({
         "query": query, "company_id": company_id, "top_k": top_k, "store": store, "use_llm": use_llm,
     })
-    return out.get("answer", ""), out.get("answer_source", "none"), out.get("results", [])
+    return out.get("answer", ""), out.get("answer_source", "none"), out.get("results", []), out.get("answers", [])

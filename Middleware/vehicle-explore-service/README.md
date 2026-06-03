@@ -18,8 +18,10 @@ GET  /health
 ```
 
 Request body also accepts `store` (`pgvector` | `mongodb`) and `useLlm` (bool).
-Response: `{ framework, store, query, answer, answerSource, results: [{ sourceUrl, snippet, score }], count }`
-where `answerSource` ∈ `llm | extractive | none`.
+Response: `{ framework, store, query, answer, answerSource, answers, results, count }` where
+`answerSource` ∈ `llm | extractive | none` and `answers` is the **per-provider** list
+`[{ provider, label, model, answer, ok, error, latencyMs }]` (every enabled LLM provider answers
+the same query so quality can be compared side by side).
 
 ## How it works
 1. The query is embedded locally with **fastembed** (`sentence-transformers/all-MiniLM-L6-v2`,
@@ -27,10 +29,11 @@ where `answerSource` ∈ `llm | extractive | none`.
 2. Retrieval: **pgvector** cosine (`<=>`), or **MongoDB** Atlas `$vectorSearch` (when `store=mongodb`;
    index via `scripts/create_mongo_index.py`). Optionally scoped to a company.
 3. The `langgraph` framework runs a real **LangGraph** graph (`retrieve → generate | empty`). The
-   `generate` node produces an **LLM-backed** RAG answer (cites sources `[n]`) and falls back to an
-   extractive summary on any error/missing key. The LLM provider is **OpenAI-compatible and pluggable**:
-   default OpenAI, or point `VKP_LLM_BASE_URL`/`VKP_LLM_API_KEY`/`VKP_LLM_MODEL` at Groq, Azure, etc.
-   (e.g. Groq: `VKP_LLM_BASE_URL=https://api.groq.com/openai/v1 VKP_LLM_MODEL=llama-3.3-70b-versatile`).
+   `generate` node fans out to **every enabled LLM provider** (in parallel, over the same sources) and
+   returns each one's RAG answer (cites sources `[n]`) with `ok`/`error`/`latencyMs`, so quality is
+   compared side by side; the top-level `answer` is the first successful one (extractive fallback if all
+   fail). Providers are **OpenAI-compatible** (one SDK, different base_url/key/model) — see
+   `providers.py` REGISTRY and the `VKP_LLM_PROVIDERS` toggle (default `openai,groq-70b,groq-8b`).
 
 ## Run (localhost)
 ```bash
