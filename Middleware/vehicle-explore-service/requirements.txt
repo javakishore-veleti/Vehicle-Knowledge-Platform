@@ -1,0 +1,5 @@
+fastapi>=0.111,<0.116
+uvicorn[standard]>=0.30,<0.35
+fastembed>=0.3,<0.6
+psycopg2-binary>=2.9
+pydantic>=2.6
