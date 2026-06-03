@@ -211,11 +211,14 @@ def _crawl(company_name, roots, conf, storage):
                         resp = context.request.get(src, timeout=8000)
                         if not resp.ok:
                             continue
+                        ctype = (resp.headers.get("content-type") or "").lower()
+                        if not ctype.startswith("image/"):
+                            continue  # skip HTML redirects / bot-block pages returned for an img src
                         data = resp.body()
                         if not data or len(data) > MAX_IMG_BYTES:
                             continue
                         uid = uuid4().hex
-                        rel = f"{folder}/images/{uid}{_ext(resp.headers.get('content-type', ''), src)}"
+                        rel = f"{folder}/images/{uid}{_ext(ctype, src)}"
                         storage.write_bytes(rel, data)
                         images.append({"image_id": uid, "src": src, "file": rel.split('/', 1)[1]})
                         img_total += 1

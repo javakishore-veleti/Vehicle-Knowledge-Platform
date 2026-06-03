@@ -30,4 +30,9 @@ public final class ApiRoutes {
 
     /** Trigger a filesystem-snapshot crawl (vkp_crawl_company_snapshot) for a company. */
     public static final String CRAWL = API_BASE + "/companies/{companyId}/crawl";
+
+    /** Snapshot browser: list crawled companies, page through their elements, serve images. */
+    public static final String SNAPSHOTS = API_BASE + "/snapshots";
+    public static final String SNAPSHOT_PAGES = SNAPSHOTS + "/{company}/pages";
+    public static final String SNAPSHOT_IMAGE = SNAPSHOTS + "/{company}/images/{imageId}";
 }

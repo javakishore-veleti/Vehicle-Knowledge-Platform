@@ -58,6 +58,7 @@ export class AppComponent {
       items: [
         { label: 'Overview', icon: 'pi pi-info-circle', routerLink: '/data-management/data-collection/overview' },
         { label: 'Crawl Snapshot', icon: 'pi pi-cloud-download', routerLink: '/data-management/data-collection/crawl' },
+        { label: 'Snapshot Browser', icon: 'pi pi-images', routerLink: '/data-management/data-collection/snapshots' },
         { label: 'Workflows', icon: 'pi pi-bolt', routerLink: '/data-management/data-collection/workflows' },
         { label: 'Resource Graph', icon: 'pi pi-sitemap', routerLink: '/data-management/data-collection/graph' }
       ]

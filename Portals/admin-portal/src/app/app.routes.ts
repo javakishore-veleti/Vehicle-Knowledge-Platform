@@ -4,6 +4,7 @@ import { WorkflowsComponent } from './features/data-management/workflows.compone
 import { OverviewComponent } from './features/data-management/overview.component';
 import { ResourceGraphComponent } from './features/data-management/resource-graph.component';
 import { CrawlComponent } from './features/data-management/crawl.component';
+import { SnapshotsComponent } from './features/data-management/snapshots.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -12,6 +13,7 @@ export const routes: Routes = [
 
   { path: 'data-management', redirectTo: 'data-management/data-collection/workflows', pathMatch: 'full' },
   { path: 'data-management/data-collection/crawl', component: CrawlComponent, title: 'Crawl Snapshot' },
+  { path: 'data-management/data-collection/snapshots', component: SnapshotsComponent, title: 'Snapshot Browser' },
   { path: 'data-management/data-collection/graph', component: ResourceGraphComponent, title: 'Resource Graph' },
   { path: 'data-management/:section/overview', component: OverviewComponent, title: 'Data Management' },
   { path: 'data-management/:section/workflows', component: WorkflowsComponent, title: 'Workflows' },
