@@ -23,6 +23,8 @@ x-airflow-common: &airflow-common
     AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session"
     # Where the crawl DAG writes filesystem snapshots (mounted from the host below).
     VKP_CRAWL_SNAPSHOT_DIR: /opt/airflow/crawl-snapshot
+    # Passed through for the OpenAI embedding provider in the indexing DAG (empty if unset).
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
   volumes:
     # Mount the categorically-organized DAG tree (recursively discovered by Airflow).
     - ../../../Middleware/Workflows/AirflowDAGS:/opt/airflow/dags

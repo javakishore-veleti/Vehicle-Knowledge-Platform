@@ -142,6 +142,8 @@ public class IndexingService {
                 conf.put("vector_target", vectorTarget);
                 conf.put("embedding_provider", formula.getEmbeddingProvider());
                 conf.put("embedding_model", formula.getEmbeddingModel());
+                conf.put("indexed_to", indexedTo);
+                conf.put("mongo_uri", "mongodb://host.docker.internal:27017/vkp?directConnection=true");
                 conf.put("params", formula.getParams());
                 conf.put("data_collection_base_url", props.getDataCollectionBaseUrl());
                 conf.put("callback_base_url", props.getAirflowCallbackBaseUrl());
