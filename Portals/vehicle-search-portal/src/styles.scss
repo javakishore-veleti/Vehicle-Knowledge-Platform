@@ -58,6 +58,20 @@ html, body {
 .vs-examples { margin-top: 1rem; color: var(--vs-muted); font-size: .9rem; display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
 .vs-examples a { color: var(--vs-brand-2); cursor: pointer; text-decoration: underline; }
 
+/* Search controls (store + LLM toggle) */
+.vs-controls { display: flex; gap: 1.25rem; justify-content: center; align-items: center; margin-top: .9rem; flex-wrap: wrap; }
+.vs-ctrl { display: flex; align-items: center; gap: .4rem; color: var(--vs-muted); font-size: .88rem; font-weight: 600; }
+.vs-ctrl select { padding: .3rem .5rem; border: 1px solid var(--vs-border); border-radius: 6px; font-weight: 600; color: var(--vs-text); }
+.vs-check { cursor: pointer; }
+.vs-check input { width: 15px; height: 15px; }
+
+/* Answer-source + store badges */
+.vs-badges { display: flex; gap: .4rem; }
+.vs-badge { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  padding: .12rem .5rem; border-radius: 999px; background: #eef1f5; color: var(--vs-muted); }
+.vs-badge.ai { background: #e6f0fb; color: var(--vs-brand-2); }
+.vs-badge.store { background: #eef7ee; color: #1c7a3f; }
+
 /* Results */
 .vs-results { margin-top: 1rem; }
 .vs-error { background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; padding: .7rem 1rem; border-radius: 8px; }
@@ -66,7 +80,8 @@ html, body {
 .vs-answer {
   background: #eef4fb; border: 1px solid #cfe0f2; border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1rem;
 }
-.vs-answer-label { font-weight: 700; color: var(--vs-brand); display: flex; align-items: center; gap: .4rem; margin-bottom: .35rem; }
+.vs-answer-label { font-weight: 700; color: var(--vs-brand); display: flex; align-items: center; justify-content: space-between; gap: .4rem; margin-bottom: .35rem; }
+.vs-answer-label > span:first-child { display: flex; align-items: center; gap: .4rem; }
 .vs-answer p { margin: 0; line-height: 1.5; }
 
 .vs-count { color: var(--vs-muted); font-size: .85rem; margin: 0 .2rem .75rem; }

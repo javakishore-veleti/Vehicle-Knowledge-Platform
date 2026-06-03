@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ExploreService, SearchResponse } from '../../core/explore.service';
+import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.service';
 
 @Component({
   selector: 'vs-search',
@@ -16,6 +16,18 @@ import { ExploreService, SearchResponse } from '../../core/explore.service';
       <input [(ngModel)]="query" name="q" placeholder="e.g. electric and hybrid SUVs under $40,000" autocomplete="off" />
       <button type="submit" [disabled]="!query.trim() || loading">{{ loading ? 'Searching…' : 'Search' }}</button>
     </form>
+    <div class="vs-controls">
+      <label class="vs-ctrl">Vector store
+        <select [(ngModel)]="store" name="store">
+          <option value="pgvector">pgVector</option>
+          <option value="mongodb">MongoDB</option>
+        </select>
+      </label>
+      <label class="vs-ctrl vs-check">
+        <input type="checkbox" [(ngModel)]="useLlm" name="useLlm" /> AI answer (LLM)
+      </label>
+    </div>
+
     <div class="vs-examples" *ngIf="!response && !loading">
       <span>Try:</span>
       <a *ngFor="let e of examples" (click)="query = e; run()">{{ e }}</a>
@@ -29,7 +41,15 @@ import { ExploreService, SearchResponse } from '../../core/explore.service';
 
     <ng-container *ngIf="response && !loading">
       <div class="vs-answer" *ngIf="response.count > 0">
-        <div class="vs-answer-label"><i class="pi pi-sparkles"></i> Answer</div>
+        <div class="vs-answer-label">
+          <span><i class="pi pi-sparkles"></i> Answer</span>
+          <span class="vs-badges">
+            <span class="vs-badge" [class.ai]="response.answerSource === 'llm'">
+              {{ response.answerSource === 'llm' ? 'AI-generated' : 'Extractive' }}
+            </span>
+            <span class="vs-badge store">{{ response.store === 'mongodb' ? 'MongoDB' : 'pgVector' }}</span>
+          </span>
+        </div>
         <p>{{ response.answer }}</p>
       </div>
 
@@ -53,6 +73,8 @@ import { ExploreService, SearchResponse } from '../../core/explore.service';
 })
 export class SearchComponent {
   query = '';
+  store: VectorStore = 'pgvector';
+  useLlm = true;
   loading = false;
   error = '';
   response: SearchResponse | null = null;
@@ -69,7 +91,7 @@ export class SearchComponent {
     const q = this.query.trim();
     if (!q) { return; }
     this.loading = true; this.error = ''; this.response = null;
-    this.explore.search(q, 'langgraph', undefined, 6).subscribe({
+    this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 6 }).subscribe({
       next: r => { this.response = r; this.loading = false; },
       error: () => { this.error = 'Search is unavailable (is vehicle-explore-service on :8090 running?).'; this.loading = false; }
     });

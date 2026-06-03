@@ -8,12 +8,24 @@ export interface SearchResultItem {
   score: number;
 }
 
+export type VectorStore = 'pgvector' | 'mongodb';
+
 export interface SearchResponse {
   framework: string;
+  store: VectorStore;
   query: string;
   answer: string;
+  answerSource: 'llm' | 'extractive' | 'none';
   results: SearchResultItem[];
   count: number;
+}
+
+export interface SearchOpts {
+  framework?: string;
+  store?: VectorStore;
+  useLlm?: boolean;
+  companyId?: string;
+  topK?: number;
 }
 
 /** Talks to vehicle-explore-service (proxied to :8090). Framework is part of the URL. */
@@ -23,7 +35,14 @@ export class ExploreService {
 
   constructor(private http: HttpClient) {}
 
-  search(query: string, framework = 'langgraph', companyId?: string, topK = 5): Observable<SearchResponse> {
-    return this.http.post<SearchResponse>(`${this.base}/${framework}/search`, { query, companyId, topK });
+  search(query: string, opts: SearchOpts = {}): Observable<SearchResponse> {
+    const framework = opts.framework ?? 'langgraph';
+    return this.http.post<SearchResponse>(`${this.base}/${framework}/search`, {
+      query,
+      store: opts.store ?? 'pgvector',
+      useLlm: opts.useLlm ?? true,
+      companyId: opts.companyId,
+      topK: opts.topK ?? 6
+    });
   }
 }
