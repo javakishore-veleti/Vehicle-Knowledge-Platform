@@ -85,3 +85,18 @@ html, body {
 
 /* Make the PrimeNG PanelMenu blend into the sidebar */
 .vkp-sidebar .p-panelmenu .p-panelmenu-header-link { font-weight: 600; }
+
+/* Inline alerts */
+.vkp-alert-ok  { background:#e8f4ea; color:#1c5b2c; border:1px solid #b4dcc0; padding:.6rem .9rem; border-radius:6px; margin-bottom:1rem; }
+.vkp-alert-err { background:#fde8e8; color:#9b1c1c; border:1px solid #f8b4b4; padding:.6rem .9rem; border-radius:6px; margin-bottom:1rem; }
+
+/* Stat cards (overview) */
+.vkp-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.25rem; }
+.vkp-stat { background:#fff; border:1px solid var(--vkp-border); border-radius:8px; padding:1rem 1.1rem; }
+.vkp-stat .num { font-size:1.8rem; font-weight:700; color:var(--vkp-brand-2); }
+.vkp-stat .lbl { color:var(--vkp-muted); font-size:.85rem; }
+
+/* Form field helper */
+.vkp-field { display:flex; flex-direction:column; gap:.35rem; margin-bottom:1rem; }
+.vkp-field > label { font-weight:600; }
+.vkp-field select, .vkp-field input { padding:.5rem; border:1px solid var(--vkp-border); border-radius:6px; }

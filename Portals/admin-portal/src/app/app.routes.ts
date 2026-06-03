@@ -5,6 +5,12 @@ import { OverviewComponent } from './features/data-management/overview.component
 import { ResourceGraphComponent } from './features/data-management/resource-graph.component';
 import { CrawlComponent } from './features/data-management/crawl.component';
 import { SnapshotsComponent } from './features/data-management/snapshots.component';
+import { IndexOverviewComponent } from './features/data-management/indexing/index-overview.component';
+import { TriggerIndexComponent } from './features/data-management/indexing/trigger-index.component';
+import { IndexWorkflowsComponent } from './features/data-management/indexing/index-workflows.component';
+import { IndexFormulasComponent } from './features/data-management/indexing/index-formulas.component';
+import { IndexCredentialsComponent } from './features/data-management/indexing/index-credentials.component';
+import { IndexLogsComponent } from './features/data-management/indexing/index-logs.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -15,6 +21,15 @@ export const routes: Routes = [
   { path: 'data-management/data-collection/crawl', component: CrawlComponent, title: 'Crawl Snapshot' },
   { path: 'data-management/data-collection/snapshots', component: SnapshotsComponent, title: 'Snapshot Browser' },
   { path: 'data-management/data-collection/graph', component: ResourceGraphComponent, title: 'Resource Graph' },
+
+  // Data Indexing — dedicated pages (must precede the generic :section routes)
+  { path: 'data-management/data-indexing/overview', component: IndexOverviewComponent, title: 'Indexing Overview' },
+  { path: 'data-management/data-indexing/trigger', component: TriggerIndexComponent, title: 'Trigger Indexing' },
+  { path: 'data-management/data-indexing/workflows', component: IndexWorkflowsComponent, title: 'Indexing Workflows' },
+  { path: 'data-management/data-indexing/formulas', component: IndexFormulasComponent, title: 'Index Formulas' },
+  { path: 'data-management/data-indexing/credentials', component: IndexCredentialsComponent, title: 'Provider Credentials' },
+  { path: 'data-management/data-indexing/logs', component: IndexLogsComponent, title: 'Index Logs' },
+
   { path: 'data-management/:section/overview', component: OverviewComponent, title: 'Data Management' },
   { path: 'data-management/:section/workflows', component: WorkflowsComponent, title: 'Workflows' },
   { path: 'data-management/:section', redirectTo: 'data-management/:section/workflows', pathMatch: 'full' },

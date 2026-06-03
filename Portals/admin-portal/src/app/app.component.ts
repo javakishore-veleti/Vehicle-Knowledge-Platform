@@ -74,7 +74,11 @@ export class AppComponent {
       label: 'Data Indexing', icon: 'pi pi-database',
       items: [
         { label: 'Overview', icon: 'pi pi-info-circle', routerLink: '/data-management/data-indexing/overview' },
-        { label: 'Workflows', icon: 'pi pi-bolt', routerLink: '/data-management/data-indexing/workflows' }
+        { label: 'Trigger Indexing', icon: 'pi pi-bolt', routerLink: '/data-management/data-indexing/trigger' },
+        { label: 'Workflows', icon: 'pi pi-sitemap', routerLink: '/data-management/data-indexing/workflows' },
+        { label: 'Index Formulas', icon: 'pi pi-sliders-h', routerLink: '/data-management/data-indexing/formulas' },
+        { label: 'Provider Credentials', icon: 'pi pi-key', routerLink: '/data-management/data-indexing/credentials' },
+        { label: 'Index Logs', icon: 'pi pi-list', routerLink: '/data-management/data-indexing/logs' }
       ]
     }
   ];
