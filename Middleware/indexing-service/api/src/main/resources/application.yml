@@ -1,0 +1,55 @@
+# Default profile: in-memory H2. No external dependencies required.
+server:
+  port: 8086
+
+# airflow-adapter-service base URL (the only component that talks to Airflow).
+airflow-adapter:
+  base-url: ${AIRFLOW_ADAPTER_BASE_URL:http://localhost:8083}
+
+# Indexing control-plane settings.
+indexing:
+  wfs-base-url: ${INDEXING_WFS_BASE_URL:http://localhost:8087}
+  airflow-callback-base-url: ${INDEXING_AIRFLOW_CALLBACK_BASE_URL:http://host.docker.internal:8086}
+
+spring:
+  application:
+    name: indexing-service
+  datasource:
+    url: jdbc:h2:mem:indexingdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    # Liquibase owns the schema + seed data.
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Swagger UI -> /swagger-ui.html ; OpenAPI JSON -> /v3/api-docs
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

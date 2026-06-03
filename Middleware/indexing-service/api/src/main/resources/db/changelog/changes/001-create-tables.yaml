@@ -1,0 +1,90 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-indexing-workflow
+      author: vkp
+      changes:
+        - createTable:
+            tableName: indexing_workflow
+            columns:
+              - column: { name: wf_id, type: VARCHAR(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: name, type: VARCHAR(150), constraints: { nullable: false } }
+              - column: { name: wf_type, type: VARCHAR(20), constraints: { nullable: false } }   # AIRFLOW | SPRING_AI
+              - column: { name: target_ref, type: VARCHAR(150) }                                   # DAG id or Spring-AI executor id
+              - column: { name: description, type: VARCHAR(500) }
+              - column: { name: status, type: VARCHAR(15) }
+              - column: { name: created_dt, type: TIMESTAMP }
+              - column: { name: updated_dt, type: TIMESTAMP }
+              - column: { name: created_by, type: VARCHAR(50) }
+              - column: { name: updated_by, type: VARCHAR(50) }
+
+  - changeSet:
+      id: 001-index-formula
+      author: vkp
+      changes:
+        - createTable:
+            tableName: index_formula
+            columns:
+              - column: { name: index_formula_id, type: VARCHAR(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: name, type: VARCHAR(150), constraints: { nullable: false } }
+              - column: { name: embedding_provider, type: VARCHAR(50) }
+              - column: { name: embedding_model, type: VARCHAR(100) }
+              - column: { name: params, type: CLOB }                                               # JSON: chunk size/overlap, temperature, top_p, ...
+              - column: { name: status, type: VARCHAR(15) }
+              - column: { name: created_dt, type: TIMESTAMP }
+              - column: { name: updated_dt, type: TIMESTAMP }
+              - column: { name: created_by, type: VARCHAR(50) }
+              - column: { name: updated_by, type: VARCHAR(50) }
+
+  - changeSet:
+      id: 001-provider-credentials
+      author: vkp
+      changes:
+        - createTable:
+            tableName: provider_credentials
+            columns:
+              - column: { name: provider_credential_id, type: VARCHAR(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: provider_type, type: VARCHAR(50), constraints: { nullable: false } } # sentence-transformers|openai|pgvector|mongodb-vector|...
+              - column: { name: name, type: VARCHAR(150), constraints: { nullable: false } }
+              - column: { name: config, type: CLOB }                                                # JSON: endpoint/region/index/keys
+              - column: { name: status, type: VARCHAR(15) }
+              - column: { name: created_dt, type: TIMESTAMP }
+              - column: { name: updated_dt, type: TIMESTAMP }
+              - column: { name: created_by, type: VARCHAR(50) }
+              - column: { name: updated_by, type: VARCHAR(50) }
+
+  - changeSet:
+      id: 001-resource-graph-index-log
+      author: vkp
+      changes:
+        - createTable:
+            tableName: resource_graph_index_log
+            columns:
+              - column: { name: index_log_id, type: VARCHAR(36), constraints: { primaryKey: true, nullable: false } }
+              - column: { name: company_id, type: VARCHAR(36), constraints: { nullable: false } }
+              - column: { name: resource_graph_id, type: VARCHAR(36) }                              # per-doc (null = run-level)
+              - column: { name: wf_id, type: VARCHAR(36) }
+              - column: { name: wf_type, type: VARCHAR(20) }
+              - column: { name: index_formula_id, type: VARCHAR(36) }
+              - column: { name: provider, type: VARCHAR(50) }
+              - column: { name: embedding_model, type: VARCHAR(100) }
+              - column: { name: indexed_to, type: VARCHAR(50) }
+              - column: { name: provider_credential_id, type: VARCHAR(36) }
+              - column: { name: vector_target, type: VARCHAR(150) }
+              - column: { name: scope, type: VARCHAR(20) }                                          # WHOLE | SELECTED
+              - column: { name: doc_count, type: INT }
+              - column: { name: status, type: VARCHAR(20) }                                         # PENDING|IN_PROGRESS|INDEXED|FAILED|SKIPPED
+              - column: { name: version, type: VARCHAR(20) }
+              - column: { name: run_ref, type: VARCHAR(150) }                                       # dag run id or wfs job id
+              - column: { name: chunks, type: INT }
+              - column: { name: error, type: CLOB }
+              - column: { name: index_start_dt, type: TIMESTAMP }
+              - column: { name: index_end_dt, type: TIMESTAMP }
+              - column: { name: created_dt, type: TIMESTAMP }
+              - column: { name: updated_dt, type: TIMESTAMP }
+              - column: { name: created_by, type: VARCHAR(50) }
+              - column: { name: updated_by, type: VARCHAR(50) }
+        - createIndex:
+            indexName: idx_rgil_company_id
+            tableName: resource_graph_index_log
+            columns:
+              - column: { name: company_id }

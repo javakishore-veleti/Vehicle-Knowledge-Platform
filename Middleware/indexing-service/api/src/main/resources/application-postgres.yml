@@ -1,0 +1,19 @@
+# Postgres profile: run with -Dspring-boot.run.profiles=postgres (or SPRING_PROFILES_ACTIVE=postgres).
+# Targets the localhost pgvector container from DevOps/Localhost/Postgres/docker-compose.yaml.
+server:
+  port: 8086
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vkp
+    driver-class-name: org.postgresql.Driver
+    username: vkp
+    password: vkp
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true

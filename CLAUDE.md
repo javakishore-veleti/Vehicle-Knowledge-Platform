@@ -122,6 +122,17 @@ present (`docker images`) over introducing a new one.
 >   (port 8085). Triggers `vkp_process_resources`, whose DAG fetches discovered links from
 >   data-collection, crawls each, extracts title + clean text (+ sha256), and calls back
 >   (`POST …/content/record`) to persist into `company_resource_content`. Same template.
+> - **`Middleware/indexing-service/`** — indexing **control plane** (port 8086) + a second
+>   bootable module **`wfs-java`** (`indexing-service-wfs-java`, port 8087, horizontally
+>   scalable). Liquibase metadata: `indexing_workflow` (registry, 10k+), `index_formula`,
+>   `provider_credentials`, `resource_graph_index_log` (the dedup/restart ledger). The control
+>   plane never embeds — it **routes** a triggered run by the workflow's `wf_type`: `AIRFLOW`
+>   → adapter→DAG, or `SPRING_AI` → `wfs-java` `POST /wfs/{id}/execute` (async); executors
+>   report status back via `POST …/index-logs/{id}/callback`. Dedup on
+>   (company, workflow, formula). **Phase 1 done** (routing + dedup + ledger, execution
+>   stubbed); Phase 2 wires Spring AI `TransformersEmbeddingModel`→`PgVectorStore` + a Python
+>   embed DAG. (Note: `java-start-all.sh` starts only the `api` module; run `wfs-java`'s jar
+>   separately.)
 >
 > Real DAGs live under `Middleware/Workflows/AirflowDAGS/Vehicles/` —
 > `DataCollection/vkp_discover_resources.py` and `Ingestion/vkp_process_resources.py`

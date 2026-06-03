@@ -1,0 +1,79 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-index-formula
+      author: vkp
+      changes:
+        - insert:
+            tableName: index_formula
+            columns:
+              - { column: { name: index_formula_id, value: "f0000000-0000-4000-8000-000000000001" } }
+              - { column: { name: name, value: "minilm-default" } }
+              - { column: { name: embedding_provider, value: "sentence-transformers" } }
+              - { column: { name: embedding_model, value: "all-MiniLM-L6-v2" } }
+              - { column: { name: params, value: '{"chunk_size":512,"chunk_overlap":64,"dim":384}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+
+  - changeSet:
+      id: 002-seed-provider-credentials
+      author: vkp
+      changes:
+        - insert:
+            tableName: provider_credentials
+            columns:
+              - { column: { name: provider_credential_id, value: "c0000000-0000-4000-8000-000000000001" } }
+              - { column: { name: provider_type, value: "sentence-transformers" } }
+              - { column: { name: name, value: "local-sentence-transformers" } }
+              - { column: { name: config, value: '{}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: provider_credentials
+            columns:
+              - { column: { name: provider_credential_id, value: "c0000000-0000-4000-8000-000000000002" } }
+              - { column: { name: provider_type, value: "pgvector" } }
+              - { column: { name: name, value: "local-pgvector" } }
+              - { column: { name: config, value: '{"url":"jdbc:postgresql://localhost:5432/vkp","table_prefix":"vec_"}' } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+
+  - changeSet:
+      id: 002-seed-workflows
+      author: vkp
+      comment: Two interchangeable executors for sentence-transformers -> pgVector
+      changes:
+        - insert:
+            tableName: indexing_workflow
+            columns:
+              - { column: { name: wf_id, value: "10000000-0000-4000-9000-000000000001" } }
+              - { column: { name: name, value: "Sentence-Transformers -> pgVector (Airflow)" } }
+              - { column: { name: wf_type, value: "AIRFLOW" } }
+              - { column: { name: target_ref, value: "vkp_index_sentence_transformers" } }
+              - { column: { name: description, value: "Python DAG: chunk + embed (sentence-transformers) into pgVector" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: indexing_workflow
+            columns:
+              - { column: { name: wf_id, value: "10000000-0000-4000-9000-000000000002" } }
+              - { column: { name: name, value: "Sentence-Transformers -> pgVector (Spring AI)" } }
+              - { column: { name: wf_type, value: "SPRING_AI" } }
+              - { column: { name: target_ref, value: "springAiSentenceTransformers" } }
+              - { column: { name: description, value: "Spring AI executor (wfs-java): TransformersEmbeddingModel into PgVectorStore" } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-02T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
