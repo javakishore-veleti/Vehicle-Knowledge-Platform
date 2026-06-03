@@ -15,6 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Playwright + Chromium as the airflow user (browser cache lives in the user home).
+# Also install lightweight embedding (fastembed = ONNX, no torch) + pgVector deps for the
+# indexing DAGs.
 USER airflow
-RUN pip install --no-cache-dir "playwright==${PLAYWRIGHT_VERSION}" \
+RUN pip install --no-cache-dir \
+      "playwright==${PLAYWRIGHT_VERSION}" \
+      "fastembed>=0.3,<0.6" \
+      "psycopg2-binary>=2.9" \
+      "pgvector>=0.3" \
     && playwright install chromium

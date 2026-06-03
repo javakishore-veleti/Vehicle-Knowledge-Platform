@@ -16,6 +16,9 @@ public class TriggerIndexReqDTO {
     /** Set by the controller from the path. */
     private String companyId;
 
+    /** Company name = the snapshot folder the executor/DAG reads. Provided by the portal. */
+    private String companyName;
+
     @NotBlank
     private String wfId;
 

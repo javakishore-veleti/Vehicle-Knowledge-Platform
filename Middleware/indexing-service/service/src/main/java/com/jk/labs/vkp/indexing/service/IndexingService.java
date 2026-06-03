@@ -48,6 +48,7 @@ public class IndexingService {
     private final ProviderCredentialRepository credentialRepo;
     private final ResourceGraphIndexLogRepository logRepo;
     private final WfsClient wfsClient;
+    private final AirflowAdapterClient adapterClient;
     private final IndexingProperties props;
 
     // ---- registry reads ----
@@ -123,10 +124,34 @@ public class IndexingService {
                 return;
             }
         } else { // AIRFLOW
-            runRef = "airflow-pending";
-            markInProgress(logRow, runRef, now);
-            // Phase 2: adapterClient.triggerDag(wf.getTargetRef(), conf incl. airflowCallbackBaseUrl).
-            log.info("AIRFLOW route: would trigger DAG '{}' (DAG deployment is Phase 2)", wf.getTargetRef());
+            try {
+                java.util.Map<String, Object> conf = new java.util.LinkedHashMap<>();
+                conf.put("index_log_id", logId);
+                conf.put("company_id", req.getCompanyId());
+                conf.put("company_name", req.getCompanyName());
+                conf.put("vector_target", vectorTarget);
+                conf.put("embedding_provider", formula.getEmbeddingProvider());
+                conf.put("embedding_model", formula.getEmbeddingModel());
+                conf.put("params", formula.getParams());
+                conf.put("data_collection_base_url", props.getDataCollectionBaseUrl());
+                conf.put("callback_base_url", props.getAirflowCallbackBaseUrl());
+                conf.put("pg_host", props.getPgHost());
+                conf.put("pg_port", props.getPgPort());
+                conf.put("pg_db", props.getPgDb());
+                conf.put("pg_user", props.getPgUser());
+                conf.put("pg_password", props.getPgPassword());
+                if (req.getDocIds() != null) {
+                    conf.put("doc_ids", req.getDocIds());
+                }
+                AirflowAdapterClient.DagRunRef run = adapterClient.triggerDag(wf.getTargetRef(), conf, actor);
+                runRef = run.dagRunId();
+                markInProgress(logRow, runRef, now);
+            } catch (RuntimeException ex) {
+                fail(logRow, ex.getMessage());
+                ctx.setRespDTO(new TriggerIndexRespDTO(logId, wf.getWfType(), IndexStatus.FAILED.name(),
+                        "airflow-error", false, "Failed to trigger DAG: " + ex.getMessage()));
+                return;
+            }
         }
 
         log.info("Indexing triggered: company={} wf={} ({}) formula={} -> log={}",
