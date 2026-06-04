@@ -64,7 +64,9 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
           </button>
           <div class="vs-acc-body" *ngIf="open.has(i)">
             <p *ngIf="a.ok" class="vs-snippet" style="margin:0">{{ a.answer }}</p>
-            <p *ngIf="!a.ok" class="vs-acc-err">{{ a.error }}</p>
+            <p *ngIf="!a.ok" class="vs-acc-err" [title]="a.errorDetail || ''">
+              <i class="pi pi-exclamation-triangle"></i> {{ a.error }}
+            </p>
           </div>
         </div>
       </div>
@@ -86,7 +88,10 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
       <article class="vs-card" *ngFor="let r of response.results">
         <div class="vs-card-head">
           <a [href]="r.sourceUrl" target="_blank" rel="noopener" class="vs-src">{{ hostOf(r.sourceUrl) }}</a>
-          <span class="vs-score" [title]="'cosine similarity'">{{ (r.score * 100) | number:'1.0-0' }}% match</span>
+          <span class="vs-score"
+                [title]="'Semantic similarity between your query and this passage (vector cosine score) — higher = closer in meaning, not a keyword match'">
+            {{ (r.score * 100) | number:'1.0-0' }}% match
+          </span>
         </div>
         <p class="vs-snippet">{{ r.snippet }}</p>
         <a [href]="r.sourceUrl" target="_blank" rel="noopener" class="vs-link">{{ r.sourceUrl }} <i class="pi pi-external-link"></i></a>
@@ -160,7 +165,13 @@ export class SearchComponent implements OnInit, OnDestroy {
   private execute(q: string): void {
     this.loading = true; this.error = ''; this.response = null; this.open.clear();
     this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 6 }).subscribe({
-      next: r => { this.response = r; this.open = new Set(r.answers.map((_, i) => i)); this.loading = false; },
+      next: r => {
+        this.response = r;
+        // Expand successful answers; collapse failed ones (a FAILED badge still shows on the header).
+        const ok = r.answers.map((a, i) => ({ a, i })).filter(x => x.a.ok).map(x => x.i);
+        this.open = new Set(ok.length ? ok : r.answers.map((_, i) => i));
+        this.loading = false;
+      },
       error: () => { this.error = 'Search is unavailable (is vehicle-explore-service on :8090 running?).'; this.loading = false; }
     });
   }

@@ -17,6 +17,7 @@ export interface ProviderAnswer {
   answer: string | null;
   ok: boolean;
   error: string | null;
+  errorDetail?: string | null;
   latencyMs: number;
 }
 

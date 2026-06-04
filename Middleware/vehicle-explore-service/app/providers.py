@@ -50,6 +50,24 @@ def enabled_providers() -> list[dict]:
     return out
 
 
+def _friendly_error(exc: Exception) -> str:
+    """Map a raw provider exception to a short, user-readable reason."""
+    s = str(exc)
+    low = s.lower()
+    if "insufficient_quota" in low or "exceeded your current quota" in low:
+        return "Quota exceeded — this provider's account needs billing/credits."
+    if "api key not valid" in low or "invalid api key" in low or "incorrect api key" in low \
+            or "401" in low or "authentication" in low:
+        return "Invalid or missing API key for this provider."
+    if "not_found" in low or "does not exist" in low or "404" in low:
+        return "Model not available for this account."
+    if "rate limit" in low or "429" in low:
+        return "Rate-limited — please try again shortly."
+    if "timeout" in low or "timed out" in low:
+        return "The provider timed out."
+    return (s[:140] + "…") if len(s) > 140 else s
+
+
 def _answer_one(provider: dict, query: str, context: str) -> dict:
     t0 = time.perf_counter()
     base = {"provider": provider["id"], "label": provider["label"], "model": provider["model"]}
@@ -65,8 +83,8 @@ def _answer_one(provider: dict, query: str, context: str) -> dict:
         return {**base, "answer": resp.choices[0].message.content.strip(), "ok": True,
                 "error": None, "latencyMs": int((time.perf_counter() - t0) * 1000)}
     except Exception as e:  # noqa: BLE001 — per-provider failure is data, not fatal
-        return {**base, "answer": None, "ok": False, "error": str(e)[:240],
-                "latencyMs": int((time.perf_counter() - t0) * 1000)}
+        return {**base, "answer": None, "ok": False, "error": _friendly_error(e),
+                "errorDetail": str(e)[:300], "latencyMs": int((time.perf_counter() - t0) * 1000)}
 
 
 def generate_all(query: str, results: list[dict]) -> list[dict]:
