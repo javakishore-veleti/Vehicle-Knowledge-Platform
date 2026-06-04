@@ -19,7 +19,7 @@
       <groupId>com.jk.labs.vkp</groupId>
       <artifactId>ingestion-service-core</artifactId>
     </dependency>
-        <dependency>
+    <dependency>
       <groupId>com.jk.labs.vkp</groupId>
       <artifactId>vkp-session-security</artifactId>
       <version>0.1.0</version>

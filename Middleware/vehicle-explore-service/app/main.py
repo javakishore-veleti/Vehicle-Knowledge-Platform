@@ -92,12 +92,29 @@ def search(framework_name: str, req: SearchReq,
     except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
 
-    # Output guardrail — on the primary answer.
-    gout = guardrails.output_check(answer or "", session_id, query_id, user_type, len(results))
-    if not gout.get("allowed", True):
-        answer, answer_source = "The answer was withheld by output guardrails.", "blocked"
-    elif gout.get("action") == "redact" and gout.get("sanitizedText"):
-        answer = gout["sanitizedText"]
+    # Output guardrail — check EVERY provider answer (and the extractive fallback).
+    if answers:
+        for a in answers:
+            if a.get("ok") and a.get("answer"):
+                go = guardrails.output_check(a["answer"], session_id, query_id, user_type, len(results))
+                a["outputAction"] = go.get("action", "allow")
+                if not go.get("allowed", True):
+                    a["answer"], a["ok"], a["error"] = None, False, "withheld by output guardrails"
+                elif go.get("action") == "redact" and go.get("sanitizedText"):
+                    a["answer"] = go["sanitizedText"]
+        surviving = [a for a in answers if a.get("ok") and a.get("answer")]
+        if answer_source == "llm":
+            answer = surviving[0]["answer"] if surviving else "All answers were withheld by output guardrails."
+            if not surviving:
+                answer_source = "blocked"
+        gout = {"perProvider": True, "checked": len(answers),
+                "blocked": sum(1 for a in answers if a.get("outputAction") == "block")}
+    else:
+        gout = guardrails.output_check(answer or "", session_id, query_id, user_type, len(results))
+        if not gout.get("allowed", True):
+            answer, answer_source = "The answer was withheld by output guardrails.", "blocked"
+        elif gout.get("action") == "redact" and gout.get("sanitizedText"):
+            answer = gout["sanitizedText"]
 
     return {**base, "answer": answer, "answerSource": answer_source, "answers": answers,
             "results": results, "count": len(results),
