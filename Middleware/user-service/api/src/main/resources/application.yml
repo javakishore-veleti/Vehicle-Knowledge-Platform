@@ -46,3 +46,10 @@ springdoc:
 jwt:
   secret: ${JWT_SECRET:change-me-dev-secret-please-override-in-prod-0123456789}
   expiration-minutes: 60
+
+# Shared session encryption (vkp-session-security). Set VKP_SESSION_SECRET to a base64 32-byte key,
+# SAME value across every service that issues/reads the token (blank => random dev key, single-service only).
+vkp:
+  session:
+    secret: ${VKP_SESSION_SECRET:}
+    header: X-VKP-Session

@@ -20,4 +20,7 @@ public final class ApiRoutes {
 
     /** Profile group: read / update the current user's profile. */
     public static final String PROFILE = API_BASE + "/profile";
+
+    /** Session group: mint the encrypted session token (guest/auth) the UI carries on every call. */
+    public static final String SESSION = API_BASE + "/session";
 }
