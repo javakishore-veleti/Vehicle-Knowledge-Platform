@@ -59,6 +59,9 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
             </span>
             <span class="vs-acc-meta">
               <span class="vs-badge" [ngClass]="a.ok ? 'ok' : 'err'">{{ a.ok ? 'OK' : 'FAILED' }}</span>
+              <span class="vs-tok" *ngIf="a.ok && a.totalTokens" title="LLM token usage (input / output)">
+                {{ a.promptTokens }} in · {{ a.completionTokens }} out
+              </span>
               <span class="vs-lat">{{ a.latencyMs }} ms</span>
             </span>
           </button>

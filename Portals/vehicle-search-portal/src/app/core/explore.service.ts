@@ -18,6 +18,10 @@ export interface ProviderAnswer {
   ok: boolean;
   error: string | null;
   errorDetail?: string | null;
+  promptTokens?: number | null;
+  completionTokens?: number | null;
+  totalTokens?: number | null;
+  finishReason?: string | null;
   latencyMs: number;
 }
 

@@ -103,6 +103,7 @@ html, body {
 .vs-acc-title .pi { font-size: .75rem; color: var(--vs-muted); }
 .vs-acc-meta { display: flex; align-items: center; gap: .6rem; }
 .vs-lat { font-size: .76rem; color: var(--vs-muted); }
+.vs-tok { font-size: .72rem; color: var(--vs-muted); background: #f1f4f8; border-radius: 999px; padding: .1rem .5rem; }
 .vs-acc-body { padding: .8rem .9rem; line-height: 1.55; }
 .vs-acc-err { margin: 0; color: #9b1c1c; font-size: .82rem; word-break: break-word; }
 .vs-badge.ok { background: #e6f4ea; color: #1c7a3f; }

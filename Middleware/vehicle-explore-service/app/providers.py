@@ -80,11 +80,19 @@ def _answer_one(provider: dict, query: str, context: str) -> dict:
             messages=[{"role": "system", "content": PROMPT_SYS},
                       {"role": "user", "content": f"Question: {query}\n\nSources:\n{context}"}],
             temperature=0.2, max_tokens=300)
-        return {**base, "answer": resp.choices[0].message.content.strip(), "ok": True,
-                "error": None, "latencyMs": int((time.perf_counter() - t0) * 1000)}
+        usage = getattr(resp, "usage", None)
+        finish = resp.choices[0].finish_reason if resp.choices else None
+        return {**base, "answer": resp.choices[0].message.content.strip(), "ok": True, "error": None,
+                "promptTokens": getattr(usage, "prompt_tokens", None),
+                "completionTokens": getattr(usage, "completion_tokens", None),
+                "totalTokens": getattr(usage, "total_tokens", None),
+                "finishReason": finish,
+                "latencyMs": int((time.perf_counter() - t0) * 1000)}
     except Exception as e:  # noqa: BLE001 — per-provider failure is data, not fatal
         return {**base, "answer": None, "ok": False, "error": _friendly_error(e),
-                "errorDetail": str(e)[:300], "latencyMs": int((time.perf_counter() - t0) * 1000)}
+                "errorDetail": str(e)[:300], "promptTokens": None, "completionTokens": None,
+                "totalTokens": None, "finishReason": None,
+                "latencyMs": int((time.perf_counter() - t0) * 1000)}
 
 
 def generate_all(query: str, results: list[dict]) -> list[dict]:
