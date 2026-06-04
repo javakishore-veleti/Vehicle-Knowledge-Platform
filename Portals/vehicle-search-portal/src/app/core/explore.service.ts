@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
+import { SessionService } from './session.service';
 
 export interface SearchResultItem {
   sourceUrl: string;
@@ -60,7 +61,7 @@ export interface SearchOpts {
 export class ExploreService {
   private readonly base = '/api/vehicle-explore';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private session: SessionService) {}
 
   providers(): Observable<ProviderInfo[]> {
     return this.http.get<{ providers: ProviderInfo[] }>(`${this.base}/providers`).pipe(map(r => r.providers ?? []));
@@ -68,13 +69,18 @@ export class ExploreService {
 
   search(query: string, opts: SearchOpts = {}): Observable<SearchResponse> {
     const framework = opts.framework ?? 'langgraph';
-    return this.http.post<SearchResponse>(`${this.base}/${framework}/search`, {
+    const body = {
       query,
       store: opts.store ?? 'pgvector',
       useLlm: opts.useLlm ?? true,
       companyId: opts.companyId,
       topK: opts.topK ?? 8,
       providers: opts.providers
-    });
+    };
+    // Attach the encrypted session token (guest) so the backend ties the query to a session.
+    return this.session.ensureToken().pipe(switchMap(token => {
+      const headers = token ? new HttpHeaders({ 'X-VKP-Session': token }) : undefined;
+      return this.http.post<SearchResponse>(`${this.base}/${framework}/search`, body, { headers });
+    }));
   }
 }
