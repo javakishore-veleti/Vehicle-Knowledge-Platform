@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.service';
 
 @Component({
@@ -97,7 +99,7 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
   </section>
   `
 })
-export class SearchComponent {
+export class SearchComponent implements OnInit, OnDestroy {
   query = '';
   store: VectorStore = 'pgvector';
   useLlm = true;
@@ -105,6 +107,33 @@ export class SearchComponent {
   error = '';
   response: SearchResponse | null = null;
   open = new Set<number>();   // expanded provider accordions
+  private sub?: Subscription;
+
+  readonly examples = [
+    'electric and hybrid vehicles',
+    'all-wheel drive SUVs',
+    'fuel economy and MPG'
+  ];
+
+  constructor(private explore: ExploreService, private router: Router, private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    // State is driven by the URL query params, so the browser Back/Forward buttons move between
+    // searches (and back to the landing page) — and a search is shareable/bookmarkable.
+    this.sub = this.route.queryParamMap.subscribe(p => {
+      this.store = (p.get('store') as VectorStore) || 'pgvector';
+      this.useLlm = p.get('llm') !== 'false';
+      const q = (p.get('q') || '').trim();
+      if (q) {
+        this.query = q;
+        this.execute(q);
+      } else {
+        this.query = ''; this.response = null; this.error = ''; this.loading = false; this.open.clear();
+      }
+    });
+  }
+
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
   toggle(i: number): void {
     if (this.open.has(i)) { this.open.delete(i); } else { this.open.add(i); }
@@ -116,26 +145,20 @@ export class SearchComponent {
     this.run();
   }
 
-  /** Reset back to the initial landing state (clears the query + results). */
-  clear(): void {
-    this.query = '';
-    this.response = null;
-    this.error = '';
-    this.open.clear();
-  }
-
-  readonly examples = [
-    'electric and hybrid vehicles',
-    'all-wheel drive SUVs',
-    'fuel economy and MPG'
-  ];
-
-  constructor(private explore: ExploreService) {}
-
+  /** Run the current query — recorded in the URL so the browser Back button returns here. */
   run(): void {
     const q = this.query.trim();
     if (!q) { return; }
-    this.loading = true; this.error = ''; this.response = null;
+    this.router.navigate([], { queryParams: { q, store: this.store, llm: this.useLlm } });
+  }
+
+  /** Reset to the landing state (also a browser-history step). */
+  clear(): void {
+    this.router.navigate([], { queryParams: {} });
+  }
+
+  private execute(q: string): void {
+    this.loading = true; this.error = ''; this.response = null; this.open.clear();
     this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 6 }).subscribe({
       next: r => { this.response = r; this.open = new Set(r.answers.map((_, i) => i)); this.loading = false; },
       error: () => { this.error = 'Search is unavailable (is vehicle-explore-service on :8090 running?).'; this.loading = false; }
