@@ -1,0 +1,7 @@
+fastapi>=0.111,<0.116
+uvicorn[standard]>=0.30,<0.35
+pydantic>=2.6
+psycopg2-binary>=2.9
+openai>=1.30
+# Optional model-based engine (heavy; enable with VKP_GUARDRAILS_ENGINE=llmguard):
+# llm-guard>=0.3
