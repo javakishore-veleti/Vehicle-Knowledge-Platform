@@ -21,6 +21,7 @@ class AgentState(TypedDict, total=False):
     top_k: int
     store: str
     use_llm: bool
+    provider_ids: Optional[list]
     results: list
     answer: str
     answer_source: str
@@ -33,7 +34,8 @@ def _retrieve_node(state: AgentState) -> dict:
 
 
 def _generate_node(state: AgentState) -> dict:
-    answer, source, answers = frameworks.synthesize(state["query"], state["results"], state.get("use_llm", True))
+    answer, source, answers = frameworks.synthesize(
+        state["query"], state["results"], state.get("use_llm", True), state.get("provider_ids"))
     return {"answer": answer, "answer_source": source, "answers": answers}
 
 
@@ -60,8 +62,9 @@ def _graph():
 
 
 def run(query: str, company_id: Optional[str], top_k: int, store: str,
-        use_llm: bool = True) -> tuple[str, str, list[dict], list[dict]]:
+        use_llm: bool = True, provider_ids: Optional[list[str]] = None) -> tuple[str, str, list[dict], list[dict]]:
     out = _graph().invoke({
-        "query": query, "company_id": company_id, "top_k": top_k, "store": store, "use_llm": use_llm,
+        "query": query, "company_id": company_id, "top_k": top_k, "store": store,
+        "use_llm": use_llm, "provider_ids": provider_ids,
     })
     return out.get("answer", ""), out.get("answer_source", "none"), out.get("results", []), out.get("answers", [])

@@ -61,6 +61,18 @@ html, body {
 .vs-searchbar .vs-clear:hover { color: var(--vs-text); background: #eef1f5; }
 .vs-searchbar .vs-clear .pi { font-size: .85rem; }
 
+/* Provider checkboxes */
+.vs-providers-pick { display: flex; gap: .9rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: .7rem; }
+.vs-pick-label { font-weight: 700; color: var(--vs-muted); font-size: .82rem; }
+.vs-pick { display: inline-flex; align-items: center; gap: .35rem; font-size: .84rem; color: var(--vs-text); cursor: pointer; }
+.vs-pick input { width: 14px; height: 14px; }
+.vs-free { margin-left: .3rem; font-size: .62rem; font-weight: 700; text-transform: uppercase; color: #1c7a3f; background: #e6f4ea; border-radius: 999px; padding: .05rem .4rem; }
+
+/* Show more/fewer sources */
+.vs-more { display: block; margin: .25rem auto 1rem; background: transparent; border: 1px solid var(--vs-border);
+  border-radius: 999px; padding: .4rem 1rem; color: var(--vs-brand-2); font-weight: 600; cursor: pointer; }
+.vs-more:hover { background: #eef4fb; }
+
 .vs-examples { margin-top: 1rem; color: var(--vs-muted); font-size: .9rem; display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
 .vs-examples a { color: var(--vs-brand-2); cursor: pointer; text-decoration: underline; }
 

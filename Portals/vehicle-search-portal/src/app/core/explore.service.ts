@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface SearchResultItem {
   sourceUrl: string;
@@ -22,7 +23,16 @@ export interface ProviderAnswer {
   completionTokens?: number | null;
   totalTokens?: number | null;
   finishReason?: string | null;
+  costUsd?: number | null;
   latencyMs: number;
+}
+
+export interface ProviderInfo {
+  id: string;
+  label: string;
+  model: string;
+  free: boolean;
+  default: boolean;
 }
 
 export interface SearchResponse {
@@ -42,6 +52,7 @@ export interface SearchOpts {
   useLlm?: boolean;
   companyId?: string;
   topK?: number;
+  providers?: string[];
 }
 
 /** Talks to vehicle-explore-service (proxied to :8090). Framework is part of the URL. */
@@ -51,6 +62,10 @@ export class ExploreService {
 
   constructor(private http: HttpClient) {}
 
+  providers(): Observable<ProviderInfo[]> {
+    return this.http.get<{ providers: ProviderInfo[] }>(`${this.base}/providers`).pipe(map(r => r.providers ?? []));
+  }
+
   search(query: string, opts: SearchOpts = {}): Observable<SearchResponse> {
     const framework = opts.framework ?? 'langgraph';
     return this.http.post<SearchResponse>(`${this.base}/${framework}/search`, {
@@ -58,7 +73,8 @@ export class ExploreService {
       store: opts.store ?? 'pgvector',
       useLlm: opts.useLlm ?? true,
       companyId: opts.companyId,
-      topK: opts.topK ?? 6
+      topK: opts.topK ?? 8,
+      providers: opts.providers
     });
   }
 }

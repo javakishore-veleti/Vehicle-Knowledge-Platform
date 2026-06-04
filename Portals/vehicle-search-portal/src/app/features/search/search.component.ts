@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.service';
+import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorStore } from '../../core/explore.service';
 
 @Component({
   selector: 'vs-search',
@@ -30,6 +30,14 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
       </label>
       <label class="vs-ctrl vs-check">
         <input type="checkbox" [(ngModel)]="useLlm" name="useLlm" /> AI answer (LLM)
+      </label>
+    </div>
+
+    <div class="vs-providers-pick" *ngIf="useLlm && providerList.length">
+      <span class="vs-pick-label">LLM providers:</span>
+      <label class="vs-pick" *ngFor="let p of providerList" [title]="p.model">
+        <input type="checkbox" [checked]="selectedProviders.has(p.id)" (change)="toggleProvider(p.id)" />
+        {{ p.label }}<span class="vs-free" *ngIf="p.free">free</span>
       </label>
     </div>
 
@@ -62,6 +70,7 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
               <span class="vs-tok" *ngIf="a.ok && a.totalTokens" title="LLM token usage (input / output)">
                 {{ a.promptTokens }} in · {{ a.completionTokens }} out
               </span>
+              <span class="vs-tok" *ngIf="a.ok && a.costUsd != null" title="Estimated cost (USD)">{{ cost(a) }}</span>
               <span class="vs-lat">{{ a.latencyMs }} ms</span>
             </span>
           </button>
@@ -88,7 +97,7 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
 
       <div class="vs-count" *ngIf="response.count > 0">{{ response.count }} source(s) for “{{ response.query }}”</div>
 
-      <article class="vs-card" *ngFor="let r of response.results">
+      <article class="vs-card" *ngFor="let r of response.results.slice(0, sourceLimit)">
         <div class="vs-card-head">
           <a [href]="r.sourceUrl" target="_blank" rel="noopener" class="vs-src">{{ hostOf(r.sourceUrl) }}</a>
           <span class="vs-score"
@@ -99,6 +108,14 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
         <p class="vs-snippet">{{ r.snippet }}</p>
         <a [href]="r.sourceUrl" target="_blank" rel="noopener" class="vs-link">{{ r.sourceUrl }} <i class="pi pi-external-link"></i></a>
       </article>
+
+      <button type="button" class="vs-more" *ngIf="response.count > sourceLimit" (click)="sourceLimit = response.count">
+        Show all {{ response.count }} sources
+      </button>
+      <button type="button" class="vs-more" *ngIf="response.count > defaultSourceLimit && sourceLimit >= response.count"
+              (click)="sourceLimit = defaultSourceLimit">
+        Show fewer
+      </button>
 
       <div class="vs-empty" *ngIf="response.count === 0">
         No matching vehicle content found. Try different wording, or index more companies first.
@@ -117,6 +134,13 @@ export class SearchComponent implements OnInit, OnDestroy {
   open = new Set<number>();   // expanded provider accordions
   private sub?: Subscription;
 
+  providerList: ProviderInfo[] = [];
+  // Default = free providers (Groq) so there's no cost and no error accordions unless opted in.
+  selectedProviders = new Set<string>(['groq-70b', 'groq-8b']);
+
+  readonly defaultSourceLimit = 5;
+  sourceLimit = this.defaultSourceLimit;
+
   readonly examples = [
     'electric and hybrid vehicles',
     'all-wheel drive SUVs',
@@ -126,6 +150,15 @@ export class SearchComponent implements OnInit, OnDestroy {
   constructor(private explore: ExploreService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
+    // Provider checkboxes: load the available providers; default-check the free ones.
+    this.explore.providers().subscribe({
+      next: list => {
+        this.providerList = list;
+        const def = list.filter(p => p.default).map(p => p.id);
+        if (def.length) { this.selectedProviders = new Set(def); }
+      },
+      error: () => {}
+    });
     // State is driven by the URL query params, so the browser Back/Forward buttons move between
     // searches (and back to the landing page) — and a search is shareable/bookmarkable.
     this.sub = this.route.queryParamMap.subscribe(p => {
@@ -145,6 +178,14 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   toggle(i: number): void {
     if (this.open.has(i)) { this.open.delete(i); } else { this.open.add(i); }
+  }
+
+  toggleProvider(id: string): void {
+    if (this.selectedProviders.has(id)) { this.selectedProviders.delete(id); } else { this.selectedProviders.add(id); }
+  }
+
+  cost(a: ProviderAnswer): string {
+    return a.costUsd != null ? '$' + a.costUsd.toFixed(6) : '';
   }
 
   /** Pick an example and search it. */
@@ -167,7 +208,9 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   private execute(q: string): void {
     this.loading = true; this.error = ''; this.response = null; this.open.clear();
-    this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 6 }).subscribe({
+    this.sourceLimit = this.defaultSourceLimit;
+    const providers = this.selectedProviders.size ? Array.from(this.selectedProviders) : undefined;
+    this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 8, providers }).subscribe({
       next: r => {
         this.response = r;
         // Expand successful answers; collapse failed ones (a FAILED badge still shows on the header).

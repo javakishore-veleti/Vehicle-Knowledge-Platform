@@ -30,10 +30,11 @@ def _extractive_answer(results: list[dict]) -> str:
     return f"Based on {len(results)} matching source(s): {top[:300]}"
 
 
-def synthesize(query: str, results: list[dict], use_llm: bool = True) -> tuple[str, str, list[dict]]:
+def synthesize(query: str, results: list[dict], use_llm: bool = True,
+               provider_ids: Optional[list[str]] = None) -> tuple[str, str, list[dict]]:
     """Returns (primary_answer, answerSource, answers).
 
-    answers = per-provider results (each {provider,label,model,answer,ok,error,latencyMs}).
+    answers = per-provider results (each {provider,label,model,answer,ok,error,tokens,cost,latency}).
     primary_answer = the first successful provider's answer, else an extractive summary.
     """
     if not results:
@@ -41,7 +42,9 @@ def synthesize(query: str, results: list[dict], use_llm: bool = True) -> tuple[s
     if not (use_llm and config.LLM_ENABLED):
         return _extractive_answer(results), "extractive", []
 
-    answers = providers.generate_all(query, results)
+    answers = providers.generate_all(query, results, provider_ids)
+    if not answers:
+        return _extractive_answer(results), "extractive", []
     ok = [a for a in answers if a.get("ok")]
     if ok:
         return ok[0]["answer"], "llm", answers
@@ -49,11 +52,11 @@ def synthesize(query: str, results: list[dict], use_llm: bool = True) -> tuple[s
     return _extractive_answer(results), "extractive", answers
 
 
-def run(framework: str, query: str, company_id: Optional[str], top_k: int,
-        store: str, use_llm: bool = True) -> tuple[str, str, list[dict], list[dict]]:
+def run(framework: str, query: str, company_id: Optional[str], top_k: int, store: str,
+        use_llm: bool = True, provider_ids: Optional[list[str]] = None) -> tuple[str, str, list[dict], list[dict]]:
     if framework == "langgraph":
         from . import langgraph_agent  # real LangGraph StateGraph (lazy import)
-        return langgraph_agent.run(query, company_id, top_k, store, use_llm)
+        return langgraph_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
     results = _retrieve(query, company_id, top_k, store)
-    answer, source, answers = synthesize(query, results, use_llm)
+    answer, source, answers = synthesize(query, results, use_llm, provider_ids)
     return answer, source, results, answers
