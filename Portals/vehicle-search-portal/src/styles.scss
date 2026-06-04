@@ -54,6 +54,12 @@ html, body {
   background: var(--vs-brand); color: #fff;
 }
 .vs-searchbar button:disabled { opacity: .5; cursor: default; }
+.vs-searchbar .vs-clear {
+  background: transparent; color: var(--vs-muted); border: 0; padding: .4rem .5rem;
+  border-radius: 999px; cursor: pointer; display: flex; align-items: center;
+}
+.vs-searchbar .vs-clear:hover { color: var(--vs-text); background: #eef1f5; }
+.vs-searchbar .vs-clear .pi { font-size: .85rem; }
 
 .vs-examples { margin-top: 1rem; color: var(--vs-muted); font-size: .9rem; display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
 .vs-examples a { color: var(--vs-brand-2); cursor: pointer; text-decoration: underline; }

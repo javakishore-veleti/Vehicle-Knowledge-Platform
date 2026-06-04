@@ -14,6 +14,9 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
     <form class="vs-searchbar" (ngSubmit)="run()">
       <i class="pi pi-search"></i>
       <input [(ngModel)]="query" name="q" placeholder="e.g. electric and hybrid SUVs under $40,000" autocomplete="off" />
+      <button type="button" class="vs-clear" *ngIf="query || response || loading" (click)="clear()" title="Clear" aria-label="Clear search">
+        <i class="pi pi-times"></i>
+      </button>
       <button type="submit" [disabled]="!query.trim() || loading">{{ loading ? 'Searching…' : 'Search' }}</button>
     </form>
     <div class="vs-controls">
@@ -28,9 +31,9 @@ import { ExploreService, SearchResponse, VectorStore } from '../../core/explore.
       </label>
     </div>
 
-    <div class="vs-examples" *ngIf="!response && !loading">
+    <div class="vs-examples" *ngIf="!loading">
       <span>Try:</span>
-      <a *ngFor="let e of examples" (click)="query = e; run()">{{ e }}</a>
+      <a *ngFor="let e of examples" (click)="pick(e)">{{ e }}</a>
     </div>
   </section>
 
@@ -105,6 +108,20 @@ export class SearchComponent {
 
   toggle(i: number): void {
     if (this.open.has(i)) { this.open.delete(i); } else { this.open.add(i); }
+  }
+
+  /** Pick an example and search it. */
+  pick(example: string): void {
+    this.query = example;
+    this.run();
+  }
+
+  /** Reset back to the initial landing state (clears the query + results). */
+  clear(): void {
+    this.query = '';
+    this.response = null;
+    this.error = '';
+    this.open.clear();
   }
 
   readonly examples = [
