@@ -44,3 +44,9 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+
+# Shared session encryption (vkp-session-security). Same VKP_SESSION_SECRET across all services.
+vkp:
+  session:
+    secret: ${VKP_SESSION_SECRET:}
+    header: X-VKP-Session
