@@ -18,5 +18,10 @@
     "target": "http://localhost:8086",
     "secure": false,
     "changeOrigin": true
+  },
+  "/guardrails": {
+    "target": "http://localhost:8091",
+    "secure": false,
+    "changeOrigin": true
   }
 }

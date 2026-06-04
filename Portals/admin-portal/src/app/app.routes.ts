@@ -13,6 +13,7 @@ import { IndexWorkflowsComponent } from './features/data-management/indexing/ind
 import { IndexFormulasComponent } from './features/data-management/indexing/index-formulas.component';
 import { IndexCredentialsComponent } from './features/data-management/indexing/index-credentials.component';
 import { IndexLogsComponent } from './features/data-management/indexing/index-logs.component';
+import { QueryLogComponent } from './features/data-management/guardrails/query-log.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -33,6 +34,8 @@ export const routes: Routes = [
   { path: 'data-management/data-indexing/formulas', component: IndexFormulasComponent, title: 'Index Formulas' },
   { path: 'data-management/data-indexing/credentials', component: IndexCredentialsComponent, title: 'Provider Credentials' },
   { path: 'data-management/data-indexing/logs', component: IndexLogsComponent, title: 'Index Logs' },
+
+  { path: 'data-management/guardrails/queries', component: QueryLogComponent, title: 'Guardrails Query Log' },
 
   { path: 'data-management/:section/overview', component: OverviewComponent, title: 'Data Management' },
   { path: 'data-management/:section/workflows', component: WorkflowsComponent, title: 'Workflows' },

@@ -81,6 +81,12 @@ export class AppComponent {
         { label: 'Provider Credentials', icon: 'pi pi-key', routerLink: '/data-management/data-indexing/credentials' },
         { label: 'Index Logs', icon: 'pi pi-list', routerLink: '/data-management/data-indexing/logs' }
       ]
+    },
+    {
+      label: 'Guardrails', icon: 'pi pi-shield',
+      items: [
+        { label: 'Query Log', icon: 'pi pi-list', routerLink: '/data-management/guardrails/queries' }
+      ]
     }
   ];
 

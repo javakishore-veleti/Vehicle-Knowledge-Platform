@@ -95,3 +95,24 @@ def list_queries(user_type, session_id, limit=50) -> list[dict]:
         rows = cur.fetchall()
     return [{"queryId": r[0], "queryText": r[1], "inputAction": r[2], "outputAction": r[3],
              "createdDt": str(r[4])} for r in rows]
+
+
+def recent_queries(user_type=None, limit=100) -> list[dict]:
+    """Most recent queries across sessions (admin view). userType filters guest/auth."""
+    ut = (user_type or "").upper()
+    tables = (["user_queries_guest"] if ut == "GUEST" else
+              ["user_queries_auth_user"] if ut == "AUTH" else
+              ["user_queries_guest", "user_queries_auth_user"])
+    out = []
+    with _conn() as c, c.cursor() as cur:
+        for t in tables:
+            who = "AUTH" if t.endswith("auth_user") else "GUEST"
+            uid = "user_id" if who == "AUTH" else "NULL::text"
+            cur.execute(f"SELECT query_id, session_id, {uid}, query_text, input_action, output_action, "
+                        f"created_dt FROM {t} ORDER BY created_dt DESC LIMIT %s", (limit,))
+            for r in cur.fetchall():
+                out.append({"queryId": r[0], "sessionId": r[1], "userType": who, "userId": r[2],
+                            "queryText": r[3], "inputAction": r[4], "outputAction": r[5],
+                            "createdDt": str(r[6])})
+    out.sort(key=lambda x: x["createdDt"], reverse=True)
+    return out[:limit]

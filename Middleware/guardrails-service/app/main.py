@@ -10,6 +10,7 @@ guest and authenticated-user tables.
 """
 import logging
 import uuid
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -62,3 +63,9 @@ def output_check(req: OutputCheckReq):
 @app.get("/guardrails/v1/queries/{user_type}/{session_id}")
 def queries(user_type: str, session_id: str):
     return {"queries": db.list_queries(user_type, session_id)}
+
+
+@app.get("/guardrails/v1/admin/queries")
+def admin_queries(userType: Optional[str] = None, limit: int = 100):
+    """Recent queries across sessions, with input/output verdicts (admin query log)."""
+    return {"queries": db.recent_queries(userType, max(1, min(limit, 500)))}
