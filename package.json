@@ -23,6 +23,15 @@
     "localhost:portals:admin:install": "npm --prefix Portals/admin-portal install",
     "localhost:portals:admin:start": "npm --prefix Portals/admin-portal start",
     "localhost:portals:search:install": "npm --prefix Portals/vehicle-search-portal install",
-    "localhost:portals:search:start": "npm --prefix Portals/vehicle-search-portal start"
+    "localhost:portals:search:start": "npm --prefix Portals/vehicle-search-portal start",
+
+    "localhost:portals:install-all": "npm run localhost:portals:admin:install && npm run localhost:portals:search:install",
+    "localhost:portals:start-all": "bash DevOps/Localhost/Services/portals-start-all.sh",
+    "localhost:portals:stop-all": "bash DevOps/Localhost/Services/portals-stop-all.sh",
+    "localhost:portals:status-all": "bash DevOps/Localhost/Services/portals-status-all.sh",
+
+    "localhost:start-all": "npm run localhost:containers:start-all && npm run localhost:services:start-all && npm run localhost:portals:start-all",
+    "localhost:stop-all": "npm run localhost:portals:stop-all && npm run localhost:services:stop-all && npm run localhost:containers:stop-all",
+    "localhost:status-all": "npm run localhost:containers:status-all && npm run localhost:services:status-all && npm run localhost:portals:status-all"
   }
 }
