@@ -31,3 +31,9 @@ LLM_MODEL = os.getenv("VKP_LLM_MODEL", "gpt-4o-mini")
 LLM_BASE_URL = os.getenv("VKP_LLM_BASE_URL", "")          # empty -> OpenAI default endpoint
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 LLM_API_KEY = os.getenv("VKP_LLM_API_KEY", "") or OPENAI_API_KEY
+
+# --- Guardrails (input/output) + shared session token ---
+GUARDRAILS_URL = os.getenv("VKP_GUARDRAILS_URL", "http://localhost:8091")
+GUARDRAILS_ENABLED = os.getenv("VKP_GUARDRAILS_ENABLED", "true").lower() in ("1", "true", "yes")
+# Same base64 32-byte AES key as the Java vkp-session-security (to decrypt the X-VKP-Session token).
+SESSION_SECRET = os.getenv("VKP_SESSION_SECRET", "")

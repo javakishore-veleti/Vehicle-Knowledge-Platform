@@ -3,13 +3,14 @@
 Search is framework-routed: POST /api/vehicle-explore/{frameworkName}/search. Retrieval runs
 against the pgVector embeddings produced by the indexing subsystem.
 """
+import uuid
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import config, frameworks
+from . import config, frameworks, guardrails, session
 
 app = FastAPI(title="VKP Vehicle Explore Service", version="0.1.0")
 
@@ -29,6 +30,9 @@ class SearchReq(BaseModel):
     store: Optional[str] = None     # pgvector | mongodb (defaults to VKP_VECTOR_STORE)
     useLlm: bool = True             # when false (or no key/quota), returns the extractive answer
     providers: Optional[list[str]] = None   # provider ids to query; None = server default
+    sessionId: Optional[str] = None         # fallback when no X-VKP-Session token
+    userType: Optional[str] = None          # GUEST | AUTH (fallback)
+    userId: Optional[str] = None
 
 
 @app.get("/health")
@@ -49,7 +53,8 @@ def list_providers():
 
 
 @app.post("/api/vehicle-explore/{framework_name}/search")
-def search(framework_name: str, req: SearchReq):
+def search(framework_name: str, req: SearchReq,
+           x_vkp_session: Optional[str] = Header(default=None)):
     if framework_name not in frameworks.IMPLEMENTED:
         raise HTTPException(
             status_code=501,
@@ -61,18 +66,39 @@ def search(framework_name: str, req: SearchReq):
     store = (req.store or config.DEFAULT_STORE).lower()
     if store not in ("pgvector", "mongodb"):
         raise HTTPException(status_code=400, detail="store must be 'pgvector' or 'mongodb'")
+
+    # Resolve the session: decrypt the shared token if present, else fall back, else a fresh guest.
+    ctx = session.decrypt_session(x_vkp_session) or {}
+    session_id = ctx.get("sessionId") or req.sessionId or ("ses_" + uuid.uuid4().hex)
+    user_type = ctx.get("userType") or req.userType or "GUEST"
+    user_id = ctx.get("userId") or req.userId
+    query_id = "qry_" + uuid.uuid4().hex
+
+    # Input guardrail — block off-scope/injection/unsafe before any retrieval or LLM spend.
+    gin = guardrails.input_check(req.query.strip(), session_id, user_type, user_id,
+                                 query_id, framework_name, store)
+    query_id = gin.get("queryId") or query_id
+    base = {"framework": framework_name, "store": store, "query": req.query,
+            "queryId": query_id, "sessionId": session_id, "userType": user_type}
+    if not gin.get("allowed", True):
+        return {**base, "answer": "This request was blocked by input guardrails — I can only help "
+                "with vehicle questions.", "answerSource": "blocked", "answers": [], "results": [],
+                "count": 0, "guardrails": {"input": gin, "output": None}}
+
+    safe_query = gin.get("sanitizedText") or req.query.strip()
     try:
         answer, answer_source, results, answers = frameworks.run(
-            framework_name, req.query.strip(), req.companyId, top_k, store, req.useLlm, req.providers)
+            framework_name, safe_query, req.companyId, top_k, store, req.useLlm, req.providers)
     except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
-    return {
-        "framework": framework_name,
-        "store": store,
-        "query": req.query,
-        "answer": answer,
-        "answerSource": answer_source,
-        "answers": answers,        # per-provider answers for side-by-side comparison
-        "results": results,
-        "count": len(results),
-    }
+
+    # Output guardrail — on the primary answer.
+    gout = guardrails.output_check(answer or "", session_id, query_id, user_type, len(results))
+    if not gout.get("allowed", True):
+        answer, answer_source = "The answer was withheld by output guardrails.", "blocked"
+    elif gout.get("action") == "redact" and gout.get("sanitizedText"):
+        answer = gout["sanitizedText"]
+
+    return {**base, "answer": answer, "answerSource": answer_source, "answers": answers,
+            "results": results, "count": len(results),
+            "guardrails": {"input": gin, "output": gout}}
