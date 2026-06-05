@@ -6,11 +6,16 @@ needed. The Runner is async, so the sync search() drives it with asyncio.run().
 """
 import asyncio
 
-from .. import config, registry
-from ._base import INSTRUCTIONS, run_search
+from .. import config, registry, tools
+from ._base import COLLECT_INSTRUCTIONS, INSTRUCTIONS, run_collect, run_search
 
 _APP = "vkp"
 _USER = "vkp-user"
+
+
+def fetch_page(url: str) -> dict:
+    """Fetch a web page and return its title, links, and images (an ADK function tool)."""
+    return tools.fetch_page(url)
 
 
 def _litellm_model() -> str:
@@ -22,15 +27,17 @@ def _litellm_model() -> str:
     raise RuntimeError("no OPENAI_API_KEY or GROQ_API_KEY set")
 
 
-def _answer(query: str, context: str) -> str:
+def _run_agent(name: str, instruction: str, prompt: str, tool_list: list | None = None) -> str:
+    """Build an LlmAgent (optionally with tools), run it through the async InMemoryRunner, and return
+    the final text. Driven via asyncio.run since ADK's Runner is async."""
     from google.adk.agents import LlmAgent
     from google.adk.models.lite_llm import LiteLlm
     from google.adk.runners import InMemoryRunner
     from google.genai import types
 
-    agent = LlmAgent(model=LiteLlm(model=_litellm_model()), name="vehicle_search", instruction=INSTRUCTIONS)
+    agent = LlmAgent(model=LiteLlm(model=_litellm_model()), name=name,
+                     instruction=instruction, tools=tool_list or [])
     runner = InMemoryRunner(agent=agent, app_name=_APP)
-    prompt = f"Question: {query}\n\nSOURCES:\n{context}"
 
     async def _run() -> str:
         session = await runner.session_service.create_session(app_name=_APP, user_id=_USER)
@@ -44,9 +51,23 @@ def _answer(query: str, context: str) -> str:
     return asyncio.run(_run())
 
 
+def _model_name() -> str:
+    return config.OPENAI_MODEL if config.OPENAI_API_KEY else config.GROQ_MODEL
+
+
 def search(ctx: dict) -> dict:
-    model = config.OPENAI_MODEL if config.OPENAI_API_KEY else config.GROQ_MODEL
-    return run_search("google-adk", "Google ADK", model, _answer, ctx)
+    def _answer(query: str, context: str) -> str:
+        return _run_agent("vehicle_search", INSTRUCTIONS, f"Question: {query}\n\nSOURCES:\n{context}")
+    return run_search("google-adk", "Google ADK", _model_name(), _answer, ctx)
+
+
+def collect(ctx: dict) -> dict:
+    def _collect(seed: str) -> str:
+        return _run_agent("vehicle_scout", COLLECT_INSTRUCTIONS,
+                          f"Seed URL: {seed}\nDiscover and return the relevant vehicle resource links as JSON.",
+                          tool_list=[fetch_page])
+    return run_collect("google-adk", "Google ADK", _model_name(), _collect, ctx)
 
 
 registry.register("google-adk", "search", search)
+registry.register("google-adk", "collect", collect)
