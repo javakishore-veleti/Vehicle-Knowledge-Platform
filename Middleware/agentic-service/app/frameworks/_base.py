@@ -8,7 +8,7 @@ import re
 import time
 from typing import Callable
 
-from .. import config, indexer, retrieval, tools
+from .. import config, indexer, platform, retrieval, tools
 
 log = logging.getLogger("agentic")
 
@@ -110,8 +110,19 @@ def run_collect(framework: str, label: str, model_name: str,
         except Exception as e2:  # noqa: BLE001
             error = f"{error}; fallback failed: {e2}"[:200]
 
+    # OPT-IN: persist the discovered links into company_resource_graph (real pipeline step) when the
+    # caller supplies the graph ids. Mirrors the vkp_discover_resources DAG callback.
+    persisted = None
+    if ctx.get("persist") and ctx.get("companyResourceId") and ctx.get("parentResourceGraphId"):
+        try:
+            persisted = platform.record_graph(
+                ctx.get("companyId") or "", ctx["companyResourceId"], ctx["parentResourceGraphId"],
+                [l["url"] for l in links], "DISCOVERED" if source == "agent" else "FAILED")
+        except Exception as e:  # noqa: BLE001 — best-effort
+            persisted = {"error": str(e)[:160]}
+
     return {"framework": framework, "stage": "collect", "seedUrl": seed, "source": source,
-            "error": error, "count": len(links), "links": links,
+            "error": error, "count": len(links), "links": links, "persisted": persisted,
             "providers": [{"provider": framework, "label": label, "model": model_name,
                            "ok": source == "agent", "error": error,
                            "latencyMs": int((time.perf_counter() - t0) * 1000)}]}
@@ -163,10 +174,26 @@ def run_index(framework: str, label: str, model_name: str,
         source, error = "fallback", str(e)[:160]
         chunks = _naive_chunks(content)
 
+    # OPT-IN: report to the indexing-service ledger when triggered through it (indexLogId supplied).
+    log_id, ledger = ctx.get("indexLogId"), None
+    if log_id:
+        try:
+            platform.index_callback(log_id, "IN_PROGRESS")
+        except Exception:  # noqa: BLE001
+            pass
+
     written = indexer.index_chunks(table, company_id, source_url, chunks)
+
+    if log_id:
+        try:
+            ledger = platform.index_callback(log_id, "INDEXED", chunks=written,
+                                             run_ref=f"agentic-{framework}")
+        except Exception as e:  # noqa: BLE001 — best-effort
+            ledger = {"error": str(e)[:160]}
+
     return {"framework": framework, "stage": "index", "table": table, "companyId": company_id,
             "sourceUrl": source_url, "source": source, "error": error,
-            "chunksWritten": written, "chunkCount": len(chunks),
+            "chunksWritten": written, "chunkCount": len(chunks), "ledger": ledger,
             "providers": [{"provider": framework, "label": label, "model": model_name,
                            "ok": source == "agent", "error": error,
                            "latencyMs": int((time.perf_counter() - t0) * 1000)}]}

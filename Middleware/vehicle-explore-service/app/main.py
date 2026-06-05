@@ -55,6 +55,11 @@ class StageReq(BaseModel):
     sourceUrl: Optional[str] = None  # index provenance
     table: Optional[str] = None      # index target override
     companyId: Optional[str] = None
+    # --- platform integration (opt-in) ---
+    persist: bool = False                        # collect: persist links to company_resource_graph
+    companyResourceId: Optional[str] = None
+    parentResourceGraphId: Optional[str] = None
+    indexLogId: Optional[str] = None             # index: report to the indexing-service ledger
 
 
 # Import the agent modules that register collect/index stages (side-effect registration).

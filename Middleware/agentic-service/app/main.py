@@ -30,6 +30,11 @@ class RunReq(BaseModel):
     companyId: Optional[str] = None
     topK: int = 5
     useLlm: bool = True
+    # --- platform integration (opt-in) ---
+    persist: bool = False                # collect: persist links to company_resource_graph
+    companyResourceId: Optional[str] = None      # collect persist: the resource being discovered
+    parentResourceGraphId: Optional[str] = None  # collect persist: the root graph node
+    indexLogId: Optional[str] = None     # index: report to the indexing-service ledger
     params: Optional[dict] = None         # stage-specific extras
 
 
