@@ -1,0 +1,37 @@
+server:
+  port: 8094
+
+spring:
+  application:
+    name: context-admin-service
+  datasource:
+    url: jdbc:h2:mem:cefadmin;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+cef:
+  engine-url: ${CEF_ENGINE_URL:http://localhost:8093}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/vkp}
+    username: ${SPRING_DATASOURCE_USERNAME:vkp}
+    password: ${SPRING_DATASOURCE_PASSWORD:vkp}
