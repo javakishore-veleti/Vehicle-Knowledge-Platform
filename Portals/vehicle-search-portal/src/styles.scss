@@ -121,6 +121,15 @@ html, body {
 .vs-badge.ok { background: #e6f4ea; color: #1c7a3f; }
 .vs-badge.err { background: #fde8e8; color: #9b1c1c; }
 
+/* feedback */
+.vs-feedback { display: flex; align-items: center; gap: .5rem; margin: .25rem .2rem 1rem; color: var(--vs-muted); font-size: .85rem; }
+.vs-fb { border: 1px solid var(--vs-border); background: var(--vs-surface); border-radius: 999px; width: 30px; height: 30px;
+  cursor: pointer; color: var(--vs-muted); display: grid; place-items: center; }
+.vs-fb:hover:not(:disabled) { color: var(--vs-brand); border-color: var(--vs-brand-2); }
+.vs-fb.on { color: #fff; background: var(--vs-brand); border-color: var(--vs-brand); }
+.vs-fb:disabled { cursor: default; opacity: .85; }
+.vs-fb-thanks { color: #1c7a3f; font-weight: 600; }
+
 .vs-count { color: var(--vs-muted); font-size: .85rem; margin: 0 .2rem .75rem; }
 
 .vs-card { background: var(--vs-surface); border: 1px solid var(--vs-border); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: .85rem; }

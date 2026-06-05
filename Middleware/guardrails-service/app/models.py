@@ -20,3 +20,13 @@ class OutputCheckReq(BaseModel):
     userType: str = "GUEST"
     userId: Optional[str] = None
     numSources: int = 0
+
+
+class FeedbackReq(BaseModel):
+    rating: str                 # "up" | "down"
+    queryId: Optional[str] = None
+    sessionId: Optional[str] = None
+    userType: str = "GUEST"
+    userId: Optional[str] = None
+    provider: Optional[str] = None
+    comment: Optional[str] = None

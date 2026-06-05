@@ -40,6 +40,8 @@ export interface SearchResponse {
   framework: string;
   store: VectorStore;
   query: string;
+  queryId?: string;
+  sessionId?: string;
   answer: string;
   answerSource: 'llm' | 'extractive' | 'none';
   answers: ProviderAnswer[];
@@ -82,5 +84,10 @@ export class ExploreService {
       const headers = token ? new HttpHeaders({ 'X-VKP-Session': token }) : undefined;
       return this.http.post<SearchResponse>(`${this.base}/${framework}/search`, body, { headers });
     }));
+  }
+
+  /** 👍/👎 on an answer — recorded in search_feedback (a core quality KPI). */
+  feedback(rating: 'up' | 'down', queryId?: string, sessionId?: string, provider?: string): Observable<unknown> {
+    return this.http.post('/guardrails/v1/feedback', { rating, queryId, sessionId, provider, userType: 'GUEST' });
   }
 }

@@ -95,6 +95,17 @@ import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorSto
         <p>{{ response.answer }}</p>
       </div>
 
+      <div class="vs-feedback" *ngIf="response.count > 0">
+        <span>Was this helpful?</span>
+        <button class="vs-fb" [class.on]="feedbackGiven === 'up'" [disabled]="!!feedbackGiven" (click)="rate('up')" title="Helpful">
+          <i class="pi pi-thumbs-up"></i>
+        </button>
+        <button class="vs-fb" [class.on]="feedbackGiven === 'down'" [disabled]="!!feedbackGiven" (click)="rate('down')" title="Not helpful">
+          <i class="pi pi-thumbs-down"></i>
+        </button>
+        <span class="vs-fb-thanks" *ngIf="feedbackGiven">Thanks for the feedback!</span>
+      </div>
+
       <div class="vs-count" *ngIf="response.count > 0">{{ response.count }} source(s) for “{{ response.query }}”</div>
 
       <article class="vs-card" *ngFor="let r of response.results.slice(0, sourceLimit)">
@@ -180,8 +191,16 @@ export class SearchComponent implements OnInit, OnDestroy {
     if (this.open.has(i)) { this.open.delete(i); } else { this.open.add(i); }
   }
 
+  feedbackGiven: 'up' | 'down' | null = null;
+
   toggleProvider(id: string): void {
     if (this.selectedProviders.has(id)) { this.selectedProviders.delete(id); } else { this.selectedProviders.add(id); }
+  }
+
+  rate(r: 'up' | 'down'): void {
+    if (this.feedbackGiven) { return; }
+    this.feedbackGiven = r;
+    this.explore.feedback(r, this.response?.queryId, this.response?.sessionId).subscribe({ next: () => {}, error: () => {} });
   }
 
   cost(a: ProviderAnswer): string {
@@ -209,6 +228,7 @@ export class SearchComponent implements OnInit, OnDestroy {
   private execute(q: string): void {
     this.loading = true; this.error = ''; this.response = null; this.open.clear();
     this.sourceLimit = this.defaultSourceLimit;
+    this.feedbackGiven = null;
     const providers = this.selectedProviders.size ? Array.from(this.selectedProviders) : undefined;
     this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 8, providers }).subscribe({
       next: r => {

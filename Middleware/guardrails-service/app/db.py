@@ -42,6 +42,19 @@ CREATE TABLE IF NOT EXISTS user_queries_auth_user (
   updated_dt     TIMESTAMPTZ DEFAULT now()
 )"""
 
+DDL_FEEDBACK = """
+CREATE TABLE IF NOT EXISTS search_feedback (
+  feedback_id  TEXT PRIMARY KEY,
+  query_id     TEXT,
+  session_id   TEXT,
+  user_type    TEXT,
+  user_id      TEXT,
+  rating       SMALLINT,        -- +1 (up) / -1 (down)
+  provider     TEXT,            -- which provider's answer was rated (optional)
+  comment      TEXT,
+  created_dt   TIMESTAMPTZ DEFAULT now()
+)"""
+
 
 def _conn():
     return psycopg2.connect(host=config.PG_HOST, port=config.PG_PORT, dbname=config.PG_DB,
@@ -52,9 +65,11 @@ def init_db() -> None:
     with _conn() as c, c.cursor() as cur:
         cur.execute(DDL_GUEST)
         cur.execute(DDL_AUTH)
+        cur.execute(DDL_FEEDBACK)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_uqg_session ON user_queries_guest(session_id)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_uqa_session ON user_queries_auth_user(session_id)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_uqa_user ON user_queries_auth_user(user_id)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_fb_query ON search_feedback(query_id)")
 
 
 def _table(user_type: str) -> str:
@@ -95,6 +110,22 @@ def list_queries(user_type, session_id, limit=50) -> list[dict]:
         rows = cur.fetchall()
     return [{"queryId": r[0], "queryText": r[1], "inputAction": r[2], "outputAction": r[3],
              "createdDt": str(r[4])} for r in rows]
+
+
+def save_feedback(feedback_id, query_id, session_id, user_type, user_id, rating, provider, comment) -> None:
+    with _conn() as c, c.cursor() as cur:
+        cur.execute("INSERT INTO search_feedback (feedback_id, query_id, session_id, user_type, user_id, "
+                    "rating, provider, comment) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (feedback_id, query_id, session_id, user_type, user_id, rating, provider, comment))
+
+
+def feedback_stats() -> dict:
+    with _conn() as c, c.cursor() as cur:
+        cur.execute("SELECT COALESCE(SUM((rating>0)::int),0), COALESCE(SUM((rating<0)::int),0), COUNT(*) "
+                    "FROM search_feedback")
+        up, down, total = cur.fetchone()
+    pos = round(up / total, 4) if total else None
+    return {"up": int(up), "down": int(down), "total": int(total), "positiveRate": pos}
 
 
 def recent_queries(user_type=None, limit=100) -> list[dict]:

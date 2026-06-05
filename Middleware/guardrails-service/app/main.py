@@ -16,7 +16,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import db, engine
-from .models import InputCheckReq, OutputCheckReq
+from .models import FeedbackReq, InputCheckReq, OutputCheckReq
 
 log = logging.getLogger("guardrails")
 app = FastAPI(title="VKP Guardrails Service", version="0.1.0")
@@ -69,3 +69,22 @@ def queries(user_type: str, session_id: str):
 def admin_queries(userType: Optional[str] = None, limit: int = 100):
     """Recent queries across sessions, with input/output verdicts (admin query log)."""
     return {"queries": db.recent_queries(userType, max(1, min(limit, 500)))}
+
+
+@app.post("/guardrails/v1/feedback")
+def feedback(req: FeedbackReq):
+    """Capture 👍/👎 on an answer (search_feedback table)."""
+    rating = 1 if (req.rating or "").lower() in ("up", "1", "+1", "good") else -1
+    fid = "fb_" + uuid.uuid4().hex
+    try:
+        db.save_feedback(fid, req.queryId, req.sessionId, req.userType, req.userId,
+                         rating, req.provider, req.comment)
+    except Exception as e:  # noqa: BLE001
+        log.warning("save_feedback failed: %s", e)
+    return {"feedbackId": fid, "rating": rating}
+
+
+@app.get("/guardrails/v1/admin/feedback/stats")
+def feedback_stats():
+    """Thumbs up/down totals + positive rate (a core search-quality KPI)."""
+    return db.feedback_stats()
