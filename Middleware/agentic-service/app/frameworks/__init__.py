@@ -2,3 +2,4 @@
 Add new frameworks here as they're implemented (google_adk, msagent, strands)."""
 from . import openai_agents  # noqa: F401  (registers openai-agents:search)
 from . import strands        # noqa: F401  (registers strands:search)
+from . import google_adk     # noqa: F401  (registers google-adk:search)
