@@ -73,3 +73,43 @@ def run(query: str, company_id: Optional[str], top_k: int, store: str,
         "finishReason": None, "costUsd": None, "latencyMs": int((time.perf_counter() - t0) * 1000),
     }]
     return answer, source, results, answers
+
+
+# ===== collect + index stages (classic-roster, registered with agentic_stages) =====
+from . import agentic_stages, tools as _tools  # noqa: E402
+from .agentic_stages import COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS  # noqa: E402
+
+
+def _llm():
+    from llama_index.llms.litellm import LiteLLM
+    return LiteLLM(model=LI_MODEL, api_key=os.getenv("GROQ_API_KEY", ""), temperature=0.2)
+
+
+def _collect(seed: str) -> str:
+    from llama_index.core.agent import ReActAgent
+    from llama_index.core.tools import FunctionTool
+
+    def fetch_page(url: str) -> dict:
+        """Fetch a web page; returns {url, title, links:[{url,type}], images:[...]}."""
+        return _tools.fetch_page(url)
+
+    agent = ReActAgent.from_tools([FunctionTool.from_defaults(fn=fetch_page)], llm=_llm(),
+                                  verbose=False, context=COLLECT_INSTRUCTIONS, max_iterations=6)
+    return str(agent.chat(f"Seed URL: {seed}. Discover and return the relevant vehicle resource links as JSON."))
+
+
+def _chunk(content: str) -> str:
+    return str(_llm().complete(
+        f"{INDEX_INSTRUCTIONS}\n\nCONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings."))
+
+
+def collect(ctx: dict) -> dict:
+    return agentic_stages.collect_flow("llamaindex", "LlamaIndex", LI_MODEL, _collect, ctx)
+
+
+def index(ctx: dict) -> dict:
+    return agentic_stages.index_flow("llamaindex", "LlamaIndex", LI_MODEL, _chunk, ctx)
+
+
+agentic_stages.register_collect("llamaindex", collect)
+agentic_stages.register_index("llamaindex", index)
