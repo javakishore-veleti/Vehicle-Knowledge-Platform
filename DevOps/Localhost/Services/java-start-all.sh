@@ -50,4 +50,4 @@ if [[ -d "$MIDDLEWARE" ]]; then
   done < <(find "$MIDDLEWARE" -maxdepth 2 -name pom.xml 2>/dev/null)
 fi
 
-[[ "$found" -eq 0 ]] && echo "==> No Java services found under Middleware/ yet (nothing to start)."
+if [[ "$found" -eq 0 ]]; then echo "==> No Java services found under Middleware/ yet (nothing to start)."; fi

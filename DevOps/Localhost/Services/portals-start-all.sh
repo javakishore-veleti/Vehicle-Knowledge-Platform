@@ -29,7 +29,7 @@ if [[ -d "$PORTALS" ]]; then
   done
 fi
 
-[[ "$found" -eq 0 ]] && echo "==> No portals found under Portals/."
+if [[ "$found" -eq 0 ]]; then echo "==> No portals found under Portals/."; fi
 echo "Portals starting (logs in DevOps/Localhost/.run/portal-*.log):"
 echo "    admin-portal           -> http://localhost:4200"
 echo "    vehicle-search-portal  -> http://localhost:4201"

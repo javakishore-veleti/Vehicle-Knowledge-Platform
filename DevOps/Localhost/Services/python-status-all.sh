@@ -18,4 +18,4 @@ for pidfile in "$RUN_DIR"/python-*.pid; do
   fi
 done
 
-[[ "$found" -eq 0 ]] && echo "==> No Python services tracked."
+if [[ "$found" -eq 0 ]]; then echo "==> No Python services tracked."; fi

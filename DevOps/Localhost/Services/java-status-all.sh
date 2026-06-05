@@ -18,4 +18,4 @@ for pidfile in "$RUN_DIR"/java-*.pid; do
   fi
 done
 
-[[ "$found" -eq 0 ]] && echo "==> No Java services tracked."
+if [[ "$found" -eq 0 ]]; then echo "==> No Java services tracked."; fi
