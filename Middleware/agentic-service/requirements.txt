@@ -10,3 +10,4 @@ fastembed>=0.4,<0.8        # local query embedding for pgvector retrieval (match
 openai>=1.40
 # --- agent SDKs (added per framework as implemented) ---
 openai-agents>=0.1         # the 'openai-agents' framework (OpenAI Agents SDK)
+strands-agents>=1.0        # the 'strands' framework (AWS Strands Agents SDK; model-driven, OpenAI/Groq)
