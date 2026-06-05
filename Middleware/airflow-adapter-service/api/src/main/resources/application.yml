@@ -37,3 +37,8 @@ vkp:
   session:
     secret: ${VKP_SESSION_SECRET:}
     header: X-VKP-Session
+  jwt:
+    enabled: ${VKP_JWT_ENABLED:true}
+    secret: ${JWT_SECRET:change-me-dev-secret-please-override-in-prod-0123456789}   # MUST match user-service jwt.secret
+    # /internal/airflow/** -> service-to-service; set internal-api-key to require X-VKP-Internal-Key
+    internal-api-key: ${VKP_INTERNAL_API_KEY:}

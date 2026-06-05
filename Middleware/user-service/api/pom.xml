@@ -25,6 +25,12 @@
       <artifactId>vkp-session-security</artifactId>
       <version>0.1.0</version>
     </dependency>
+    <!-- Shared JWT validation + route-audience RBAC (auto-registered filter) -->
+    <dependency>
+      <groupId>com.jk.labs.vkp</groupId>
+      <artifactId>vkp-jwt-rbac</artifactId>
+      <version>0.1.0</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>

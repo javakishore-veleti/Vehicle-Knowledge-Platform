@@ -50,3 +50,7 @@ vkp:
   session:
     secret: ${VKP_SESSION_SECRET:}
     header: X-VKP-Session
+  jwt:
+    enabled: ${VKP_JWT_ENABLED:true}
+    secret: ${JWT_SECRET:change-me-dev-secret-please-override-in-prod-0123456789}   # MUST match user-service jwt.secret
+    # /admin/company/** -> requires ADMIN; no public callbacks here

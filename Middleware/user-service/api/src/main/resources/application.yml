@@ -53,3 +53,9 @@ vkp:
   session:
     secret: ${VKP_SESSION_SECRET:}
     header: X-VKP-Session
+  jwt:
+    enabled: ${VKP_JWT_ENABLED:true}
+    secret: ${JWT_SECRET:change-me-dev-secret-please-override-in-prod-0123456789}   # MUST match user-service jwt.secret
+    permit-patterns:                       # public: you can't have a token before signing in
+      - /customer/user/service/v1/auth/**
+      - /customer/user/service/v1/session/**

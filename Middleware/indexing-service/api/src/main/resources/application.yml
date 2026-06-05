@@ -59,3 +59,8 @@ vkp:
   session:
     secret: ${VKP_SESSION_SECRET:}
     header: X-VKP-Session
+  jwt:
+    enabled: ${VKP_JWT_ENABLED:true}
+    secret: ${JWT_SECRET:change-me-dev-secret-please-override-in-prod-0123456789}   # MUST match user-service jwt.secret
+    permit-patterns:                       # executor/DAG callback (no user token)
+      - /admin/indexing/service/v1/index-logs/*/callback

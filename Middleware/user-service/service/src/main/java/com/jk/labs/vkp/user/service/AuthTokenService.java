@@ -22,12 +22,13 @@ public class AuthTokenService {
     public record IssuedToken(String token, Instant expiresAt) {
     }
 
-    public IssuedToken issue(String userId, String email) {
+    public IssuedToken issue(String userId, String email, String role) {
         Instant now = Instant.now();
         Instant expiresAt = now.plus(props.getExpirationMinutes(), ChronoUnit.MINUTES);
         String token = Jwts.builder()
                 .subject(userId)
                 .claim("email", email)
+                .claim("role", role)   // read by vkp-jwt-rbac for /admin/** vs /customer/** enforcement
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
                 .signWith(key())

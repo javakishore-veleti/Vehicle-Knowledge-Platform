@@ -84,7 +84,8 @@ public class UserService {
         if (!passwordEncoder.matches(req.getPassword(), entity.getPasswordHash())) {
             throw new UnauthorizedException("Invalid email or password");
         }
-        AuthTokenService.IssuedToken token = authTokenService.issue(entity.getUserId(), entity.getEmail());
+        String role = entity.getRole() != null ? entity.getRole() : Role.DEFAULT;
+        AuthTokenService.IssuedToken token = authTokenService.issue(entity.getUserId(), entity.getEmail(), role);
         ctx.setRespDTO(new SigninRespDTO(token.token(), "Bearer",
                 entity.getUserId(), entity.getEmail(), token.expiresAt()));
     }
