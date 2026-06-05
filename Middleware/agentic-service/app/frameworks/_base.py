@@ -75,6 +75,11 @@ def parse_links(text: str) -> list[dict]:
         return []
     out = []
     for it in arr:
+        if isinstance(it, str):           # some models emit an array of JSON-encoded strings
+            try:
+                it = json.loads(it)
+            except Exception:  # noqa: BLE001
+                continue
         if isinstance(it, dict) and it.get("url"):
             out.append({"url": str(it["url"]), "type": it.get("type") or "page",
                         "title": str(it.get("title") or "")[:200]})

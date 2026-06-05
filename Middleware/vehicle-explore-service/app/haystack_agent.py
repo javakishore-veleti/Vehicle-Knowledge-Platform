@@ -87,3 +87,55 @@ def run(query: str, company_id: Optional[str], top_k: int, store: str,
         "finishReason": None, "costUsd": None, "latencyMs": int((time.perf_counter() - t0) * 1000),
     }]
     return answer, source, results, answers
+
+
+# ===== collect + index stages (classic-roster, registered with agentic_stages) =====
+from . import agentic_stages, tools as _tools  # noqa: E402
+from .agentic_stages import COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS  # noqa: E402
+
+
+def _chat_generator():
+    from haystack.components.generators.chat import OpenAIChatGenerator
+    from haystack.utils import Secret
+    return OpenAIChatGenerator(api_key=Secret.from_token(os.getenv("GROQ_API_KEY", "")),
+                               model=HS_MODEL, api_base_url=GROQ_BASE_URL,
+                               generation_kwargs={"temperature": 0.2})
+
+
+def _collect(seed: str) -> str:
+    from haystack.components.agents import Agent
+    from haystack.dataclasses import ChatMessage
+    from haystack.tools import tool
+
+    @tool
+    def fetch_page(url: str) -> dict:
+        """Fetch a web page; returns {url, title, links:[{url,type}], images:[...]}."""
+        return _tools.fetch_page(url)
+
+    agent = Agent(chat_generator=_chat_generator(), tools=[fetch_page], system_prompt=COLLECT_INSTRUCTIONS)
+    agent.warm_up()
+    res = agent.run(messages=[ChatMessage.from_user(
+        f"Seed URL: {seed}\nDiscover and return the relevant vehicle resource links as JSON.")])
+    msgs = res.get("messages", [])
+    return msgs[-1].text if msgs else ""
+
+
+def _chunk(content: str) -> str:
+    from haystack.dataclasses import ChatMessage
+    res = _chat_generator().run(messages=[
+        ChatMessage.from_system(INDEX_INSTRUCTIONS),
+        ChatMessage.from_user(f"CONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings.")])
+    replies = res.get("replies", [])
+    return replies[0].text if replies else ""
+
+
+def collect(ctx: dict) -> dict:
+    return agentic_stages.collect_flow("haystack", "Haystack", HS_MODEL, _collect, ctx)
+
+
+def index(ctx: dict) -> dict:
+    return agentic_stages.index_flow("haystack", "Haystack", HS_MODEL, _chunk, ctx)
+
+
+agentic_stages.register_collect("haystack", collect)
+agentic_stages.register_index("haystack", index)

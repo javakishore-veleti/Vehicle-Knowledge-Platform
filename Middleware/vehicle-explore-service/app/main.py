@@ -49,9 +49,55 @@ def prometheus_metrics():
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+class StageReq(BaseModel):
+    seedUrl: Optional[str] = None    # collect stage
+    content: Optional[str] = None    # index stage
+    sourceUrl: Optional[str] = None  # index provenance
+    table: Optional[str] = None      # index target override
+    companyId: Optional[str] = None
+
+
+# Import the agent modules that register collect/index stages (side-effect registration).
+from . import agentic_stages  # noqa: E402
+for _m in ("haystack_agent",):
+    try:
+        __import__(f"app.{_m}", fromlist=[_m])
+    except Exception as _e:  # noqa: BLE001
+        pass
+
+
 @app.get("/api/vehicle-explore/frameworks")
 def list_frameworks():
-    return {"known": sorted(frameworks.KNOWN), "implemented": sorted(frameworks.IMPLEMENTED)}
+    return {"known": sorted(frameworks.KNOWN), "implemented": sorted(frameworks.IMPLEMENTED),
+            "stages": {"search": sorted(frameworks.IMPLEMENTED),
+                       "collect": agentic_stages.collect_frameworks(),
+                       "index": agentic_stages.index_frameworks()}}
+
+
+@app.post("/api/vehicle-explore/{framework_name}/collect")
+def collect(framework_name: str, req: StageReq):
+    if framework_name not in agentic_stages.collect_frameworks():
+        raise HTTPException(501, f"'{framework_name}' has no collect stage. "
+                                 f"Implemented: {agentic_stages.collect_frameworks()}")
+    if not (req.seedUrl or "").strip():
+        raise HTTPException(400, "seedUrl is required for the collect stage")
+    try:
+        return agentic_stages.dispatch_collect(framework_name, req.model_dump())
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"{framework_name}/collect failed: {e}")
+
+
+@app.post("/api/vehicle-explore/{framework_name}/index")
+def index(framework_name: str, req: StageReq):
+    if framework_name not in agentic_stages.index_frameworks():
+        raise HTTPException(501, f"'{framework_name}' has no index stage. "
+                                 f"Implemented: {agentic_stages.index_frameworks()}")
+    if not (req.content or "").strip():
+        raise HTTPException(400, "content is required for the index stage")
+    try:
+        return agentic_stages.dispatch_index(framework_name, req.model_dump())
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(502, f"{framework_name}/index failed: {e}")
 
 
 @app.get("/api/vehicle-explore/providers")
