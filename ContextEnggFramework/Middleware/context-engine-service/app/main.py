@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import orchestrator
+from . import memory, orchestrator
 
 app = FastAPI(title="VKP Context Engine (CEF)", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -38,6 +38,12 @@ def info():
                    "Context Assembly", "LLM Reasoning", "Context Evolution"],
         "strategies": ["selection", "compression", "ordering", "isolation", "format"],
     }
+
+
+@app.get("/context-engine/memory/{session_id}")
+def memory_view(session_id: str, limit: int = 20):
+    """Inspect a session's memory (the Context Evolution loop's persisted turns)."""
+    return {"sessionId": session_id, "turns": memory.recent_turns(session_id, limit)}
 
 
 @app.post("/context-engine/orchestrate")
