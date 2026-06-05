@@ -23,6 +23,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 class RunReq(BaseModel):
     query: Optional[str] = None          # search stage
+    seedUrl: Optional[str] = None        # collect stage (the URL to discover links from)
     companyId: Optional[str] = None
     topK: int = 5
     useLlm: bool = True
