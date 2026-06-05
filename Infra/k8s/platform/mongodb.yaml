@@ -1,0 +1,50 @@
+# In-cluster MongoDB (dev / self-contained clusters). Uses mongodb-atlas-local so $vectorSearch
+# works in-cluster (same image as DevOps/Localhost). For production prefer MongoDB Atlas (managed
+# vector search) and point the app ConfigMap's VKP_MONGO_URI at it. Service name `mongodb` matches
+# the ConfigMap's Mongo host.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  labels: { app: mongodb }
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels: { app: mongodb }
+  template:
+    metadata:
+      labels: { app: mongodb }
+    spec:
+      containers:
+        - name: mongodb
+          image: mongodb/mongodb-atlas-local:latest
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - { name: data, mountPath: /data/db }
+          readinessProbe:
+            tcpSocket: { port: 27017 }
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 2Gi }
+  volumeClaimTemplates:
+    - metadata: { name: data }
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests: { storage: 5Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  labels: { app: mongodb }
+spec:
+  clusterIP: None
+  selector: { app: mongodb }
+  ports:
+    - port: 27017
+      targetPort: 27017

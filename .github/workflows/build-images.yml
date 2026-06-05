@@ -1,0 +1,115 @@
+name: build-images
+
+# Builds and pushes every VKP service image to GHCR. Tags: the commit SHA always, plus `latest`
+# on the default branch and the git tag on a release tag. These are the images the k8s/Terraform
+# deploy paths (Infra/) reference (ghcr.io/<owner>/vkp-*).
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # --- Java services (context = Middleware so shared libs build first) ---
+          - image: vkp-company-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=company-service
+              JAR_PATH=company-service/api/target/company-service.jar
+          - image: vkp-user-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=user-service
+              JAR_PATH=user-service/api/target/user-service.jar
+          - image: vkp-airflow-adapter-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=airflow-adapter-service
+              JAR_PATH=airflow-adapter-service/api/target/airflow-adapter-service.jar
+          - image: vkp-data-collection-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=data-collection-service
+              JAR_PATH=data-collection-service/api/target/data-collection-service.jar
+          - image: vkp-ingestion-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=ingestion-service
+              JAR_PATH=ingestion-service/api/target/ingestion-service.jar
+          - image: vkp-indexing-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=indexing-service
+              JAR_PATH=indexing-service/api/target/indexing-service.jar
+          - image: vkp-indexing-wfs
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=indexing-service
+              JAR_PATH=indexing-service/wfs-java/target/indexing-service-wfs-java.jar
+          # --- Python services (context = the service dir) ---
+          - image: vkp-vehicle-explore-service
+            dockerfile: Infra/docker/python-service.Dockerfile
+            context: Middleware/vehicle-explore-service
+            build_args: ""
+          - image: vkp-guardrails-service
+            dockerfile: Infra/docker/python-service.Dockerfile
+            context: Middleware/guardrails-service
+            build_args: ""
+          # --- Angular portals (context = the portal dir) ---
+          - image: vkp-admin-portal
+            dockerfile: Infra/docker/angular-portal.Dockerfile
+            context: Portals/admin-portal
+            build_args: |
+              PROJECT=admin-portal
+          - image: vkp-vehicle-search-portal
+            dockerfile: Infra/docker/angular-portal.Dockerfile
+            context: Portals/vehicle-search-portal
+            build_args: |
+              PROJECT=vehicle-search-portal
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=sha
+            type=ref,event=tag
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          build-args: ${{ matrix.build_args }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

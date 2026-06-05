@@ -30,6 +30,12 @@ wfs:
   dim: 384
 
 management:
+  tracing:
+    sampling:
+      probability: ${VKP_TRACE_SAMPLING:1.0}      # sample all spans in dev; lower in prod
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}   # Jaeger OTLP/HTTP
   health:
     # Mongo is only used for the mongodb vector store; a flaky/absent Mongo must not fail the
     # executor's own liveness. Per-run Mongo errors are reported on the index log instead.
