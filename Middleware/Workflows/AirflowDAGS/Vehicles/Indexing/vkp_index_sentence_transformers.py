@@ -131,6 +131,15 @@ def _write_pgvector(conf: dict, vector_target: str, dim: int, company_id: str,
                 f"id TEXT PRIMARY KEY, company_id TEXT, source_url TEXT, chunk_index INT, "
                 f"chunk_text TEXT, embedding vector({dim}))"
             )
+            # Full-text search support: a generated tsvector column + GIN index, so the
+            # vehicle-explore service's fts/hybrid retrieval modes work over these rows without
+            # re-embedding. Mirrors the SPRING_AI executor's PgVectorWriter.
+            cur.execute(
+                f"ALTER TABLE {vector_target} ADD COLUMN IF NOT EXISTS content_tsv tsvector "
+                f"GENERATED ALWAYS AS (to_tsvector('english', coalesce(chunk_text, ''))) STORED"
+            )
+            cur.execute(f"CREATE INDEX IF NOT EXISTS {vector_target}_tsv_gin "
+                        f"ON {vector_target} USING gin(content_tsv)")
             register_vector(conn)
             cur.execute(f"DELETE FROM {vector_target} WHERE company_id = %s", (company_id,))
             for (url, ci, text), vec in zip(records, vectors):

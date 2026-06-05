@@ -39,6 +39,12 @@ public class PgVectorWriter implements VectorStoreWriter {
         jdbc.execute("CREATE TABLE IF NOT EXISTS " + table + " ("
                 + "id TEXT PRIMARY KEY, company_id TEXT, source_url TEXT, chunk_index INT, "
                 + "chunk_text TEXT, embedding vector(" + dim + "))");
+        // Full-text search support: a generated tsvector column + GIN index, so the vehicle-explore
+        // service's fts/hybrid retrieval modes work over these rows without re-embedding. Generated
+        // = Postgres maintains it automatically on insert/update.
+        jdbc.execute("ALTER TABLE " + table + " ADD COLUMN IF NOT EXISTS content_tsv tsvector "
+                + "GENERATED ALWAYS AS (to_tsvector('english', coalesce(chunk_text, ''))) STORED");
+        jdbc.execute("CREATE INDEX IF NOT EXISTS " + table + "_tsv_gin ON " + table + " USING gin(content_tsv)");
         jdbc.update("DELETE FROM " + table + " WHERE company_id = ?", companyId);
 
         String sql = "INSERT INTO " + table

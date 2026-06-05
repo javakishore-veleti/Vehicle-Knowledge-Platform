@@ -23,6 +23,10 @@ VECTOR_TABLE = os.getenv("VKP_VECTOR_TABLE", "vec_all_minilm_l6_v2")
 # Default store when the request doesn't specify one: pgvector | mongodb.
 DEFAULT_STORE = os.getenv("VKP_VECTOR_STORE", "pgvector")
 
+# Default retrieval mode when the request doesn't specify one: vector | fts | hybrid.
+# fts/hybrid use Postgres full-text search and require store=pgvector.
+DEFAULT_SEARCH_MODE = os.getenv("VKP_SEARCH_MODE", "vector")
+
 # --- LLM answer (optional; falls back to extractive on any error / missing key) ---
 # Provider is pluggable via the OpenAI-compatible API: default is OpenAI, but pointing
 # VKP_LLM_BASE_URL + VKP_LLM_API_KEY at Groq/Azure/etc. works unchanged.

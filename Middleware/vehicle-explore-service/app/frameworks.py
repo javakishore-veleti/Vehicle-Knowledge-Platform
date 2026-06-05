@@ -7,22 +7,31 @@ Retrieval runs once (pgvector default, or mongodb). The answer is then generated
 enabled LLM provider (see providers.py) over the same sources, so quality can be compared.
 """
 import logging
+from contextvars import ContextVar
 from typing import Optional
 
-from . import config, providers
-from .search import search_chunks
+from . import config, providers, search
 
 log = logging.getLogger("vehicle-explore")
 
 IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack"}
 KNOWN = {"langgraph", "crewai", "llamaindex", "haystack"}
 
+# Retrieval mode for the current request (vector | fts | hybrid), set by run() so the four
+# agent implementations don't each need a new parameter threaded through their signatures.
+_RETRIEVAL_MODE: ContextVar[str] = ContextVar("retrieval_mode", default="vector")
+
 
 def _retrieve(query: str, company_id: Optional[str], top_k: int, store: str) -> list[dict]:
     if store == "mongodb":
         from .mongo_search import search_chunks_mongo  # lazy: pg-only runs need no Mongo
         return search_chunks_mongo(query, company_id, top_k)
-    return search_chunks(query, company_id, top_k)
+    mode = _RETRIEVAL_MODE.get()
+    if mode == "fts":
+        return search.search_chunks_fts(query, company_id, top_k)
+    if mode == "hybrid":
+        return search.search_chunks_hybrid(query, company_id, top_k)
+    return search.search_chunks(query, company_id, top_k)
 
 
 def _extractive_answer(results: list[dict]) -> str:
@@ -53,7 +62,9 @@ def synthesize(query: str, results: list[dict], use_llm: bool = True,
 
 
 def run(framework: str, query: str, company_id: Optional[str], top_k: int, store: str,
-        use_llm: bool = True, provider_ids: Optional[list[str]] = None) -> tuple[str, str, list[dict], list[dict]]:
+        use_llm: bool = True, provider_ids: Optional[list[str]] = None,
+        mode: str = "vector") -> tuple[str, str, list[dict], list[dict]]:
+    _RETRIEVAL_MODE.set(mode)   # read by _retrieve, including inside the four agent implementations
     if framework == "langgraph":
         from . import langgraph_agent  # real LangGraph StateGraph (lazy import)
         return langgraph_agent.run(query, company_id, top_k, store, use_llm, provider_ids)

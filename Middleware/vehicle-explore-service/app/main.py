@@ -30,6 +30,7 @@ class SearchReq(BaseModel):
     companyId: Optional[str] = None
     topK: int = 5
     store: Optional[str] = None     # pgvector | mongodb (defaults to VKP_VECTOR_STORE)
+    mode: Optional[str] = None      # vector | fts | hybrid (defaults to VKP_SEARCH_MODE; fts/hybrid need pgvector)
     useLlm: bool = True             # when false (or no key/quota), returns the extractive answer
     providers: Optional[list[str]] = None   # provider ids to query; None = server default
     sessionId: Optional[str] = None         # fallback when no X-VKP-Session token
@@ -73,6 +74,12 @@ def search(framework_name: str, req: SearchReq,
     store = (req.store or config.DEFAULT_STORE).lower()
     if store not in ("pgvector", "mongodb"):
         raise HTTPException(status_code=400, detail="store must be 'pgvector' or 'mongodb'")
+    mode = (req.mode or config.DEFAULT_SEARCH_MODE).lower()
+    if mode not in ("vector", "fts", "hybrid"):
+        raise HTTPException(status_code=400, detail="mode must be 'vector', 'fts', or 'hybrid'")
+    if store == "mongodb" and mode != "vector":
+        raise HTTPException(status_code=400,
+                            detail="mode 'fts'/'hybrid' uses Postgres full-text search; requires store='pgvector'")
     t0 = time.perf_counter()
 
     # Resolve the session: decrypt the shared token if present, else fall back, else a fresh guest.
@@ -86,7 +93,7 @@ def search(framework_name: str, req: SearchReq,
     gin = guardrails.input_check(req.query.strip(), session_id, user_type, user_id,
                                  query_id, framework_name, store)
     query_id = gin.get("queryId") or query_id
-    base = {"framework": framework_name, "store": store, "query": req.query,
+    base = {"framework": framework_name, "store": store, "mode": mode, "query": req.query,
             "queryId": query_id, "sessionId": session_id, "userType": user_type}
     if not gin.get("allowed", True):
         metrics.SEARCHES.labels(framework_name, store, "blocked").inc()
@@ -98,7 +105,7 @@ def search(framework_name: str, req: SearchReq,
     safe_query = gin.get("sanitizedText") or req.query.strip()
     try:
         answer, answer_source, results, answers = frameworks.run(
-            framework_name, safe_query, req.companyId, top_k, store, req.useLlm, req.providers)
+            framework_name, safe_query, req.companyId, top_k, store, req.useLlm, req.providers, mode)
     except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
         metrics.SEARCHES.labels(framework_name, store, "error").inc()
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
