@@ -1,0 +1,12 @@
+# Agentic service — hosts the NEW agent-SDK frameworks (OpenAI Agents SDK, Google ADK, Microsoft
+# Agent Framework, AWS Strands) across the collect/index/search stages. ISOLATED venv with a modern
+# dependency baseline (fastapi >=0.116 / starlette 1.x) — deliberately separate from the explore
+# service, whose legacy pins (fastapi <0.116 for crewai) conflict with openai-agents' starlette 1.x.
+fastapi>=0.116
+uvicorn[standard]>=0.30
+pydantic>=2.7
+psycopg2-binary>=2.9
+fastembed>=0.4,<0.8        # local query embedding for pgvector retrieval (matches the indexed model)
+openai>=1.40
+# --- agent SDKs (added per framework as implemented) ---
+openai-agents>=0.1         # the 'openai-agents' framework (OpenAI Agents SDK)
