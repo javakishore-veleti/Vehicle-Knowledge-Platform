@@ -14,7 +14,7 @@ from .search import search_chunks
 
 log = logging.getLogger("vehicle-explore")
 
-IMPLEMENTED = {"langgraph", "crewai"}
+IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack"}
 KNOWN = {"langgraph", "crewai", "llamaindex", "haystack"}
 
 
@@ -60,6 +60,12 @@ def run(framework: str, query: str, company_id: Optional[str], top_k: int, store
     if framework == "crewai":
         from . import crewai_agent  # real CrewAI 2-agent crew (lazy import — heavy)
         return crewai_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
+    if framework == "llamaindex":
+        from . import llamaindex_agent  # real LlamaIndex RetrieverQueryEngine (lazy import)
+        return llamaindex_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
+    if framework == "haystack":
+        from . import haystack_agent  # real Haystack 2.x RAG Pipeline (lazy import)
+        return haystack_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
     results = _retrieve(query, company_id, top_k, store)
     answer, source, answers = synthesize(query, results, use_llm, provider_ids)
     return answer, source, results, answers

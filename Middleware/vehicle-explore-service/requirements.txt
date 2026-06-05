@@ -12,4 +12,7 @@ cryptography>=42.0
 prometheus-client>=0.20
 crewai>=1.0          # the 'crewai' framework (2-agent crew); heavy
 litellm>=1.80        # crewai's LLM fallback for non-native providers (Groq)
+llama-index-core>=0.11,<0.13   # the 'llamaindex' framework (RetrieverQueryEngine)
+llama-index-llms-litellm       # LlamaIndex -> Groq via litellm
+haystack-ai>=2.0     # the 'haystack' framework (RAG Pipeline)
 
