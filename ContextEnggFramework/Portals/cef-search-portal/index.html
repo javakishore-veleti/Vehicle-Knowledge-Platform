@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VKP · Context-Aware Vehicle Chat</title>
+  <style>
+    :root { --ink:#0c111d; --muted:#667085; --accent:#3538cd; --line:#eaecf0; }
+    * { box-sizing:border-box; } body { margin:0; font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:#f7f8fa; }
+    header { background:#fff; border-bottom:1px solid var(--line); padding:.8rem 1.2rem; display:flex; align-items:center; gap:.6rem; }
+    header b { font-size:1.05rem; } header .tag { font-size:.72rem; background:#eef2ff; color:var(--accent); border-radius:10px; padding:.1rem .5rem; }
+    .wrap { max-width:820px; margin:1rem auto; padding:0 1rem; }
+    .cfg { display:flex; gap:.8rem; flex-wrap:wrap; font-size:.8rem; color:var(--muted); margin-bottom:.6rem; }
+    .cfg input { font-size:.8rem; padding:.25rem .4rem; border:1px solid #d0d5dd; border-radius:6px; }
+    .chat { background:#fff; border:1px solid var(--line); border-radius:12px; min-height:50vh; padding:1rem; }
+    .msg { margin:.6rem 0; } .msg.user { text-align:right; }
+    .bubble { display:inline-block; padding:.55rem .8rem; border-radius:12px; max-width:90%; text-align:left; white-space:pre-wrap; }
+    .user .bubble { background:var(--accent); color:#fff; } .bot .bubble { background:#f2f4f7; }
+    .meta { font-size:.72rem; color:var(--muted); margin-top:.2rem; }
+    form { display:flex; gap:.5rem; margin-top:.8rem; }
+    form input { flex:1; padding:.6rem .8rem; border:1px solid #d0d5dd; border-radius:8px; }
+    form button { padding:.6rem 1.1rem; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; }
+    form button:disabled { opacity:.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <b>🚗 VKP Context-Aware Vehicle Chat</b>
+    <span class="tag">Context Engineering Framework</span>
+  </header>
+  <div class="wrap">
+    <div class="cfg">
+      <label>Engine <input id="engine" value="http://localhost:8093" size="26"></label>
+      <label>Company <input id="company" value="10000000-0000-4000-8000-000000000004" size="34"></label>
+      <span>session: <code id="sid"></code></span>
+    </div>
+    <div class="chat" id="chat">
+      <div class="msg bot"><div class="bubble">Ask me about vehicles — I remember our conversation (the Context Evolution loop).</div></div>
+    </div>
+    <form id="f">
+      <input id="q" placeholder="What hybrid SUVs does Toyota offer?" autocomplete="off" />
+      <button id="send">Send</button>
+    </form>
+  </div>
+  <script>
+    const sid = 'web-' + Math.random().toString(36).slice(2, 10);
+    document.getElementById('sid').textContent = sid;
+    const chat = document.getElementById('chat');
+    const add = (who, text, meta) => {
+      const m = document.createElement('div'); m.className = 'msg ' + who;
+      m.innerHTML = '<div class="bubble"></div>' + (meta ? '<div class="meta"></div>' : '');
+      m.querySelector('.bubble').textContent = text;
+      if (meta) m.querySelector('.meta').textContent = meta;
+      chat.appendChild(m); chat.scrollTop = chat.scrollHeight; return m;
+    };
+    document.getElementById('f').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const q = document.getElementById('q').value.trim(); if (!q) return;
+      const engine = document.getElementById('engine').value.replace(/\/$/, '');
+      const company = document.getElementById('company').value.trim();
+      add('user', q); document.getElementById('q').value = '';
+      const btn = document.getElementById('send'); btn.disabled = true;
+      const pending = add('bot', '…');
+      try {
+        const r = await fetch(engine + '/context-engine/orchestrate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, companyId: company, sessionId: sid, role: 'USER' })
+        });
+        const d = await r.json();
+        pending.querySelector('.bubble').textContent = d.answer || d.detail || 'No answer';
+        const c = d.context || {};
+        const metaEl = document.createElement('div'); metaEl.className = 'meta';
+        metaEl.textContent = `retrieved ${c.retrieved} · used ${c.used} · memory ${c.memoryTurns} turns · ${(c.strategies||[]).join('/')} · ${d.model} · ${d.latencyMs}ms`;
+        pending.appendChild(metaEl);
+      } catch (err) {
+        pending.querySelector('.bubble').textContent = 'Error: ' + err + ' (is the context-engine running on :8093?)';
+      } finally { btn.disabled = false; }
+    });
+  </script>
+</body>
+</html>
