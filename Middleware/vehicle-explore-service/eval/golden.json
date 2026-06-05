@@ -1,0 +1,6 @@
+[
+  { "query": "What hybrid SUVs does Toyota offer?", "companyId": "10000000-0000-4000-8000-000000000004" },
+  { "query": "electric and plug-in hybrid options", "companyId": "10000000-0000-4000-8000-000000000004" },
+  { "query": "fuel economy and MPG ratings", "companyId": "10000000-0000-4000-8000-000000000004" },
+  { "query": "all-wheel drive vehicles" }
+]
