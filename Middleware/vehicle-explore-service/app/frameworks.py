@@ -14,7 +14,7 @@ from .search import search_chunks
 
 log = logging.getLogger("vehicle-explore")
 
-IMPLEMENTED = {"langgraph"}
+IMPLEMENTED = {"langgraph", "crewai"}
 KNOWN = {"langgraph", "crewai", "llamaindex", "haystack"}
 
 
@@ -57,6 +57,9 @@ def run(framework: str, query: str, company_id: Optional[str], top_k: int, store
     if framework == "langgraph":
         from . import langgraph_agent  # real LangGraph StateGraph (lazy import)
         return langgraph_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
+    if framework == "crewai":
+        from . import crewai_agent  # real CrewAI 2-agent crew (lazy import — heavy)
+        return crewai_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
     results = _retrieve(query, company_id, top_k, store)
     answer, source, answers = synthesize(query, results, use_llm, provider_ids)
     return answer, source, results, answers
