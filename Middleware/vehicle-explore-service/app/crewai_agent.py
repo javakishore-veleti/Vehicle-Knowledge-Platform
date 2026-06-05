@@ -86,3 +86,55 @@ def run(query: str, company_id: Optional[str], top_k: int, store: str,
         "finishReason": None, "costUsd": None, "latencyMs": int((time.perf_counter() - t0) * 1000),
     }]
     return answer, source, results, answers
+
+
+# ===== collect + index stages (classic-roster, registered with agentic_stages) =====
+import json as _json  # noqa: E402
+
+from . import agentic_stages, tools as _tools  # noqa: E402
+from .agentic_stages import COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS  # noqa: E402
+
+
+def _llm():
+    from crewai import LLM
+    _disable_cache_breakpoints()
+    return LLM(model=CREW_MODEL, api_key=os.getenv("GROQ_API_KEY", ""), temperature=0.2)
+
+
+def _collect(seed: str) -> str:
+    from crewai import Agent, Crew, Process, Task
+    from crewai.tools import tool
+
+    @tool("fetch_page")
+    def fetch_page(url: str) -> str:
+        """Fetch a web page; returns its title, links, and images as a JSON string."""
+        return _json.dumps(_tools.fetch_page(url))
+
+    scout = Agent(role="Vehicle Resource Scout", goal="Discover the most relevant vehicle resource links.",
+                  backstory="You crawl automaker sites and curate their vehicle/model/brochure links.",
+                  llm=_llm(), tools=[fetch_page], verbose=False, allow_delegation=False)
+    task = Task(description=f"{COLLECT_INSTRUCTIONS}\n\nSeed URL: {seed}",
+                expected_output="A JSON array of link objects {url,type,title}.", agent=scout)
+    return str(Crew(agents=[scout], tasks=[task], process=Process.sequential, verbose=False).kickoff()).strip()
+
+
+def _chunk(content: str) -> str:
+    from crewai import Agent, Crew, Process, Task
+    indexer = Agent(role="Vehicle Content Indexer", goal="Split content into clean, searchable chunks.",
+                    backstory="You strip boilerplate and produce coherent passages for semantic search.",
+                    llm=_llm(), verbose=False, allow_delegation=False)
+    task = Task(description=f"{INDEX_INSTRUCTIONS}\n\nCONTENT:\n{content}",
+                expected_output="A JSON array of chunk strings.", agent=indexer)
+    return str(Crew(agents=[indexer], tasks=[task], process=Process.sequential, verbose=False).kickoff()).strip()
+
+
+def collect(ctx: dict) -> dict:
+    return agentic_stages.collect_flow("crewai", "CrewAI", CREW_MODEL, _collect, ctx)
+
+
+def index(ctx: dict) -> dict:
+    return agentic_stages.index_flow("crewai", "CrewAI", CREW_MODEL, _chunk, ctx)
+
+
+agentic_stages.register_collect("crewai", collect)
+agentic_stages.register_index("crewai", index)
