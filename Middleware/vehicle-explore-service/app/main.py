@@ -59,7 +59,7 @@ class StageReq(BaseModel):
 
 # Import the agent modules that register collect/index stages (side-effect registration).
 from . import agentic_stages  # noqa: E402
-for _m in ("haystack_agent", "crewai_agent", "llamaindex_agent"):
+for _m in ("haystack_agent", "crewai_agent", "llamaindex_agent", "langgraph_agent"):
     try:
         __import__(f"app.{_m}", fromlist=[_m])
     except Exception as _e:  # noqa: BLE001

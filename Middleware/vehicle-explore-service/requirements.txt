@@ -21,3 +21,4 @@ llama-index-core>=0.11,<0.13   # the 'llamaindex' framework (RetrieverQueryEngin
 llama-index-llms-litellm       # LlamaIndex -> Groq via litellm
 haystack-ai>=2.0     # the 'haystack' framework (RAG Pipeline)
 
+langchain-openai>=0.2   # langgraph create_react_agent chat model (Groq via base_url) for collect

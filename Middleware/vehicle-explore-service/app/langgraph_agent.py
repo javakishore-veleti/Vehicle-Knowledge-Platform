@@ -68,3 +68,54 @@ def run(query: str, company_id: Optional[str], top_k: int, store: str,
         "use_llm": use_llm, "provider_ids": provider_ids,
     })
     return out.get("answer", ""), out.get("answer_source", "none"), out.get("results", []), out.get("answers", [])
+
+
+# ===== collect + index stages (classic-roster, registered with agentic_stages) =====
+import os  # noqa: E402
+
+from . import agentic_stages, tools as _tools  # noqa: E402
+from .agentic_stages import COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS  # noqa: E402
+
+LG_MODEL = os.getenv("VKP_LANGGRAPH_MODEL", "llama-3.3-70b-versatile")
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
+
+def _llm():
+    from langchain_openai import ChatOpenAI
+    return ChatOpenAI(model=LG_MODEL, api_key=os.getenv("GROQ_API_KEY", ""),
+                      base_url=GROQ_BASE_URL, temperature=0.2)
+
+
+def _collect(seed: str) -> str:
+    from langchain_core.tools import tool as lc_tool
+    from langgraph.prebuilt import create_react_agent
+
+    @lc_tool
+    def fetch_page(url: str) -> dict:
+        """Fetch a web page; returns {url, title, links:[{url,type}], images:[...]}."""
+        return _tools.fetch_page(url)
+
+    agent = create_react_agent(_llm(), [fetch_page])
+    out = agent.invoke({"messages": [
+        ("system", COLLECT_INSTRUCTIONS),
+        ("user", f"Seed URL: {seed}\nDiscover and return the relevant vehicle resource links as JSON.")]})
+    return out["messages"][-1].content
+
+
+def _chunk(content: str) -> str:
+    msg = _llm().invoke([
+        ("system", INDEX_INSTRUCTIONS),
+        ("user", f"CONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings.")])
+    return msg.content
+
+
+def collect(ctx: dict) -> dict:
+    return agentic_stages.collect_flow("langgraph", "LangGraph", LG_MODEL, _collect, ctx)
+
+
+def index(ctx: dict) -> dict:
+    return agentic_stages.index_flow("langgraph", "LangGraph", LG_MODEL, _chunk, ctx)
+
+
+agentic_stages.register_collect("langgraph", collect)
+agentic_stages.register_index("langgraph", index)
