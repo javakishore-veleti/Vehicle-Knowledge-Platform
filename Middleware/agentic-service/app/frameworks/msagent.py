@@ -9,7 +9,8 @@ import asyncio
 import inspect
 
 from .. import config, registry, tools
-from ._base import COLLECT_INSTRUCTIONS, INSTRUCTIONS, run_collect, run_search
+from ._base import (COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS, INSTRUCTIONS,
+                    run_collect, run_index, run_search)
 
 
 def fetch_page(url: str) -> dict:
@@ -58,5 +59,13 @@ def collect(ctx: dict) -> dict:
     return run_collect("msagent", "Microsoft Agent Framework", _model_name(), _collect, ctx)
 
 
+def index(ctx: dict) -> dict:
+    def _chunk(content: str) -> str:
+        return _run_agent("vehicle_indexer", INDEX_INSTRUCTIONS,
+                          f"CONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings.")
+    return run_index("msagent", "Microsoft Agent Framework", _model_name(), _chunk, ctx)
+
+
 registry.register("msagent", "search", search)
 registry.register("msagent", "collect", collect)
+registry.register("msagent", "index", index)

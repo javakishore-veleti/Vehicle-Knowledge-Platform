@@ -5,7 +5,8 @@ collect: agent uses the fetch_page tool to discover + curate vehicle resource li
 Model = OpenAI if OPENAI_API_KEY is set, else free Groq via the SDK's OpenAI-compatible model.
 """
 from .. import config, registry, tools
-from ._base import COLLECT_INSTRUCTIONS, INSTRUCTIONS, run_collect, run_search
+from ._base import (COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS, INSTRUCTIONS,
+                    run_collect, run_index, run_search)
 
 
 def _model():
@@ -55,5 +56,18 @@ def collect(ctx: dict) -> dict:
     return run_collect("openai-agents", "OpenAI Agents SDK", _model_name(), _collect, ctx)
 
 
+# ---- index ----
+def _chunk(content: str) -> str:
+    from agents import Agent, Runner
+    agent = Agent(name="Vehicle Content Indexer", instructions=INDEX_INSTRUCTIONS, model=_model())
+    out = Runner.run_sync(agent, f"CONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings.")
+    return str(out.final_output)
+
+
+def index(ctx: dict) -> dict:
+    return run_index("openai-agents", "OpenAI Agents SDK", _model_name(), _chunk, ctx)
+
+
 registry.register("openai-agents", "search", search)
 registry.register("openai-agents", "collect", collect)
+registry.register("openai-agents", "index", index)

@@ -8,7 +8,7 @@ import re
 import time
 from typing import Callable
 
-from .. import retrieval, tools
+from .. import config, indexer, retrieval, tools
 
 log = logging.getLogger("agentic")
 
@@ -22,6 +22,12 @@ COLLECT_INSTRUCTIONS = (
     "links, then return ONLY a JSON array (no prose) of the most relevant vehicle resource links "
     "(vehicle/model pages, brochures, images), at most 15 items, each: "
     '{"url": "...", "type": "page|image|document", "title": "..."}.'
+)
+
+INDEX_INSTRUCTIONS = (
+    "You are a content indexer. Split the given web content into clean, self-contained chunks for "
+    "semantic search: each chunk a coherent passage about one vehicle/topic, with navigation, menus, "
+    "and boilerplate removed. Return ONLY a JSON array of strings (the chunk texts), at most 12."
 )
 
 
@@ -101,6 +107,61 @@ def run_collect(framework: str, label: str, model_name: str,
 
     return {"framework": framework, "stage": "collect", "seedUrl": seed, "source": source,
             "error": error, "count": len(links), "links": links,
+            "providers": [{"provider": framework, "label": label, "model": model_name,
+                           "ok": source == "agent", "error": error,
+                           "latencyMs": int((time.perf_counter() - t0) * 1000)}]}
+
+
+def parse_chunks(text: str) -> list[str]:
+    """Tolerantly extract a JSON array of strings (chunk texts) from an agent's output."""
+    m = re.search(r"\[.*]", text or "", re.DOTALL)
+    if not m:
+        return []
+    try:
+        arr = json.loads(m.group(0))
+    except Exception:  # noqa: BLE001
+        return []
+    return [str(c) for c in arr if isinstance(c, str) and c.strip()]
+
+
+def _naive_chunks(content: str, size: int = 600, overlap: int = 80) -> list[str]:
+    """Deterministic fixed-window fallback when the agent can't produce chunks."""
+    words = content.split()
+    out, step = [], max(1, size - overlap)
+    for i in range(0, len(words), step):
+        out.append(" ".join(words[i:i + size]))
+        if len(out) >= 12:
+            break
+    return out
+
+
+def run_index(framework: str, label: str, model_name: str,
+              agent_chunk: Callable[[str], str], ctx: dict) -> dict:
+    """Run an index-stage agent: `agent_chunk(content) -> text` (a JSON array of curated chunk
+    strings). Embed + write the chunks into the search table (scoped by company_id) so they become
+    immediately searchable. Falls back to fixed-window chunking if the agent fails."""
+    content = (ctx.get("content") or "").strip()
+    if not content:
+        raise ValueError("content is required for the index stage")
+    company_id = ctx.get("companyId") or "agentic-demo"
+    source_url = ctx.get("sourceUrl") or "agentic://content"
+    table = ctx.get("table") or config.INDEX_TABLE
+
+    t0 = time.perf_counter()
+    source, error, chunks = "agent", None, []
+    try:
+        chunks = parse_chunks(agent_chunk(content))
+        if not chunks:
+            raise RuntimeError("agent returned no parseable chunks")
+    except Exception as e:  # noqa: BLE001 — degrade to deterministic chunking
+        log.warning("%s index failed (%s); fixed-window fallback", framework, e)
+        source, error = "fallback", str(e)[:160]
+        chunks = _naive_chunks(content)
+
+    written = indexer.index_chunks(table, company_id, source_url, chunks)
+    return {"framework": framework, "stage": "index", "table": table, "companyId": company_id,
+            "sourceUrl": source_url, "source": source, "error": error,
+            "chunksWritten": written, "chunkCount": len(chunks),
             "providers": [{"provider": framework, "label": label, "model": model_name,
                            "ok": source == "agent", "error": error,
                            "latencyMs": int((time.perf_counter() - t0) * 1000)}]}

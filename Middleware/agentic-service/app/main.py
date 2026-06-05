@@ -24,10 +24,13 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 class RunReq(BaseModel):
     query: Optional[str] = None          # search stage
     seedUrl: Optional[str] = None        # collect stage (the URL to discover links from)
+    content: Optional[str] = None        # index stage (the text to chunk + index)
+    sourceUrl: Optional[str] = None      # index stage (provenance of the content)
+    table: Optional[str] = None          # index stage (override target table)
     companyId: Optional[str] = None
     topK: int = 5
     useLlm: bool = True
-    params: Optional[dict] = None         # stage-specific extras (collect/index)
+    params: Optional[dict] = None         # stage-specific extras
 
 
 @app.get("/health")

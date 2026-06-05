@@ -13,6 +13,8 @@ PG_PASSWORD = os.getenv("VKP_PG_PASSWORD", "vkp")
 EMBED_PROVIDER = os.getenv("VKP_EMBED_PROVIDER", "sentence-transformers")
 EMBED_MODEL = os.getenv("VKP_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 VECTOR_TABLE = os.getenv("VKP_VECTOR_TABLE", "vec_all_minilm_l6_v2")
+# Index stage writes here (default = the search table, so agent-indexed chunks are searchable).
+INDEX_TABLE = os.getenv("VKP_INDEX_TABLE", VECTOR_TABLE)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")

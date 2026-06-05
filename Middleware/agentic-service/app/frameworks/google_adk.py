@@ -7,7 +7,8 @@ needed. The Runner is async, so the sync search() drives it with asyncio.run().
 import asyncio
 
 from .. import config, registry, tools
-from ._base import COLLECT_INSTRUCTIONS, INSTRUCTIONS, run_collect, run_search
+from ._base import (COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS, INSTRUCTIONS,
+                    run_collect, run_index, run_search)
 
 _APP = "vkp"
 _USER = "vkp-user"
@@ -69,5 +70,13 @@ def collect(ctx: dict) -> dict:
     return run_collect("google-adk", "Google ADK", _model_name(), _collect, ctx)
 
 
+def index(ctx: dict) -> dict:
+    def _chunk(content: str) -> str:
+        return _run_agent("vehicle_indexer", INDEX_INSTRUCTIONS,
+                          f"CONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings.")
+    return run_index("google-adk", "Google ADK", _model_name(), _chunk, ctx)
+
+
 registry.register("google-adk", "search", search)
 registry.register("google-adk", "collect", collect)
+registry.register("google-adk", "index", index)

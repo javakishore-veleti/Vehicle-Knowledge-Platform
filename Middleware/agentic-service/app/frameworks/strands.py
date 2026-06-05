@@ -6,7 +6,8 @@ AWS credentials.
   collect: the agent uses the @tool fetch_page to discover + curate vehicle resource links.
 """
 from .. import config, registry, tools
-from ._base import COLLECT_INSTRUCTIONS, INSTRUCTIONS, run_collect, run_search
+from ._base import (COLLECT_INSTRUCTIONS, INDEX_INSTRUCTIONS, INSTRUCTIONS,
+                    run_collect, run_index, run_search)
 
 
 def _model():
@@ -52,5 +53,17 @@ def collect(ctx: dict) -> dict:
     return run_collect("strands", "AWS Strands Agents SDK", _model_name(), _collect, ctx)
 
 
+# ---- index ----
+def _chunk(content: str) -> str:
+    from strands import Agent
+    agent = Agent(model=_model(), system_prompt=INDEX_INSTRUCTIONS)
+    return str(agent(f"CONTENT:\n{content}\n\nReturn the chunks as a JSON array of strings."))
+
+
+def index(ctx: dict) -> dict:
+    return run_index("strands", "AWS Strands Agents SDK", _model_name(), _chunk, ctx)
+
+
 registry.register("strands", "search", search)
 registry.register("strands", "collect", collect)
+registry.register("strands", "index", index)
