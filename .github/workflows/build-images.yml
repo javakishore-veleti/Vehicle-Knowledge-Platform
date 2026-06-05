@@ -1,13 +1,17 @@
 name: build-images
 
-# Builds and pushes every VKP service image to GHCR. Tags: the commit SHA always, plus `latest`
-# on the default branch and the git tag on a release tag. These are the images the k8s/Terraform
-# deploy paths (Infra/) reference (ghcr.io/<owner>/vkp-*).
+# Builds and pushes every VKP service image to GHCR (ghcr.io/<owner>/vkp-*) — the images the
+# k8s/Terraform deploy paths (Infra/) reference.
+#
+# MANUAL ONLY: this never runs automatically. Trigger it from the Actions tab ("Run workflow")
+# or with `gh workflow run build-images.yml`. Optionally pass a tag to stamp the images.
 on:
-  push:
-    branches: [main]
-    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag to push (default: the commit SHA)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -100,8 +104,8 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
           tags: |
             type=sha
-            type=ref,event=tag
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
 
       - uses: docker/build-push-action@v6
         with:
