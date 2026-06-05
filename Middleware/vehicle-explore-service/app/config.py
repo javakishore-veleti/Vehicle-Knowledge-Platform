@@ -36,6 +36,9 @@ LLM_BASE_URL = os.getenv("VKP_LLM_BASE_URL", "")          # empty -> OpenAI defa
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 LLM_API_KEY = os.getenv("VKP_LLM_API_KEY", "") or OPENAI_API_KEY
 
+# --- agentic-service (the new-SDK agent roster) — for the unified /roster view ---
+AGENTIC_URL = os.getenv("VKP_AGENTIC_URL", "http://localhost:8092")
+
 # --- Guardrails (input/output) + shared session token ---
 GUARDRAILS_URL = os.getenv("VKP_GUARDRAILS_URL", "http://localhost:8091")
 GUARDRAILS_ENABLED = os.getenv("VKP_GUARDRAILS_ENABLED", "true").lower() in ("1", "true", "yes")

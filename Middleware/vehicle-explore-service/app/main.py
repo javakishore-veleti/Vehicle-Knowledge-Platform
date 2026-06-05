@@ -79,6 +79,46 @@ def list_frameworks():
                        "index": agentic_stages.index_frameworks()}}
 
 
+@app.get("/api/vehicle-explore/roster")
+def roster():
+    """Unified view of the WHOLE agent-framework roster across both services (explore = classic
+    frameworks, agentic-service = new SDKs), per stage. Best-effort: if agentic-service is down,
+    returns explore's frameworks only."""
+    import json
+    import urllib.request
+
+    matrix = {
+        "search": {f: "explore" for f in frameworks.IMPLEMENTED},
+        "collect": {f: "explore" for f in agentic_stages.collect_frameworks()},
+        "index": {f: "explore" for f in agentic_stages.index_frameworks()},
+    }
+    agentic_up = False
+    try:
+        with urllib.request.urlopen(config.AGENTIC_URL.rstrip("/") + "/agentic/frameworks", timeout=3) as r:
+            am = json.loads(r.read().decode("utf-8")).get("matrix", {})
+        for stage, fws in am.items():
+            for f in fws:
+                matrix.setdefault(stage, {})[f] = "agentic"
+        agentic_up = True
+    except Exception:  # noqa: BLE001
+        pass
+
+    by_framework: dict[str, dict] = {}
+    for stage, fwmap in matrix.items():
+        for f, svc in fwmap.items():
+            entry = by_framework.setdefault(f, {"service": svc, "stages": []})
+            entry["stages"].append(stage)
+    for e in by_framework.values():
+        e["stages"].sort()
+
+    return {
+        "services": {"explore": "(this service)", "agentic": config.AGENTIC_URL, "agenticReachable": agentic_up},
+        "matrix": {stage: sorted(fwmap) for stage, fwmap in matrix.items()},
+        "byFramework": dict(sorted(by_framework.items())),
+        "frameworkCount": len(by_framework),
+    }
+
+
 @app.post("/api/vehicle-explore/{framework_name}/collect")
 def collect(framework_name: str, req: StageReq):
     if framework_name not in agentic_stages.collect_frameworks():
