@@ -52,15 +52,15 @@ Context Evolution Loop    critique, feedback, memory update, new knowledge  (loo
 ```
 ContextEnggFramework/
   Middleware/
-    context-engine-service/    # Python FastAPI — the orchestrator pipeline (this phase)
-    # (planned) context-admin-service/  Spring Boot — strategy config, quality gates, eval (CEF admin)
+    context-engine-service/    # Python FastAPI :8093 — the orchestrator pipeline
+    context-admin-service/     # Spring Boot :8094 — strategy config + eval harness
   Portals/
-    # (planned) cef-admin-portal/     Angular — context strategy, quality gates, evaluation dashboards
-    # (planned) cef-search-portal/    Angular — context-aware vehicle Q&A (customer)
+    cef-search-portal/         # static SPA :5173 — customer context-aware vehicle chat
+    cef-admin-portal/          # static SPA :5174 — strategy config + eval
 ```
 
-## Phases
-1. **context-engine-service** orchestrator pipeline (retrieval → assembly[5 strategies] → reasoning → evolution), reusing VKP retrieval + agent roster.  ← started
-2. MongoDB-backed **memory** (conversation + long-term) + the **evolution loop** persistence.
-3. **context-admin-service** (Spring Boot) — strategy/quality-gate config + an eval harness, over the shared DBs.
-4. **Portals** — a CEF admin portal (strategy/eval) + a CEF customer portal (context-aware chat).
+## Phases — ALL DONE
+1. ✅ **context-engine-service** orchestrator (retrieval → assembly[5 strategies] → reasoning → evolution), reusing VKP retrieval + agent roster.
+2. ✅ MongoDB-backed **memory** + the **Context Evolution loop** — verified multi-turn continuity.
+3. ✅ **context-admin-service** (Spring Boot) — context-strategy CRUD + an eval harness scorecarding groundedness.
+4. ✅ **Portals** — cef-admin-portal (strategy/eval) + cef-search-portal (context-aware chat). `bash Portals/serve.sh`.
