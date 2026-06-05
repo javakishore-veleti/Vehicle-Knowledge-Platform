@@ -38,3 +38,17 @@ scrape_configs:
       - targets: [host.docker.internal:8092]
         labels:
           application: agentic-service
+
+  - job_name: vkp-cef-engine
+    metrics_path: /metrics
+    static_configs:
+      - targets: [host.docker.internal:8093]
+        labels:
+          application: context-engine-service
+
+  - job_name: vkp-cef-admin
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [host.docker.internal:8094]
+        labels:
+          application: context-admin-service
