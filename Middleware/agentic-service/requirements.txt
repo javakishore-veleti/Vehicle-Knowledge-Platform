@@ -8,6 +8,12 @@ pydantic>=2.7
 psycopg2-binary>=2.9
 fastembed>=0.4,<0.8        # local query embedding for pgvector retrieval (matches the indexed model)
 openai>=1.40
+prometheus-client>=0.20
+# OpenTelemetry distributed tracing (FastAPI + urllib auto-instrumentation, OTLP/HTTP -> Jaeger)
+opentelemetry-sdk>=1.27
+opentelemetry-exporter-otlp-proto-http>=1.27
+opentelemetry-instrumentation-fastapi>=0.48b0
+opentelemetry-instrumentation-urllib>=0.48b0
 # --- agent SDKs (added per framework as implemented) ---
 openai-agents>=0.1         # the 'openai-agents' framework (OpenAI Agents SDK)
 strands-agents>=1.0        # the 'strands' framework (AWS Strands Agents SDK; model-driven, OpenAI/Groq)

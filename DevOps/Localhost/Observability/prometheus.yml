@@ -31,3 +31,10 @@ scrape_configs:
       - targets: [host.docker.internal:8091]
         labels:
           application: guardrails-service
+
+  - job_name: vkp-agentic
+    metrics_path: /metrics
+    static_configs:
+      - targets: [host.docker.internal:8092]
+        labels:
+          application: agentic-service

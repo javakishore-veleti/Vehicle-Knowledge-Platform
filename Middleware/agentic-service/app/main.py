@@ -10,15 +10,25 @@ Isolated from vehicle-explore-service (modern dependency baseline) so heavy agen
 """
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 from pydantic import BaseModel
 
 from . import frameworks as _frameworks  # noqa: F401 — import registers all frameworks
-from . import registry
+from . import registry, telemetry
 
 app = FastAPI(title="VKP Agentic Service", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+telemetry.setup_tracing(app, "agentic-service")
+
+# Prometheus: agentic runs by stage, framework, and source (agent vs fallback).
+AGENTIC_RUNS = Counter("vkp_agentic_runs_total", "Agentic stage runs", ["stage", "framework", "source"])
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 class RunReq(BaseModel):
@@ -61,6 +71,10 @@ def run(stage: str, framework: str, req: RunReq):
         raise HTTPException(400, "query is required for the search stage")
     ctx["topK"] = max(1, min(ctx.get("topK", 5), 20))
     try:
-        return registry.run(stage, framework, ctx)
+        result = registry.run(stage, framework, ctx)
     except Exception as e:  # noqa: BLE001
+        AGENTIC_RUNS.labels(stage, framework, "error").inc()
         raise HTTPException(502, f"{framework}/{stage} failed: {e}")
+    source = result.get("source") or result.get("answerSource") or "?"
+    AGENTIC_RUNS.labels(stage, framework, source).inc()
+    return result
