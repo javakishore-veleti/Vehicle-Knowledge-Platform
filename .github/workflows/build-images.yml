@@ -76,6 +76,10 @@ jobs:
             dockerfile: Infra/docker/python-service.Dockerfile
             context: Middleware/guardrails-service
             build_args: ""
+          - image: vkp-agentic-service
+            dockerfile: Infra/docker/python-service.Dockerfile
+            context: Middleware/agentic-service
+            build_args: ""
           # --- Angular portals (context = the portal dir) ---
           - image: vkp-admin-portal
             dockerfile: Infra/docker/angular-portal.Dockerfile

@@ -34,6 +34,7 @@ locals {
     indexing-wfs    = { image = "vkp-indexing-wfs", port = 8087, kind = "java" }
     vehicle-explore = { image = "vkp-vehicle-explore-service", port = 8090, kind = "python" }
     guardrails      = { image = "vkp-guardrails-service", port = 8091, kind = "python" }
+    agentic         = { image = "vkp-agentic-service", port = 8092, kind = "python" }
     admin-portal    = { image = "vkp-admin-portal", port = 80, kind = "portal" }
     search-portal   = { image = "vkp-vehicle-search-portal", port = 80, kind = "portal" }
   }
@@ -121,6 +122,11 @@ resource "kubernetes_deployment_v1" "svc" {
           name  = each.key
           image = each.value.image_ref
           port { container_port = each.value.port }
+
+          env {
+            name  = "PORT" # the python-service image listens on $PORT (default 8080); java ignores it
+            value = tostring(each.value.port)
+          }
 
           # Backend services get the shared config + secret env; portals are static.
           dynamic "env_from" {

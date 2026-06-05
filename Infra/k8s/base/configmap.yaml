@@ -32,6 +32,10 @@ data:
   VKP_VECTOR_STORE: "pgvector"
   VKP_SEARCH_MODE: "vector"
 
+  # --- agentic-service platform integration (collect -> graph, index -> ledger) ---
+  VKP_DATA_COLLECTION_URL: "http://data-collection:8084"
+  VKP_INDEXING_URL: "http://indexing:8086"
+
   # --- Observability (Jaeger collector OTLP/HTTP) ---
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector:4318/v1/traces"
   VKP_OTEL_ENDPOINT: "http://jaeger-collector:4318"

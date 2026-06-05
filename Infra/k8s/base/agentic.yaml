@@ -1,37 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: guardrails
-  labels: { app: guardrails, tier: python }
+  name: agentic
+  labels: { app: agentic, tier: python }
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: guardrails }
+    matchLabels: { app: agentic }
   template:
     metadata:
-      labels: { app: guardrails, tier: python }
+      labels: { app: agentic, tier: python }
     spec:
       securityContext:
         runAsNonRoot: true
       containers:
-        - name: guardrails
-          image: vkp/guardrails-service:0.1.0
+        - name: agentic
+          image: vkp/agentic-service:0.1.0
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8091
+            - containerPort: 8092
           env:
-            - { name: PORT, value: "8091" }   # the python-service image defaults to 8080
+            - { name: PORT, value: "8092" }   # the python-service image defaults to 8080
           envFrom:
             - configMapRef:
                 name: vkp-config
             - secretRef:
                 name: vkp-secrets
           readinessProbe:
-            httpGet: { path: /health, port: 8091 }
+            httpGet: { path: /health, port: 8092 }
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
-            httpGet: { path: /health, port: 8091 }
+            httpGet: { path: /health, port: 8092 }
             initialDelaySeconds: 40
             periodSeconds: 20
           resources:
@@ -41,10 +41,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: guardrails
-  labels: { app: guardrails }
+  name: agentic
+  labels: { app: agentic }
 spec:
-  selector: { app: guardrails }
+  selector: { app: agentic }
   ports:
-    - port: 8091
-      targetPort: 8091
+    - port: 8092
+      targetPort: 8092

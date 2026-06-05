@@ -19,6 +19,7 @@ resources:
   - indexing-wfs.yaml
   - vehicle-explore.yaml
   - guardrails.yaml
+  - agentic.yaml
   # portals
   - admin-portal.yaml
   - search-portal.yaml

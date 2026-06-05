@@ -28,5 +28,10 @@
     "target": "http://localhost:8082",
     "secure": false,
     "changeOrigin": true
+  },
+  "/agentic": {
+    "target": "http://localhost:8092",
+    "secure": false,
+    "changeOrigin": true
   }
 }
