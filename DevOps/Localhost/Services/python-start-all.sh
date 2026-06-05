@@ -14,12 +14,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-MIDDLEWARE="$ROOT/Middleware"
+ROOTS=("$ROOT/Middleware" "$ROOT/ContextEnggFramework/Middleware")
 RUN_DIR="$ROOT/DevOps/Localhost/.run"
 mkdir -p "$RUN_DIR"
 
 found=0
-if [[ -d "$MIDDLEWARE" ]]; then
+for MIDDLEWARE in "${ROOTS[@]}"; do
+  [[ -d "$MIDDLEWARE" ]] || continue
   for svc_dir in "$MIDDLEWARE"/*/; do
     [[ -d "$svc_dir" ]] || continue
     name="$(basename "$svc_dir")"
@@ -56,6 +57,6 @@ if [[ -d "$MIDDLEWARE" ]]; then
         > "$logfile" 2>&1 & echo $! > "$pidfile" )
     found=1
   done
-fi
+done
 
-if [[ "$found" -eq 0 ]]; then echo "==> No Python services found under Middleware/ yet (nothing to start)."; fi
+if [[ "$found" -eq 0 ]]; then echo "==> No Python services found yet (nothing to start)."; fi
