@@ -21,6 +21,9 @@ import { MenuItem } from 'primeng/api';
         <a routerLink="/data-management" [class.active]="mainMenu() === 'data-management'">
           <i class="pi pi-sitemap"></i> Data Management
         </a>
+        <a routerLink="/agents" [class.active]="mainMenu() === 'agents'">
+          <i class="pi pi-android"></i> AI Agents
+        </a>
       </nav>
       <div class="vkp-topbar-right">
         <i class="pi pi-search" title="Search"></i>
@@ -32,7 +35,7 @@ import { MenuItem } from 'primeng/api';
     <!-- Body: contextual sidebar + content -->
     <div class="vkp-body">
       <aside class="vkp-sidebar">
-        <div class="vkp-sidebar-title">{{ mainMenu() === 'companies' ? 'Companies' : 'Data Management' }}</div>
+        <div class="vkp-sidebar-title">{{ sidebarTitle() }}</div>
         <p-panelMenu [model]="sideMenu()" [multiple]="true"></p-panelMenu>
       </aside>
       <main class="vkp-content">
@@ -45,7 +48,12 @@ import { MenuItem } from 'primeng/api';
 export class AppComponent {
   readonly url = signal<string>('/');
 
-  readonly mainMenu = computed(() => (this.url().startsWith('/data-management') ? 'data-management' : 'companies'));
+  readonly mainMenu = computed(() => {
+    const u = this.url();
+    if (u.startsWith('/data-management')) { return 'data-management'; }
+    if (u.startsWith('/agents')) { return 'agents'; }
+    return 'companies';
+  });
 
   private readonly companiesMenu: MenuItem[] = [
     { label: 'Companies', icon: 'pi pi-building', routerLink: '/companies' },
@@ -90,7 +98,30 @@ export class AppComponent {
     }
   ];
 
-  readonly sideMenu = computed(() => (this.mainMenu() === 'data-management' ? this.dataMenu : this.companiesMenu));
+  private readonly agentsMenu: MenuItem[] = [
+    {
+      label: 'Agent Roster', icon: 'pi pi-android', expanded: true,
+      items: [
+        { label: 'Roster & Run', icon: 'pi pi-table', routerLink: '/agents/roster' }
+      ]
+    }
+  ];
+
+  readonly sideMenu = computed(() => {
+    switch (this.mainMenu()) {
+      case 'data-management': return this.dataMenu;
+      case 'agents': return this.agentsMenu;
+      default: return this.companiesMenu;
+    }
+  });
+
+  readonly sidebarTitle = computed(() => {
+    switch (this.mainMenu()) {
+      case 'data-management': return 'Data Management';
+      case 'agents': return 'AI Agents';
+      default: return 'Companies';
+    }
+  });
 
   constructor(router: Router) {
     this.url.set(router.url);

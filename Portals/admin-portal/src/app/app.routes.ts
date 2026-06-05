@@ -14,6 +14,7 @@ import { IndexFormulasComponent } from './features/data-management/indexing/inde
 import { IndexCredentialsComponent } from './features/data-management/indexing/index-credentials.component';
 import { IndexLogsComponent } from './features/data-management/indexing/index-logs.component';
 import { QueryLogComponent } from './features/data-management/guardrails/query-log.component';
+import { AgentRosterComponent } from './features/agents/roster.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -21,6 +22,9 @@ export const routes: Routes = [
   { path: 'companies', component: CompaniesComponent, title: 'Companies' },
   { path: 'companies/resources', component: ResourcesComponent, title: 'Company Resources' },
   { path: 'companies/graph', component: CompanyGraphComponent, title: 'Resource Graph' },
+
+  { path: 'agents', redirectTo: 'agents/roster', pathMatch: 'full' },
+  { path: 'agents/roster', component: AgentRosterComponent, title: 'Agent Roster' },
 
   { path: 'data-management', redirectTo: 'data-management/data-collection/workflows', pathMatch: 'full' },
   { path: 'data-management/data-collection/crawl', component: CrawlComponent, title: 'Crawl Snapshot' },
