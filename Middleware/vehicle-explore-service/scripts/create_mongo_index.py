@@ -19,7 +19,11 @@ DIM = int(os.getenv("VKP_VECTOR_DIM", "384"))
 
 
 def main() -> None:
-    coll = MongoClient(URI)[DB][COLL]
+    db = MongoClient(URI)[DB]
+    if COLL not in db.list_collection_names():
+        db.create_collection(COLL)   # a search index needs an existing collection (may be empty)
+        print(f"created empty collection {DB}.{COLL}")
+    coll = db[COLL]
     existing = {i["name"] for i in coll.list_search_indexes()}
     if NAME in existing:
         print(f"index '{NAME}' already exists")
