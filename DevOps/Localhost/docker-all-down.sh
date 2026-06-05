@@ -5,7 +5,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Reverse order of startup.
-STACKS=(Airflow Postgres MongoDB)
+STACKS=(Observability Airflow Postgres MongoDB)
 
 for stack in "${STACKS[@]}"; do
   f="$HERE/$stack/docker-compose.yaml"

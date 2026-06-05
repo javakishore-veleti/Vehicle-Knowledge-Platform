@@ -1,0 +1,33 @@
+# Scrapes every VKP service. Java services expose /actuator/prometheus (Micrometer);
+# the Python FastAPI services expose /metrics (prometheus-client). Targets use
+# host.docker.internal because the services run on the host, not in this compose network.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: vkp-java
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - host.docker.internal:8081   # company-service
+          - host.docker.internal:8082   # user-service
+          - host.docker.internal:8083   # airflow-adapter-service
+          - host.docker.internal:8084   # data-collection-service
+          - host.docker.internal:8085   # ingestion-service
+          - host.docker.internal:8086   # indexing-service (control plane)
+          - host.docker.internal:8087   # indexing-service (wfs-java executor)
+
+  - job_name: vkp-explore
+    metrics_path: /metrics
+    static_configs:
+      - targets: [host.docker.internal:8090]
+        labels:
+          application: vehicle-explore-service
+
+  - job_name: vkp-guardrails
+    metrics_path: /metrics
+    static_configs:
+      - targets: [host.docker.internal:8091]
+        labels:
+          application: guardrails-service

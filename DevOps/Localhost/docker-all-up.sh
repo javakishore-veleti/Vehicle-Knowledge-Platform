@@ -5,7 +5,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Order matters: databases first, then Airflow (which depends on its own metadata DB).
-STACKS=(MongoDB Postgres Airflow)
+STACKS=(MongoDB Postgres Airflow Observability)
 
 for stack in "${STACKS[@]}"; do
   f="$HERE/$stack/docker-compose.yaml"

@@ -13,6 +13,12 @@ airflow:
   password: ${AIRFLOW_PASSWORD:admin}
 
 management:
+  tracing:
+    sampling:
+      probability: ${VKP_TRACE_SAMPLING:1.0}      # sample all spans in dev; lower in prod
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}   # Jaeger OTLP/HTTP
   endpoints:
     web:
       exposure:

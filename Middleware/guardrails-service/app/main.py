@@ -12,15 +12,25 @@ import logging
 import uuid
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 
-from . import db, engine
+from . import db, engine, telemetry
 from .models import FeedbackReq, InputCheckReq, OutputCheckReq
 
 log = logging.getLogger("guardrails")
 app = FastAPI(title="VKP Guardrails Service", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+telemetry.setup_tracing(app, "guardrails-service")
+
+# Prometheus metrics: guardrail checks by phase (input/output) + action (allow/redact/block).
+GUARDRAIL_CHECKS = Counter("vkp_guardrail_checks_total", "Guardrail checks", ["phase", "action"])
+
+
+@app.get("/metrics")
+def prometheus_metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.on_event("startup")
@@ -41,6 +51,7 @@ def health():
 def input_check(req: InputCheckReq):
     query_id = req.queryId or ("qry_" + uuid.uuid4().hex)
     res = engine.check_input(req.text)
+    GUARDRAIL_CHECKS.labels("input", res["action"]).inc()
     try:
         db.log_input(req.userType, query_id, req.sessionId, req.userId, req.text,
                      req.framework, req.store, res["action"], res["reasons"])
@@ -53,6 +64,7 @@ def input_check(req: InputCheckReq):
 @app.post("/guardrails/v1/output/check")
 def output_check(req: OutputCheckReq):
     res = engine.check_output(req.answer, req.numSources)
+    GUARDRAIL_CHECKS.labels("output", res["action"]).inc()
     try:
         db.log_output(req.userType, req.queryId, res["action"], res["reasons"])
     except Exception as e:  # noqa: BLE001

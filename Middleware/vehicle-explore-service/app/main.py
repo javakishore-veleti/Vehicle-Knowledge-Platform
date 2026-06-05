@@ -12,9 +12,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 
-from . import config, frameworks, guardrails, metrics, session
+from . import config, frameworks, guardrails, metrics, session, telemetry
 
 app = FastAPI(title="VKP Vehicle Explore Service", version="0.1.0")
+telemetry.setup_tracing(app, "vehicle-explore-service")
 
 # The Vehicle Search Portal calls this directly in dev; a proxy is preferred but CORS keeps it simple.
 app.add_middleware(
