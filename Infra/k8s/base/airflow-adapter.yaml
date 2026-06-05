@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-adapter
+  labels: { app: airflow-adapter, tier: java }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: airflow-adapter }
+  template:
+    metadata:
+      labels: { app: airflow-adapter, tier: java }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: airflow-adapter
+          image: vkp/airflow-adapter-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8083 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-adapter
+  labels: { app: airflow-adapter }
+spec:
+  selector: { app: airflow-adapter }
+  ports:
+    - port: 8083
+      targetPort: 8083

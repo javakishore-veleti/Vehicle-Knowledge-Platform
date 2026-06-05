@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indexing
+  labels: { app: indexing, tier: java }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: indexing }
+  template:
+    metadata:
+      labels: { app: indexing, tier: java }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: indexing
+          image: vkp/indexing-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8086 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8086 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: indexing
+  labels: { app: indexing }
+spec:
+  selector: { app: indexing }
+  ports:
+    - port: 8086
+      targetPort: 8086

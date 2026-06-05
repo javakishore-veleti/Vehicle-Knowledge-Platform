@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: indexing-wfs
+  labels: { app: indexing-wfs, tier: java }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: indexing-wfs }
+  template:
+    metadata:
+      labels: { app: indexing-wfs, tier: java }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: indexing-wfs
+          image: vkp/indexing-service-wfs-java:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8087
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8087 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8087 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: indexing-wfs
+  labels: { app: indexing-wfs }
+spec:
+  selector: { app: indexing-wfs }
+  ports:
+    - port: 8087
+      targetPort: 8087

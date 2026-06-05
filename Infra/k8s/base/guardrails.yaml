@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guardrails
+  labels: { app: guardrails, tier: python }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: guardrails }
+  template:
+    metadata:
+      labels: { app: guardrails, tier: python }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: guardrails
+          image: vkp/guardrails-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8091
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 8091 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8091 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 2Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guardrails
+  labels: { app: guardrails }
+spec:
+  selector: { app: guardrails }
+  ports:
+    - port: 8091
+      targetPort: 8091

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-portal
+  labels: { app: search-portal, tier: portal }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: search-portal }
+  template:
+    metadata:
+      labels: { app: search-portal, tier: portal }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: search-portal
+          image: vkp/vehicle-search-portal:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-portal
+  labels: { app: search-portal }
+spec:
+  selector: { app: search-portal }
+  ports:
+    - port: 80
+      targetPort: 80

@@ -222,3 +222,14 @@ DevOps/Localhost/.run/
 
 # Node
 node_modules/
+
+# Terraform (Infra/) — provider binaries, state, and real tfvars (keep *.tfvars.example + lock)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Kubernetes real secrets (keep secret.example.yaml)
+Infra/k8s/base/secret.yaml

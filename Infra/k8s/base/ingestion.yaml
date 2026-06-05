@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion
+  labels: { app: ingestion, tier: java }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: ingestion }
+  template:
+    metadata:
+      labels: { app: ingestion, tier: java }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: ingestion
+          image: vkp/ingestion-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8085
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8085 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8085 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion
+  labels: { app: ingestion }
+spec:
+  selector: { app: ingestion }
+  ports:
+    - port: 8085
+      targetPort: 8085

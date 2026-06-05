@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Dev environment overlay: pulls the base and pins image tags / registry. Apply with:
+#   kubectl apply -k Infra/k8s/overlays/dev
+resources:
+  - ../../base
+
+# Point every vkp/* image at your registry + a dev tag (CI sets the SHA tag).
+images:
+  - { name: vkp/company-service,            newName: ghcr.io/javakishore-veleti/vkp-company-service,            newTag: dev }
+  - { name: vkp/user-service,               newName: ghcr.io/javakishore-veleti/vkp-user-service,               newTag: dev }
+  - { name: vkp/airflow-adapter-service,    newName: ghcr.io/javakishore-veleti/vkp-airflow-adapter-service,    newTag: dev }
+  - { name: vkp/data-collection-service,    newName: ghcr.io/javakishore-veleti/vkp-data-collection-service,    newTag: dev }
+  - { name: vkp/ingestion-service,          newName: ghcr.io/javakishore-veleti/vkp-ingestion-service,          newTag: dev }
+  - { name: vkp/indexing-service,           newName: ghcr.io/javakishore-veleti/vkp-indexing-service,           newTag: dev }
+  - { name: vkp/indexing-service-wfs-java,  newName: ghcr.io/javakishore-veleti/vkp-indexing-wfs,               newTag: dev }
+  - { name: vkp/vehicle-explore-service,    newName: ghcr.io/javakishore-veleti/vkp-vehicle-explore-service,    newTag: dev }
+  - { name: vkp/guardrails-service,         newName: ghcr.io/javakishore-veleti/vkp-guardrails-service,          newTag: dev }
+  - { name: vkp/admin-portal,               newName: ghcr.io/javakishore-veleti/vkp-admin-portal,               newTag: dev }
+  - { name: vkp/vehicle-search-portal,      newName: ghcr.io/javakishore-veleti/vkp-vehicle-search-portal,       newTag: dev }

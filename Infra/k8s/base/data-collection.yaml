@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-collection
+  labels: { app: data-collection, tier: java }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: data-collection }
+  template:
+    metadata:
+      labels: { app: data-collection, tier: java }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: data-collection
+          image: vkp/data-collection-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8084 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8084 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: data-collection
+  labels: { app: data-collection }
+spec:
+  selector: { app: data-collection }
+  ports:
+    - port: 8084
+      targetPort: 8084

@@ -21,7 +21,8 @@ operational data in **MongoDB**, and indexes embeddings into one or more configu
 **vector stores**.
 
 The system uses **PascalCase top-level folders**: `Portals/` (Angular UIs) and
-`Middleware/` (all backend), plus `DevOps/` for localhost/ops tooling and a root
+`Middleware/` (all backend), plus `DevOps/` for localhost/ops tooling, `Infra/` for the
+cloud/cluster deploy path (Dockerfiles + Kubernetes kustomize + Terraform), and a root
 `package.json` as the operations entrypoint.
 
 - **`Portals/`** — user-facing **Angular** UIs. Two or more portals (at minimum an Admin

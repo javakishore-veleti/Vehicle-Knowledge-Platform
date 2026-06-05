@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vkp-config
+data:
+  # --- Spring (Java services) ---
+  SPRING_PROFILES_ACTIVE: "postgres"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/vkp"
+  SPRING_DATASOURCE_USERNAME: "vkp"
+  # SPRING_DATASOURCE_PASSWORD comes from the Secret (vkp-secrets).
+
+  # --- Inter-service URLs (k8s DNS = the Service names in this namespace) ---
+  AIRFLOW_ADAPTER_BASE_URL: "http://airflow-adapter:8083"
+  INDEXING_WFS_BASE_URL: "http://indexing-wfs:8087"
+  INDEXING_DATA_COLLECTION_BASE_URL: "http://data-collection:8084"
+  INDEXING_AIRFLOW_CALLBACK_BASE_URL: "http://indexing:8086"
+  DATACOLLECTION_COMPANY_SERVICE_URL: "http://company-service:8081"
+  WFS_CONTROL_BASE_URL: "http://indexing:8086"
+  WFS_DC_BASE_URL: "http://data-collection:8084"
+
+  # --- Postgres / Mongo for the Python services ---
+  VKP_PG_HOST: "postgres"
+  VKP_PG_PORT: "5432"
+  VKP_PG_DB: "vkp"
+  VKP_PG_USER: "vkp"
+  VKP_MONGO_URI: "mongodb://mongodb:27017/vkp"
+  WFS_PG_URL: "jdbc:postgresql://postgres:5432/vkp"
+  WFS_MONGO_URI: "mongodb://mongodb:27017/vkp"
+
+  # --- explore + guardrails wiring ---
+  VKP_GUARDRAILS_URL: "http://guardrails:8091"
+  VKP_VECTOR_STORE: "pgvector"
+  VKP_SEARCH_MODE: "vector"
+
+  # --- Observability (Jaeger collector OTLP/HTTP) ---
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector:4318/v1/traces"
+  VKP_OTEL_ENDPOINT: "http://jaeger-collector:4318"
+  VKP_TRACE_SAMPLING: "0.1"
+
+  # --- RBAC ---
+  VKP_JWT_ENABLED: "true"

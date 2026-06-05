@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# All resources are created in the vkp namespace.
+namespace: vkp
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.example.yaml          # replace with your real secret.yaml (gitignored) per environment
+  - ingress.yaml
+  # backend services
+  - company-service.yaml
+  - user-service.yaml
+  - airflow-adapter.yaml
+  - data-collection.yaml
+  - ingestion.yaml
+  - indexing.yaml
+  - indexing-wfs.yaml
+  - vehicle-explore.yaml
+  - guardrails.yaml
+  # portals
+  - admin-portal.yaml
+  - search-portal.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: vehicle-knowledge-platform

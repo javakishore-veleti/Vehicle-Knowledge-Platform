@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars (gitignored) and fill in. Or pass via TF_VAR_* env vars / a secrets manager.
+kubeconfig     = "~/.kube/config"
+kube_context   = ""
+namespace      = "vkp"
+image_registry = "ghcr.io/javakishore-veleti"
+image_tag      = "dev"
+
+# Secrets — DO NOT commit real values.
+jwt_secret     = "change-me-dev-secret-please-override-in-prod-0123456789"
+session_secret = "" # base64 of a 32-byte AES key
+db_password    = "vkp"
+openai_api_key = ""
+groq_api_key   = ""
