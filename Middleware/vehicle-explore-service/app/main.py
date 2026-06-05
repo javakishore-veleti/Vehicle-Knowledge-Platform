@@ -3,14 +3,16 @@
 Search is framework-routed: POST /api/vehicle-explore/{frameworkName}/search. Retrieval runs
 against the pgVector embeddings produced by the indexing subsystem.
 """
+import time
 import uuid
 from typing import Optional
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 
-from . import config, frameworks, guardrails, session
+from . import config, frameworks, guardrails, metrics, session
 
 app = FastAPI(title="VKP Vehicle Explore Service", version="0.1.0")
 
@@ -40,6 +42,11 @@ def health():
     return {"status": "UP"}
 
 
+@app.get("/metrics")
+def prometheus_metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.get("/api/vehicle-explore/frameworks")
 def list_frameworks():
     return {"known": sorted(frameworks.KNOWN), "implemented": sorted(frameworks.IMPLEMENTED)}
@@ -66,6 +73,7 @@ def search(framework_name: str, req: SearchReq,
     store = (req.store or config.DEFAULT_STORE).lower()
     if store not in ("pgvector", "mongodb"):
         raise HTTPException(status_code=400, detail="store must be 'pgvector' or 'mongodb'")
+    t0 = time.perf_counter()
 
     # Resolve the session: decrypt the shared token if present, else fall back, else a fresh guest.
     ctx = session.decrypt_session(x_vkp_session) or {}
@@ -81,6 +89,8 @@ def search(framework_name: str, req: SearchReq,
     base = {"framework": framework_name, "store": store, "query": req.query,
             "queryId": query_id, "sessionId": session_id, "userType": user_type}
     if not gin.get("allowed", True):
+        metrics.SEARCHES.labels(framework_name, store, "blocked").inc()
+        metrics.GUARDRAIL_BLOCKS.labels("input").inc()
         return {**base, "answer": "This request was blocked by input guardrails — I can only help "
                 "with vehicle questions.", "answerSource": "blocked", "answers": [], "results": [],
                 "count": 0, "guardrails": {"input": gin, "output": None}}
@@ -90,6 +100,7 @@ def search(framework_name: str, req: SearchReq,
         answer, answer_source, results, answers = frameworks.run(
             framework_name, safe_query, req.companyId, top_k, store, req.useLlm, req.providers)
     except Exception as e:  # noqa: BLE001 — surface a clean 502 (e.g. store unreachable)
+        metrics.SEARCHES.labels(framework_name, store, "error").inc()
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
 
     # Output guardrail — check EVERY provider answer (and the extractive fallback).
@@ -115,6 +126,13 @@ def search(framework_name: str, req: SearchReq,
             answer, answer_source = "The answer was withheld by output guardrails.", "blocked"
         elif gout.get("action") == "redact" and gout.get("sanitizedText"):
             answer = gout["sanitizedText"]
+
+    metrics.SEARCH_LATENCY.labels(framework_name, store).observe(time.perf_counter() - t0)
+    metrics.SEARCHES.labels(framework_name, store, "ok").inc()
+    for a in answers:
+        metrics.PROVIDER_ANSWERS.labels(a.get("provider", "?"), str(bool(a.get("ok"))).lower()).inc()
+    if answer_source == "blocked":
+        metrics.GUARDRAIL_BLOCKS.labels("output").inc()
 
     return {**base, "answer": answer, "answerSource": answer_source, "answers": answers,
             "results": results, "count": len(results),
