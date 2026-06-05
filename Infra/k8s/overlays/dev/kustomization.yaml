@@ -18,5 +18,7 @@ images:
   - { name: vkp/vehicle-explore-service,    newName: ghcr.io/javakishore-veleti/vkp-vehicle-explore-service,    newTag: dev }
   - { name: vkp/guardrails-service,         newName: ghcr.io/javakishore-veleti/vkp-guardrails-service,          newTag: dev }
   - { name: vkp/agentic-service,            newName: ghcr.io/javakishore-veleti/vkp-agentic-service,            newTag: dev }
+  - { name: vkp/context-engine-service,     newName: ghcr.io/javakishore-veleti/vkp-context-engine-service,     newTag: dev }
+  - { name: vkp/context-admin-service,      newName: ghcr.io/javakishore-veleti/vkp-context-admin-service,      newTag: dev }
   - { name: vkp/admin-portal,               newName: ghcr.io/javakishore-veleti/vkp-admin-portal,               newTag: dev }
   - { name: vkp/vehicle-search-portal,      newName: ghcr.io/javakishore-veleti/vkp-vehicle-search-portal,       newTag: dev }

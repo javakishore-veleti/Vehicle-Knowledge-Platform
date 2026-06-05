@@ -20,6 +20,9 @@ resources:
   - vehicle-explore.yaml
   - guardrails.yaml
   - agentic.yaml
+  # CEF (Context Engineering Framework)
+  - context-engine.yaml
+  - context-admin.yaml
   # portals
   - admin-portal.yaml
   - search-portal.yaml

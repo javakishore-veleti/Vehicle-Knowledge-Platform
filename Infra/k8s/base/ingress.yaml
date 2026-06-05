@@ -16,9 +16,11 @@ spec:
           - { path: /admin/data-collection,  pathType: Prefix, backend: { service: { name: data-collection, port: { number: 8084 } } } }
           - { path: /admin/ingestion,        pathType: Prefix, backend: { service: { name: ingestion,       port: { number: 8085 } } } }
           - { path: /admin/indexing,         pathType: Prefix, backend: { service: { name: indexing,        port: { number: 8086 } } } }
+          - { path: /admin/context-engine,   pathType: Prefix, backend: { service: { name: context-admin,   port: { number: 8094 } } } }
           - { path: /customer/user,          pathType: Prefix, backend: { service: { name: user-service,    port: { number: 8082 } } } }
           - { path: /guardrails,             pathType: Prefix, backend: { service: { name: guardrails,       port: { number: 8091 } } } }
           - { path: /agentic,                pathType: Prefix, backend: { service: { name: agentic,          port: { number: 8092 } } } }
+          - { path: /context-engine,         pathType: Prefix, backend: { service: { name: context-engine,  port: { number: 8093 } } } }
           - { path: /,                       pathType: Prefix, backend: { service: { name: admin-portal,     port: { number: 80 } } } }
 ---
 apiVersion: networking.k8s.io/v1

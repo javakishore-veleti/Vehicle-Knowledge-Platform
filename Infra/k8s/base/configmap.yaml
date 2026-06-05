@@ -36,6 +36,10 @@ data:
   VKP_DATA_COLLECTION_URL: "http://data-collection:8084"
   VKP_INDEXING_URL: "http://indexing:8086"
 
+  # --- CEF (context-engine routes reasoning to the agent roster) ---
+  CEF_AGENTIC_URL: "http://agentic:8092"
+  CEF_DEFAULT_FRAMEWORK: "openai-agents"
+
   # --- Observability (Jaeger collector OTLP/HTTP) ---
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger-collector:4318/v1/traces"
   VKP_OTEL_ENDPOINT: "http://jaeger-collector:4318"

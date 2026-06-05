@@ -80,6 +80,15 @@ jobs:
             dockerfile: Infra/docker/python-service.Dockerfile
             context: Middleware/agentic-service
             build_args: ""
+          # --- CEF (Context Engineering Framework) ---
+          - image: vkp-context-engine-service
+            dockerfile: Infra/docker/python-service.Dockerfile
+            context: ContextEnggFramework/Middleware/context-engine-service
+            build_args: ""
+          - image: vkp-context-admin-service
+            dockerfile: Infra/docker/java-single.Dockerfile
+            context: ContextEnggFramework/Middleware/context-admin-service
+            build_args: ""
           # --- Angular portals (context = the portal dir) ---
           - image: vkp-admin-portal
             dockerfile: Infra/docker/angular-portal.Dockerfile

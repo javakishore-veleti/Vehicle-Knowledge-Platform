@@ -35,6 +35,8 @@ locals {
     vehicle-explore = { image = "vkp-vehicle-explore-service", port = 8090, kind = "python" }
     guardrails      = { image = "vkp-guardrails-service", port = 8091, kind = "python" }
     agentic         = { image = "vkp-agentic-service", port = 8092, kind = "python" }
+    context-engine  = { image = "vkp-context-engine-service", port = 8093, kind = "python" }
+    context-admin   = { image = "vkp-context-admin-service", port = 8094, kind = "java" }
     admin-portal    = { image = "vkp-admin-portal", port = 80, kind = "portal" }
     search-portal   = { image = "vkp-vehicle-search-portal", port = 80, kind = "portal" }
   }

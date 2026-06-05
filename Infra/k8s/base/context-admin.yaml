@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: context-admin
+  labels: { app: context-admin, tier: java, part-of: cef }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: context-admin }
+  template:
+    metadata:
+      labels: { app: context-admin, tier: java, part-of: cef }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: context-admin
+          image: vkp/context-admin-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8094
+          env:
+            - { name: SPRING_PROFILES_ACTIVE, value: "postgres" }
+            - { name: CEF_ENGINE_URL, value: "http://context-engine:8093" }
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8094 }
+            initialDelaySeconds: 25
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8094 }
+            initialDelaySeconds: 50
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: context-admin
+  labels: { app: context-admin }
+spec:
+  selector: { app: context-admin }
+  ports:
+    - port: 8094
+      targetPort: 8094
