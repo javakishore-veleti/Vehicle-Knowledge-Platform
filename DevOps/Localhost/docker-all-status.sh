@@ -4,7 +4,9 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-STACKS=(MongoDB Postgres Airflow Observability)
+# Observability disabled to save memory/disk — add "Observability" back to also show its containers.
+STACKS=(MongoDB Postgres Airflow)
+# STACKS=(MongoDB Postgres Airflow Observability)
 
 for stack in "${STACKS[@]}"; do
   f="$HERE/$stack/docker-compose.yaml"

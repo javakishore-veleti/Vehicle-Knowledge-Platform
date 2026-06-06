@@ -5,7 +5,10 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Order matters: databases first, then Airflow (which depends on its own metadata DB).
-STACKS=(MongoDB Postgres Airflow Observability)
+# Observability (Jaeger/Prometheus/Grafana) is DISABLED here to save memory/disk on this laptop —
+# add "Observability" back to the list to re-enable it.
+STACKS=(MongoDB Postgres Airflow)
+# STACKS=(MongoDB Postgres Airflow Observability)   # <- re-enable observability
 
 for stack in "${STACKS[@]}"; do
   f="$HERE/$stack/docker-compose.yaml"

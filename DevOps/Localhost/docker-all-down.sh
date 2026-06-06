@@ -4,7 +4,8 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Reverse order of startup.
+# Reverse order of startup. Observability is kept here (even though up/status skip it) so stop-all
+# still tears down any observability containers that are currently running — freeing their memory/disk.
 STACKS=(Observability Airflow Postgres MongoDB)
 
 for stack in "${STACKS[@]}"; do
