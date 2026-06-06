@@ -17,6 +17,9 @@ log = logging.getLogger("guardrails")
 def active_engine() -> str:
     e = config.ENGINE
     if e == "auto":
+        # Prefer the free Groq safeguard model when a key is present (no torch); else llm-guard; else rules.
+        if config.GROQ_API_KEY:
+            return "groq"
         try:
             import llm_guard  # noqa: F401
             return "llmguard"
@@ -26,10 +29,14 @@ def active_engine() -> str:
 
 
 _GUARD_SYS = (
-    "You are a content-safety classifier for a vehicle-shopping assistant. Decide if the USER "
-    "message is UNSAFE — i.e. it requests weapons/explosives, violence, illegal activity, self-harm, "
-    "hate, sexual content, malware, or other clearly harmful content. A normal car/vehicle question "
-    "is SAFE. Respond with exactly one word: SAFE or UNSAFE."
+    "You are a safety + topic classifier for a VEHICLE-SHOPPING assistant. Classify the USER message "
+    "as exactly one word:\n"
+    "SAFE — a genuine question about cars/trucks/SUVs/EVs/vehicles: features, specs, pricing, brands, "
+    "fuel economy, buying/leasing, comparisons.\n"
+    "OFFTOPIC — harmless but NOT about vehicles (e.g. cooking, geography, sports, coding, chit-chat).\n"
+    "UNSAFE — sexual content, hate, harassment, violence, weapons, illegal activity, drugs, self-harm, "
+    "or malware/hacking.\n"
+    "Answer with ONLY one word: SAFE, OFFTOPIC, or UNSAFE."
 )
 
 
@@ -41,8 +48,10 @@ def _groq_safety(text: str) -> dict:
         messages=[{"role": "system", "content": _GUARD_SYS}, {"role": "user", "content": text}],
         max_tokens=600, temperature=0)
     out = (r.choices[0].message.content or "").strip().lower()
-    unsafe = "unsafe" in out
-    return {"safe": not unsafe, "raw": out[-80:]}
+    label = ("unsafe" if "unsafe" in out
+             else "offtopic" if ("offtopic" in out or "off-topic" in out or "off topic" in out)
+             else "safe")
+    return {"label": label, "raw": out[-80:]}
 
 
 def _llmguard_augment(text: str, res: dict) -> None:
@@ -62,8 +71,11 @@ def check_input(text: str) -> dict:
     try:
         if eng == "groq" and config.GROQ_API_KEY:
             g = _groq_safety(text)
-            if not g["safe"]:
-                res["reasons"].append({"scanner": "safeguard_model", "detail": "flagged unsafe by content-safety model"})
+            if g["label"] == "unsafe":
+                res["reasons"].append({"scanner": "safeguard_model", "detail": "flagged UNSAFE by content-safety model"})
+                res["action"] = "block"
+            elif g["label"] == "offtopic":
+                res["reasons"].append({"scanner": "topic_model", "detail": "not a vehicle-related question (off-topic)"})
                 res["action"] = "block"
         elif eng == "llmguard":
             _llmguard_augment(text, res)

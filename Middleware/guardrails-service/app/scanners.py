@@ -22,6 +22,30 @@ OUT_OF_SCOPE_MARKERS = [
     "javascript", "c++ code", "leetcode",
 ]
 
+# Unsafe-content blocklist by category (always-on backstop, even with no model layer). Single words
+# match on word boundaries (so "Essex"/"sextuple" do NOT trip "sex"); phrases match as substrings.
+UNSAFE_TERMS = {
+    "sexual": ["sex", "sexual", "porn", "pornography", "nude", "nudes", "nsfw", "xxx", "erotic",
+               "blowjob", "handjob", "masturbate", "escort service"],
+    "violence_weapons": ["how to kill", "kill someone", "murder", "build a bomb", "make a bomb",
+                         "explosive", "grenade", "shoot up", "ghost gun", "build a gun", "silencer"],
+    "drugs": ["cocaine", "heroin", "meth", "methamphetamine", "make drugs", "buy drugs", "sell drugs"],
+    "self_harm": ["suicide", "kill myself", "how to die", "end my life"],
+    "hate": ["racial slur", "ethnic cleansing"],
+    "malware": ["ransomware", "keylogger", "write malware", "sql injection attack", "ddos attack"],
+}
+_UNSAFE = [(cat, t, re.compile(rf"\b{re.escape(t)}\b") if " " not in t else None)
+           for cat, terms in UNSAFE_TERMS.items() for t in terms]
+
+
+def unsafe_category(low: str):
+    """Return the first unsafe category the text trips, or None."""
+    for cat, term, rx in _UNSAFE:
+        if (rx.search(low) if rx else term in low):
+            return cat
+    return None
+
+
 CITATION = re.compile(r"\[(\d+)\]")
 CODE_LEAK = re.compile(r"```|def \w+\(|class \w+\(|SELECT .+ FROM|<\w+>.*</\w+>", re.IGNORECASE)
 
@@ -51,6 +75,10 @@ def scan_input(text: str, max_chars: int) -> dict:
         return {"action": "block", "sanitizedText": text[:max_chars],
                 "reasons": [{"scanner": "length", "detail": f"query exceeds {max_chars} chars"}]}
 
+    cat = unsafe_category(low)
+    if cat:
+        reasons.append({"scanner": "unsafe_content", "detail": f"matched unsafe category: {cat}"})
+        action = "block"
     if any(m in low for m in INJECTION_MARKERS):
         reasons.append({"scanner": "prompt_injection", "detail": "possible prompt-injection / jailbreak phrasing"})
         action = "block"
