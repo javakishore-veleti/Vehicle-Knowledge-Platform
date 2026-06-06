@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 
-from . import config, frameworks, guardrails, metrics, session, telemetry
+from . import config, frameworks, guardrails, metrics, request_log, session, telemetry
 
 app = FastAPI(title="VKP Vehicle Explore Service", version="0.1.0")
 telemetry.setup_tracing(app, "vehicle-explore-service")
@@ -37,6 +37,8 @@ class SearchReq(BaseModel):
     sessionId: Optional[str] = None         # fallback when no X-VKP-Session token
     userType: Optional[str] = None          # GUEST | AUTH (fallback)
     userId: Optional[str] = None
+    includeDiagram: bool = False            # when true, return the flow steps inline for the UI diagram
+    origin: Optional[dict] = None           # where the request came from {source, label, urlParams, ...}
 
 
 @app.get("/health")
@@ -233,6 +235,43 @@ def search(framework_name: str, req: SearchReq,
     if answer_source == "blocked":
         metrics.GUARDRAIL_BLOCKS.labels("output").inc()
 
-    return {**base, "answer": answer, "answerSource": answer_source, "answers": answers,
-            "results": results, "count": len(results),
+    latency_ms = int((time.perf_counter() - t0) * 1000)
+
+    # --- Telemetry: record one richly-detailed row per request (best-effort) ---
+    rec = request_log.build(
+        query=req.query, store=store, mode=mode, framework=framework_name, query_id=query_id,
+        session_id=session_id, user_type=user_type, llm_enabled=req.useLlm, top_k=top_k,
+        providers_requested=req.providers, company_id=req.companyId, origin=req.origin,
+        results=results, answers=answers, answer=answer, answer_source=answer_source,
+        guardrails={"input": gin, "output": gout}, latency_ms=latency_ms)
+    request_log.record(rec)
+
+    resp = {**base, "answer": answer, "answerSource": answer_source, "answers": answers,
+            "results": results, "count": len(results), "latencyMs": latency_ms, "logId": query_id,
             "guardrails": {"input": gin, "output": gout}}
+    if req.includeDiagram:
+        resp["steps"] = rec["steps"]          # inline flow for the "include diagram" checkbox
+        resp["techStack"] = rec["tech_stack"]
+        resp["vendors"] = rec["vendors"]
+    return resp
+
+
+@app.get("/api/vehicle-explore/logs")
+def list_search_logs(page: int = 0, size: int = 20, limit: Optional[int] = None,
+                     store: Optional[str] = None, framework: Optional[str] = None,
+                     status: Optional[str] = None):
+    """Search telemetry rows. Server-side paging (page&size) or latest-N (limit) for client-side paging."""
+    try:
+        return request_log.list_logs(page=page, size=size, limit=limit, store=store,
+                                     framework=framework, status=status)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"log store error: {e}")
+
+
+@app.get("/api/vehicle-explore/logs/{log_id}")
+def get_search_log(log_id: str):
+    """Full telemetry row (all jsonb) for the detail + dynamic flow-diagram page."""
+    row = request_log.get_log(log_id)
+    if not row:
+        raise HTTPException(status_code=404, detail=f"no log {log_id}")
+    return row
