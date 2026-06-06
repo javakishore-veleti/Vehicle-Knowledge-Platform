@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cef-portal
+  labels: { app: cef-portal, tier: portal, part-of: cef }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: cef-portal }
+  template:
+    metadata:
+      labels: { app: cef-portal, tier: portal, part-of: cef }
+    spec:
+      containers:
+        - name: cef-portal
+          image: vkp/cef-portal:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cef-portal
+  labels: { app: cef-portal }
+spec:
+  selector: { app: cef-portal }
+  ports:
+    - port: 80
+      targetPort: 80

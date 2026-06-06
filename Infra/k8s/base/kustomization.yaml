@@ -26,6 +26,7 @@ resources:
   # portals
   - admin-portal.yaml
   - search-portal.yaml
+  - cef-portal.yaml
 
 commonLabels:
   app.kubernetes.io/part-of: vehicle-knowledge-platform

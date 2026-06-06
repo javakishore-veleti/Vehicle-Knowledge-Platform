@@ -22,3 +22,4 @@ images:
   - { name: vkp/context-admin-service,      newName: ghcr.io/javakishore-veleti/vkp-context-admin-service,      newTag: dev }
   - { name: vkp/admin-portal,               newName: ghcr.io/javakishore-veleti/vkp-admin-portal,               newTag: dev }
   - { name: vkp/vehicle-search-portal,      newName: ghcr.io/javakishore-veleti/vkp-vehicle-search-portal,       newTag: dev }
+  - { name: vkp/cef-portal,                 newName: ghcr.io/javakishore-veleti/vkp-cef-portal,                 newTag: dev }

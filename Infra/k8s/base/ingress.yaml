@@ -38,3 +38,19 @@ spec:
           - { path: /api/vehicle-explore,    pathType: Prefix, backend: { service: { name: vehicle-explore, port: { number: 8090 } } } }
           - { path: /customer/user,          pathType: Prefix, backend: { service: { name: user-service,    port: { number: 8082 } } } }
           - { path: /,                       pathType: Prefix, backend: { service: { name: search-portal,    port: { number: 80 } } } }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vkp-cef
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: cef.vkp.local
+      http:
+        paths:
+          - { path: /context-engine,         pathType: Prefix, backend: { service: { name: context-engine, port: { number: 8093 } } } }
+          - { path: /admin/context-engine,   pathType: Prefix, backend: { service: { name: context-admin,   port: { number: 8094 } } } }
+          - { path: /,                       pathType: Prefix, backend: { service: { name: cef-portal,      port: { number: 80 } } } }
