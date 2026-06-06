@@ -19,6 +19,7 @@
     "localhost:services:start-all": "npm run localhost:services:java:start-all && npm run localhost:services:python:start-all",
     "localhost:services:stop-all": "npm run localhost:services:java:stop-all && npm run localhost:services:python:stop-all",
     "localhost:services:status-all": "npm run localhost:services:java:status-all && npm run localhost:services:python:status-all",
+    "localhost:services:restart-all": "npm run localhost:services:stop-all && npm run localhost:services:start-all",
 
     "localhost:portals:admin:install": "npm --prefix Portals/admin-portal install",
     "localhost:portals:admin:start": "npm --prefix Portals/admin-portal start",
@@ -29,9 +30,11 @@
     "localhost:portals:start-all": "bash DevOps/Localhost/Services/portals-start-all.sh",
     "localhost:portals:stop-all": "bash DevOps/Localhost/Services/portals-stop-all.sh",
     "localhost:portals:status-all": "bash DevOps/Localhost/Services/portals-status-all.sh",
+    "localhost:portals:restart-all": "npm run localhost:portals:stop-all && npm run localhost:portals:start-all",
 
     "localhost:start-all": "npm run localhost:containers:start-all && npm run localhost:services:start-all && npm run localhost:portals:start-all",
     "localhost:stop-all": "npm run localhost:portals:stop-all && npm run localhost:services:stop-all && npm run localhost:containers:stop-all",
-    "localhost:status-all": "npm run localhost:containers:status-all && npm run localhost:services:status-all && npm run localhost:portals:status-all"
+    "localhost:status-all": "npm run localhost:containers:status-all && npm run localhost:services:status-all && npm run localhost:portals:status-all",
+    "localhost:restart-all": "npm run localhost:portals:stop-all && npm run localhost:services:stop-all && npm run localhost:services:start-all && npm run localhost:portals:start-all"
   }
 }
