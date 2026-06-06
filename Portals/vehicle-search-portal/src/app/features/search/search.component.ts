@@ -1,14 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorStore } from '../../core/explore.service';
+import { FlowDiagramComponent } from '../../shared/flow-diagram.component';
 
 @Component({
   selector: 'vs-search',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, FlowDiagramComponent],
   template: `
   <section class="vs-hero" [class.compact]="response || loading">
     <h1>Search vehicle knowledge</h1>
@@ -30,6 +31,9 @@ import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorSto
       </label>
       <label class="vs-ctrl vs-check">
         <input type="checkbox" [(ngModel)]="useLlm" name="useLlm" /> AI answer (LLM)
+      </label>
+      <label class="vs-ctrl vs-check" title="Show the request flow diagram (what ran: embed, retrieve, LLM, guardrails…)">
+        <input type="checkbox" [(ngModel)]="includeDiagram" name="includeDiagram" /> Include flow diagram
       </label>
     </div>
 
@@ -53,6 +57,15 @@ import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorSto
     <div *ngIf="loading" class="vs-skeleton">Searching the vehicle knowledge base…</div>
 
     <ng-container *ngIf="response && !loading">
+      <!-- Flow diagram (when 'Include flow diagram' is checked) -->
+      <div class="vs-flow-card" *ngIf="response.steps?.length">
+        <div class="vs-flow-head">
+          <span><i class="pi pi-sitemap"></i> Request flow — what ran</span>
+          <a *ngIf="response.logId" [routerLink]="['/logs', response.logId]" class="vs-flow-link">full log →</a>
+        </div>
+        <vs-flow-diagram [steps]="response.steps!"></vs-flow-diagram>
+      </div>
+
       <!-- Multi-provider comparison: one accordion per LLM provider -->
       <div class="vs-providers" *ngIf="response.count > 0 && response.answers.length">
         <div class="vs-providers-head">
@@ -106,7 +119,10 @@ import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorSto
         <span class="vs-fb-thanks" *ngIf="feedbackGiven">Thanks for the feedback!</span>
       </div>
 
-      <div class="vs-count" *ngIf="response.count > 0">{{ response.count }} source(s) for “{{ response.query }}”</div>
+      <div class="vs-count" *ngIf="response.count > 0">
+        {{ response.count }} source(s) for “{{ response.query }}”
+        <a *ngIf="response.logId" [routerLink]="['/logs', response.logId]" class="vs-loglink">· view request log →</a>
+      </div>
 
       <article class="vs-card" *ngFor="let r of response.results.slice(0, sourceLimit)">
         <div class="vs-card-head">
@@ -133,12 +149,23 @@ import { ExploreService, ProviderAnswer, ProviderInfo, SearchResponse, VectorSto
       </div>
     </ng-container>
   </section>
-  `
+  `,
+  styles: [`
+    .vs-flow-card { background:#fff; border:1px solid var(--vs-border); border-radius:14px; padding:1rem 1.1rem; margin-bottom:1rem;
+      box-shadow:0 1px 2px rgba(124,58,237,.08), 0 10px 26px rgba(124,58,237,.1); }
+    .vs-flow-head { display:flex; align-items:center; justify-content:space-between; font-weight:700; color:var(--vs-brand); margin-bottom:.7rem; }
+    .vs-flow-head > span { display:flex; align-items:center; gap:.4rem; }
+    .vs-flow-link, .vs-loglink { color:var(--vs-brand-2); font-weight:700; text-decoration:none; font-size:.82rem; }
+    .vs-flow-link:hover, .vs-loglink:hover { text-decoration:underline; }
+    .vs-loglink { margin-left:.4rem; }
+  `]
 })
 export class SearchComponent implements OnInit, OnDestroy {
   query = '';
   store: VectorStore = 'pgvector';
   useLlm = true;
+  includeDiagram = false;
+  private nextOrigin: Record<string, any> | null = null;
   loading = false;
   error = '';
   response: SearchResponse | null = null;
@@ -175,6 +202,7 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.sub = this.route.queryParamMap.subscribe(p => {
       this.store = (p.get('store') as VectorStore) || 'pgvector';
       this.useLlm = p.get('llm') !== 'false';
+      this.includeDiagram = p.get('diagram') === 'true';
       const q = (p.get('q') || '').trim();
       if (q) {
         this.query = q;
@@ -207,9 +235,10 @@ export class SearchComponent implements OnInit, OnDestroy {
     return a.costUsd != null ? '$' + a.costUsd.toFixed(6) : '';
   }
 
-  /** Pick an example and search it. */
+  /** Pick an example and search it (origin recorded as the example-chip label). */
   pick(example: string): void {
     this.query = example;
+    this.nextOrigin = { source: 'example-chip', label: example };
     this.run();
   }
 
@@ -217,7 +246,8 @@ export class SearchComponent implements OnInit, OnDestroy {
   run(): void {
     const q = this.query.trim();
     if (!q) { return; }
-    this.router.navigate([], { queryParams: { q, store: this.store, llm: this.useLlm } });
+    if (!this.nextOrigin) { this.nextOrigin = { source: 'search-button', label: q }; }
+    this.router.navigate([], { queryParams: { q, store: this.store, llm: this.useLlm, diagram: this.includeDiagram } });
   }
 
   /** Reset to the landing state (also a browser-history step). */
@@ -230,7 +260,11 @@ export class SearchComponent implements OnInit, OnDestroy {
     this.sourceLimit = this.defaultSourceLimit;
     this.feedbackGiven = null;
     const providers = this.selectedProviders.size ? Array.from(this.selectedProviders) : undefined;
-    this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 8, providers }).subscribe({
+    const origin = this.nextOrigin || { source: 'url-deeplink', label: q };
+    this.nextOrigin = null;
+    origin['urlParams'] = { q, store: this.store, llm: String(this.useLlm), diagram: String(this.includeDiagram) };
+    if (typeof document !== 'undefined') { origin['referrer'] = document.referrer || null; }
+    this.explore.search(q, { store: this.store, useLlm: this.useLlm, topK: 8, providers, includeDiagram: this.includeDiagram, origin }).subscribe({
       next: r => {
         this.response = r;
         // Expand successful answers; collapse failed ones (a FAILED badge still shows on the header).
