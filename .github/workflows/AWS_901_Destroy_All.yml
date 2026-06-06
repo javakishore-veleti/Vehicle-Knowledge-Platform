@@ -1,0 +1,56 @@
+name: AWS_901_Destroy_All
+# Reverse teardown. `scope=workloads` removes only the in-cluster categories and KEEPS the infra
+# (VPC/EKS/ECR) intact; `scope=all` also deletes ECR, EKS, and the network. Workloads are torn down
+# first, then (for scope=all) the infra in reverse creation order.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:   { description: "AWS region", required: false, default: "us-east-1" }
+      cluster_name: { description: "EKS cluster name", required: false, default: "vkp" }
+      scope:
+        description: "What to destroy"
+        type: choice
+        options: [workloads, all]
+        default: workloads
+permissions: { contents: read }
+jobs:
+  portals:
+    uses: ./.github/workflows/AWS_009_Destroy_Portals.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  data-mgmt:
+    uses: ./.github/workflows/AWS_008_Destroy_Data_Mgmt.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  api-services:
+    uses: ./.github/workflows/AWS_007_Destroy_API_Services.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  data-stores:
+    needs: [api-services, data-mgmt]
+    uses: ./.github/workflows/AWS_006_Destroy_Data_Stores.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  foundation:
+    needs: [portals, api-services, data-mgmt, data-stores]
+    uses: ./.github/workflows/AWS_005_Destroy_Foundation.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  ecr:
+    if: ${{ inputs.scope == 'all' }}
+    needs: foundation
+    uses: ./.github/workflows/AWS_003_Destroy_ECR.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}" }
+  eks:
+    if: ${{ inputs.scope == 'all' }}
+    needs: foundation
+    uses: ./.github/workflows/AWS_002_Destroy_EKS.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}" }
+  network:
+    if: ${{ inputs.scope == 'all' }}
+    needs: eks
+    uses: ./.github/workflows/AWS_001_Destroy_Network.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}" }

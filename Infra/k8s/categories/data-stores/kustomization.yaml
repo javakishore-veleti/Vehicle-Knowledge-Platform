@@ -1,0 +1,10 @@
+# AWS_006 Data-stores: in-cluster Postgres(pgvector) + MongoDB. Depends on foundation (reads the
+# DB password from vkp-secrets). Independently destroyable — its Destroy workflow also deletes the
+# PVCs so you can wipe + redeploy the data without touching the cluster or the services.
+namespace: vkp
+resources:
+  - ../../platform/postgres.yaml
+  - ../../platform/mongodb.yaml
+labels:
+  - pairs: { vkp.io/category: data-stores }
+    includeSelectors: false

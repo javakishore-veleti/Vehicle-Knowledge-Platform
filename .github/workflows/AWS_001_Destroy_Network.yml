@@ -1,0 +1,30 @@
+name: AWS_001_Destroy_Network
+# Deletes the `vkp-network` stack. Run AFTER AWS_002_Destroy_EKS (EKS ENIs live in these subnets).
+# A reused VPC (vpc_id was provided) is left intact — only the subnets this stack created are removed.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region: { description: "AWS region", required: false, default: "us-east-1" }
+  workflow_call:
+    inputs:
+      aws_region: { type: string, required: false, default: "us-east-1" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  destroy-network:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: Delete network stack
+        run: |
+          aws cloudformation delete-stack --stack-name vkp-network
+          aws cloudformation wait stack-delete-complete --stack-name vkp-network
+          echo "vkp-network deleted."

@@ -1,0 +1,12 @@
+# AWS_008 Data-mgmt: the data-management pipeline (discovery -> ingestion -> indexing) plus the
+# explore/search service. Depends on foundation + data-stores; images rewritten to ECR at deploy.
+namespace: vkp
+resources:
+  - ../../base/data-collection.yaml
+  - ../../base/ingestion.yaml
+  - ../../base/indexing.yaml
+  - ../../base/indexing-wfs.yaml
+  - ../../base/vehicle-explore.yaml
+labels:
+  - pairs: { vkp.io/category: data-mgmt }
+    includeSelectors: false

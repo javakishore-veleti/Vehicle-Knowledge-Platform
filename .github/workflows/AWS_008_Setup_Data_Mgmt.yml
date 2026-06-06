@@ -1,0 +1,37 @@
+name: AWS_008_Setup_Data_Mgmt
+# Workload category: the data-management pipeline + search (data-collection, ingestion, indexing, indexing-wfs, vehicle-explore). Images are rewritten to the account's ECR at deploy time. Depends on
+# AWS_005 (foundation) and AWS_004 (images in ECR). Re-run any time to redeploy this category alone.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:   { description: "AWS region", required: false, default: "us-east-1" }
+      cluster_name: { description: "EKS cluster name", required: false, default: "vkp" }
+      image_tag:    { description: "ECR image tag to deploy", required: false, default: "latest" }
+  workflow_call:
+    inputs:
+      aws_region:   { type: string, required: false, default: "us-east-1" }
+      cluster_name: { type: string, required: false, default: "vkp" }
+      image_tag:    { type: string, required: false, default: "latest" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: kubeconfig
+        run: aws eks update-kubeconfig --name "${{ inputs.cluster_name }}" --region "${{ inputs.aws_region }}"
+      - name: Deploy Data_Mgmt (images -> ECR)
+        run: |
+          ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+          REG="$ACCOUNT.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com"
+          bash Infra/k8s/categories/apply-with-ecr.sh Infra/k8s/categories/data-mgmt "$REG" "${{ inputs.image_tag }}" apply

@@ -1,0 +1,68 @@
+name: AWS_002_Setup_EKS
+# Infra layer. Creates the EKS cluster + a managed node group (SPOT by default for cost) in the
+# public subnets from AWS_001. Grants the CI principal cluster-admin via access entry. Manual + reusable.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:         { description: "AWS region", required: false, default: "us-east-1" }
+      cluster_name:       { description: "EKS cluster name", required: false, default: "vkp" }
+      kubernetes_version: { description: "Kubernetes version", required: false, default: "1.30" }
+      node_instance_type: { description: "Worker instance type", required: false, default: "t3.medium" }
+      node_capacity_type: { description: "SPOT (cheapest) or ON_DEMAND", required: false, default: "SPOT" }
+      node_desired_size:  { description: "Desired node count", required: false, default: "2" }
+      node_min_size:      { description: "Min node count", required: false, default: "1" }
+      node_max_size:      { description: "Max node count", required: false, default: "3" }
+      node_disk_size:     { description: "Node disk GiB", required: false, default: "20" }
+  workflow_call:
+    inputs:
+      aws_region:         { type: string, required: false, default: "us-east-1" }
+      cluster_name:       { type: string, required: false, default: "vkp" }
+      kubernetes_version: { type: string, required: false, default: "1.30" }
+      node_instance_type: { type: string, required: false, default: "t3.medium" }
+      node_capacity_type: { type: string, required: false, default: "SPOT" }
+      node_desired_size:  { type: string, required: false, default: "2" }
+      node_min_size:      { type: string, required: false, default: "1" }
+      node_max_size:      { type: string, required: false, default: "3" }
+      node_disk_size:     { type: string, required: false, default: "20" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  eks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: Deploy EKS stack (vkp-eks) — ~15 min
+        run: |
+          SUBNETS=$(aws cloudformation describe-stacks --stack-name vkp-network \
+            --query "Stacks[0].Outputs[?OutputKey=='PublicSubnetIds'].OutputValue" --output text)
+          if [ -z "$SUBNETS" ]; then echo "No subnets from vkp-network — run AWS_001 first."; exit 1; fi
+          CALLER=$(aws sts get-caller-identity --query Arn --output text)
+          echo "Subnets: $SUBNETS"
+          aws cloudformation deploy \
+            --stack-name vkp-eks \
+            --template-file Infra/cloudformation/02-eks.yaml \
+            --capabilities CAPABILITY_IAM \
+            --parameter-overrides \
+              ClusterName="${{ inputs.cluster_name }}" \
+              KubernetesVersion="${{ inputs.kubernetes_version }}" \
+              SubnetIds="$SUBNETS" \
+              NodeInstanceType="${{ inputs.node_instance_type }}" \
+              NodeCapacityType="${{ inputs.node_capacity_type }}" \
+              NodeDesiredSize="${{ inputs.node_desired_size }}" \
+              NodeMinSize="${{ inputs.node_min_size }}" \
+              NodeMaxSize="${{ inputs.node_max_size }}" \
+              NodeDiskSize="${{ inputs.node_disk_size }}" \
+              DeployerPrincipalArn="$CALLER" \
+            --no-fail-on-empty-changeset \
+            --tags project=vehicle-knowledge-platform
+      - name: Outputs
+        run: aws cloudformation describe-stacks --stack-name vkp-eks --query "Stacks[0].Outputs" --output table

@@ -1,0 +1,12 @@
+# AWS_005 Foundation: the shared base every workload category depends on — namespace, app ConfigMap,
+# and ingress rules. The vkp-secrets Secret is NOT here; the AWS_005 workflow creates it imperatively
+# from GitHub secrets (so real JWT/DB/LLM values never live in git). Destroying foundation deletes the
+# whole `vkp` namespace (and therefore every category in it) — it is the bottom of the stack.
+namespace: vkp
+resources:
+  - ../../base/namespace.yaml
+  - ../../base/configmap.yaml
+  - ../../base/ingress.yaml
+labels:
+  - pairs: { vkp.io/category: foundation }
+    includeSelectors: false

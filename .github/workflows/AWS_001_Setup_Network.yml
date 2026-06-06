@@ -1,0 +1,40 @@
+name: AWS_001_Setup_Network
+# Infra layer. Creates (or reuses) the VPC + public subnets for the VKP EKS cluster via
+# CloudFormation stack `vkp-network`. Cost-optimized: no NAT gateway. Manual + reusable.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:   { description: "AWS region", required: false, default: "us-east-1" }
+      vpc_id:       { description: "Optional existing VPC id to REUSE (blank = create a new VPC)", required: false, default: "" }
+      cluster_name: { description: "EKS cluster name (used to tag subnets)", required: false, default: "vkp" }
+  workflow_call:
+    inputs:
+      aws_region:   { type: string, required: false, default: "us-east-1" }
+      vpc_id:       { type: string, required: false, default: "" }
+      cluster_name: { type: string, required: false, default: "vkp" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  network:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: Deploy network stack (vkp-network)
+        run: |
+          aws cloudformation deploy \
+            --stack-name vkp-network \
+            --template-file Infra/cloudformation/01-network.yaml \
+            --parameter-overrides VpcId="${{ inputs.vpc_id }}" ClusterName="${{ inputs.cluster_name }}" \
+            --no-fail-on-empty-changeset \
+            --tags project=vehicle-knowledge-platform
+      - name: Outputs
+        run: aws cloudformation describe-stacks --stack-name vkp-network --query "Stacks[0].Outputs" --output table

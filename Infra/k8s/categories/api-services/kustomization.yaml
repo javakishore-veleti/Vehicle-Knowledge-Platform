@@ -1,0 +1,15 @@
+# AWS_007 API-services: the core backend services. Images are rewritten to ECR at deploy time by the
+# workflow (apply-with-ecr.sh). Depends on foundation + data-stores.
+namespace: vkp
+resources:
+  - ../../base/company-service.yaml
+  - ../../base/user-service.yaml
+  - ../../base/airflow-adapter.yaml
+  - ../../base/guardrails.yaml
+  - ../../base/agentic.yaml
+  - ../../base/vector-config.yaml
+  - ../../base/context-engine.yaml
+  - ../../base/context-admin.yaml
+labels:
+  - pairs: { vkp.io/category: api-services }
+    includeSelectors: false

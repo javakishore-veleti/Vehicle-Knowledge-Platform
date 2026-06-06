@@ -1,0 +1,31 @@
+name: AWS_005_Destroy_Foundation
+# Deletes the `vkp` namespace — which removes EVERY workload category in it (foundation is the bottom
+# of the stack). To remove a single category instead, run that category's Destroy workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:   { description: "AWS region", required: false, default: "us-east-1" }
+      cluster_name: { description: "EKS cluster name", required: false, default: "vkp" }
+  workflow_call:
+    inputs:
+      aws_region:   { type: string, required: false, default: "us-east-1" }
+      cluster_name: { type: string, required: false, default: "vkp" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  destroy-foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: kubeconfig
+        run: aws eks update-kubeconfig --name "${{ inputs.cluster_name }}" --region "${{ inputs.aws_region }}" || true
+      - name: Delete vkp namespace
+        run: kubectl delete namespace vkp --ignore-not-found=true

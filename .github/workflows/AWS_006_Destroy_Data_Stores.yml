@@ -1,0 +1,35 @@
+name: AWS_006_Destroy_Data_Stores
+# Removes Postgres + MongoDB AND their PVCs (wipes the data) so you can redeploy fresh, without
+# touching the cluster, foundation, or the services.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:   { description: "AWS region", required: false, default: "us-east-1" }
+      cluster_name: { description: "EKS cluster name", required: false, default: "vkp" }
+  workflow_call:
+    inputs:
+      aws_region:   { type: string, required: false, default: "us-east-1" }
+      cluster_name: { type: string, required: false, default: "vkp" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  destroy-data-stores:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: kubeconfig
+        run: aws eks update-kubeconfig --name "${{ inputs.cluster_name }}" --region "${{ inputs.aws_region }}" || true
+      - name: Delete data-stores + PVCs
+        run: |
+          bash Infra/k8s/categories/apply-with-ecr.sh Infra/k8s/categories/data-stores "" "" delete || true
+          kubectl delete pvc -n vkp -l app=postgres --ignore-not-found=true
+          kubectl delete pvc -n vkp -l app=mongodb  --ignore-not-found=true

@@ -11,10 +11,17 @@ Infra/
     base/        # all app workloads + ConfigMap + Secret template + Ingress
     overlays/dev # image registry + tags
     platform/    # in-cluster Postgres+pgvector + MongoDB (self-contained clusters)
+    categories/  # cherry-pickable workload groups (foundation/data-stores/api-services/data-mgmt/portals) for the AWS_* workflows
     secrets/     # External Secrets + SOPS examples (production secret sourcing)
-  terraform/     # The same app deployment as IaC (kubernetes provider, DRY for_each)
-.github/workflows/build-images.yml   # CI: builds + pushes all 11 images to GHCR
+  terraform/      # App deployment as IaC into an EXISTING cluster (kubernetes provider, DRY for_each)
+  cloudformation/ # AWS EKS provisioning (network/eks/ecr) — see cloudformation/README.md
+.github/workflows/build-images.yml   # CI: builds + pushes all 16 images to GHCR
+.github/workflows/AWS_*.yml          # Manual, categorized AWS EKS deploy (CloudFormation); see Infra/cloudformation/README.md
 ```
+
+> **Two cloud paths.** `terraform/` deploys the app into a cluster you already have (kubernetes
+> provider only). `cloudformation/` + the `AWS_*` workflows *provision* the AWS EKS cluster itself and
+> deploy the workloads in cherry-pickable categories (uninstall/reinstall one category, infra intact).
 
 ## 1. Build images
 

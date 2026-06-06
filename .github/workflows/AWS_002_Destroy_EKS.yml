@@ -1,0 +1,30 @@
+name: AWS_002_Destroy_EKS
+# Deletes the `vkp-eks` stack (node group then cluster). Run AFTER the workload categories are torn
+# down (AWS_005..009 Destroy) so no LoadBalancer/ENI blocks deletion, and BEFORE AWS_001_Destroy_Network.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region: { description: "AWS region", required: false, default: "us-east-1" }
+  workflow_call:
+    inputs:
+      aws_region: { type: string, required: false, default: "us-east-1" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  destroy-eks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: Delete EKS stack — ~10 min
+        run: |
+          aws cloudformation delete-stack --stack-name vkp-eks
+          aws cloudformation wait stack-delete-complete --stack-name vkp-eks
+          echo "vkp-eks deleted."

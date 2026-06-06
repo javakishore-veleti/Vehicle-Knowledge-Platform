@@ -1,0 +1,62 @@
+name: AWS_900_Run_All
+# One-click full bring-up: Network -> EKS + ECR -> Build/Push -> Foundation -> Data-stores ->
+# API-services + Data-mgmt + Portals, in dependency order. Each step is the same reusable workflow you
+# can also run on its own. Re-running is safe (CloudFormation stacks are idempotent; kubectl applies).
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:         { description: "AWS region", required: false, default: "us-east-1" }
+      vpc_id:             { description: "Optional existing VPC id to reuse (blank = create)", required: false, default: "" }
+      cluster_name:       { description: "EKS cluster name", required: false, default: "vkp" }
+      node_instance_type: { description: "Worker instance type", required: false, default: "t3.medium" }
+      node_capacity_type: { description: "SPOT or ON_DEMAND", required: false, default: "SPOT" }
+      image_tag:          { description: "Image tag to build + deploy", required: false, default: "latest" }
+permissions: { contents: read }
+jobs:
+  network:
+    uses: ./.github/workflows/AWS_001_Setup_Network.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", vpc_id: "${{ inputs.vpc_id }}", cluster_name: "${{ inputs.cluster_name }}" }
+  ecr:
+    uses: ./.github/workflows/AWS_003_Setup_ECR.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}" }
+  eks:
+    needs: network
+    uses: ./.github/workflows/AWS_002_Setup_EKS.yml
+    secrets: inherit
+    with:
+      aws_region: "${{ inputs.aws_region }}"
+      cluster_name: "${{ inputs.cluster_name }}"
+      node_instance_type: "${{ inputs.node_instance_type }}"
+      node_capacity_type: "${{ inputs.node_capacity_type }}"
+  build:
+    needs: ecr
+    uses: ./.github/workflows/AWS_004_Build_Push_Images.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", image_tag: "${{ inputs.image_tag }}" }
+  foundation:
+    needs: eks
+    uses: ./.github/workflows/AWS_005_Setup_Foundation.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  data-stores:
+    needs: foundation
+    uses: ./.github/workflows/AWS_006_Setup_Data_Stores.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}" }
+  api-services:
+    needs: [foundation, data-stores, build]
+    uses: ./.github/workflows/AWS_007_Setup_API_Services.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}", image_tag: "${{ inputs.image_tag }}" }
+  data-mgmt:
+    needs: [foundation, data-stores, build]
+    uses: ./.github/workflows/AWS_008_Setup_Data_Mgmt.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}", image_tag: "${{ inputs.image_tag }}" }
+  portals:
+    needs: [foundation, build]
+    uses: ./.github/workflows/AWS_009_Setup_Portals.yml
+    secrets: inherit
+    with: { aws_region: "${{ inputs.aws_region }}", cluster_name: "${{ inputs.cluster_name }}", image_tag: "${{ inputs.image_tag }}" }

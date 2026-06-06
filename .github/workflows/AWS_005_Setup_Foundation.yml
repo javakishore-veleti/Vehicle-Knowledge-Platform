@@ -1,0 +1,57 @@
+name: AWS_005_Setup_Foundation
+# Workload category: the shared base — namespace, app ConfigMap, ingress, and the vkp-secrets Secret
+# (created here from GitHub secrets so real values never live in git). Every other category depends on it.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:   { description: "AWS region", required: false, default: "us-east-1" }
+      cluster_name: { description: "EKS cluster name", required: false, default: "vkp" }
+  workflow_call:
+    inputs:
+      aws_region:   { type: string, required: false, default: "us-east-1" }
+      cluster_name: { type: string, required: false, default: "vkp" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+      JWT_SECRET:            { required: false }
+      VKP_SESSION_SECRET:    { required: false }
+      DB_PASSWORD:           { required: false }
+      OPENAI_API_KEY:        { required: false }
+      GROQ_API_KEY:          { required: false }
+permissions: { contents: read }
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: kubeconfig
+        run: aws eks update-kubeconfig --name "${{ inputs.cluster_name }}" --region "${{ inputs.aws_region }}"
+      - name: Apply foundation (namespace, config, ingress)
+        run: kubectl kustomize --load-restrictor=LoadRestrictionsNone Infra/k8s/categories/foundation | kubectl apply -f -
+      - name: Create vkp-secrets from GitHub secrets
+        env:
+          JWT_SECRET:         ${{ secrets.JWT_SECRET }}
+          VKP_SESSION_SECRET: ${{ secrets.VKP_SESSION_SECRET }}
+          DB_PASSWORD:        ${{ secrets.DB_PASSWORD }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+        run: |
+          JWT="${JWT_SECRET:-change-me-dev-secret-please-override-in-prod-0123456789}"
+          DBP="${DB_PASSWORD:-vkp}"
+          kubectl create secret generic vkp-secrets -n vkp \
+            --from-literal=JWT_SECRET="$JWT" \
+            --from-literal=VKP_SESSION_SECRET="${VKP_SESSION_SECRET:-}" \
+            --from-literal=SPRING_DATASOURCE_PASSWORD="$DBP" \
+            --from-literal=VKP_PG_PASSWORD="$DBP" \
+            --from-literal=WFS_PG_PASSWORD="$DBP" \
+            --from-literal=OPENAI_API_KEY="${OPENAI_API_KEY:-}" \
+            --from-literal=GROQ_API_KEY="${GROQ_API_KEY:-}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+          echo "vkp-secrets applied."

@@ -15,6 +15,7 @@ images:
   - { name: vkp/ingestion-service,          newName: ghcr.io/javakishore-veleti/vkp-ingestion-service,          newTag: dev }
   - { name: vkp/indexing-service,           newName: ghcr.io/javakishore-veleti/vkp-indexing-service,           newTag: dev }
   - { name: vkp/indexing-service-wfs-java,  newName: ghcr.io/javakishore-veleti/vkp-indexing-wfs,               newTag: dev }
+  - { name: vkp/vector-config-service,      newName: ghcr.io/javakishore-veleti/vkp-vector-config-service,      newTag: dev }
   - { name: vkp/vehicle-explore-service,    newName: ghcr.io/javakishore-veleti/vkp-vehicle-explore-service,    newTag: dev }
   - { name: vkp/guardrails-service,         newName: ghcr.io/javakishore-veleti/vkp-guardrails-service,          newTag: dev }
   - { name: vkp/agentic-service,            newName: ghcr.io/javakishore-veleti/vkp-agentic-service,            newTag: dev }

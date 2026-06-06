@@ -1,0 +1,9 @@
+# AWS_009 Portals: the Angular UIs. Depends on foundation; images rewritten to ECR at deploy.
+namespace: vkp
+resources:
+  - ../../base/admin-portal.yaml
+  - ../../base/search-portal.yaml
+  - ../../base/cef-portal.yaml
+labels:
+  - pairs: { vkp.io/category: portals }
+    includeSelectors: false

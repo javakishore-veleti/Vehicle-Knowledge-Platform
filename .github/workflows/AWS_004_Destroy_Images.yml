@@ -1,0 +1,39 @@
+name: AWS_004_Destroy_Images
+# Purges all images from the ECR repos WITHOUT deleting the repos (use AWS_003_Destroy_ECR to remove
+# the repos themselves). Handy to reclaim storage or force a clean re-push.
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region: { description: "AWS region", required: false, default: "us-east-1" }
+  workflow_call:
+    inputs:
+      aws_region: { type: string, required: false, default: "us-east-1" }
+    secrets:
+      AWS_ACCESS_KEY_ID:     { required: true }
+      AWS_SECRET_ACCESS_KEY: { required: true }
+      AWS_SESSION_TOKEN:     { required: false }
+permissions: { contents: read }
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ inputs.aws_region }}
+      - name: Purge images from every vkp-* repo
+        run: |
+          for r in vkp-company-service vkp-user-service vkp-airflow-adapter-service \
+                   vkp-data-collection-service vkp-ingestion-service vkp-indexing-service \
+                   vkp-indexing-wfs vkp-vector-config-service vkp-vehicle-explore-service \
+                   vkp-guardrails-service vkp-agentic-service vkp-context-engine-service \
+                   vkp-context-admin-service vkp-admin-portal vkp-vehicle-search-portal vkp-cef-portal; do
+            ids=$(aws ecr list-images --repository-name "$r" --query 'imageIds[*]' --output json 2>/dev/null || echo '[]')
+            if [ "$ids" != "[]" ] && [ -n "$ids" ]; then
+              aws ecr batch-delete-image --repository-name "$r" --image-ids "$ids" >/dev/null && echo "purged $r" || true
+            else
+              echo "skip $r (empty or missing)"
+            fi
+          done
