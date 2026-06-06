@@ -59,7 +59,8 @@ Middleware/                       # Spring Boot + Python services AND DAG workfl
   # --- Spring Boot / Java 21 services (each a multi-module Maven project) ---
   admin-service/  customer-management-service/  user-management-service/
   data-collection-service/  ingestion-service/  airflow-adapter-service/
-  vector-config-service/  common/                       # (all planned)
+  vector-config-service/                                # BUILT (port 8088, rule #3)
+  common/                                               # (admin-service / customer-management-service still planned)
   # --- Python services (planned) ---
   vehicle-explore-service/        # FastAPI preferred — AI search (LangGraph/CrewAI)
   # --- DAG workflows, grouped categorically (scaffolded) ---

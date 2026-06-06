@@ -1,0 +1,18 @@
+# Postgres profile: run with -Dspring-boot.run.profiles=postgres (or SPRING_PROFILES_ACTIVE=postgres).
+server:
+  port: 8088
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/vkp}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:vkp}
+    password: ${SPRING_DATASOURCE_PASSWORD:vkp}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true

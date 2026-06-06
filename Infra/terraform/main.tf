@@ -32,6 +32,7 @@ locals {
     ingestion       = { image = "vkp-ingestion-service", port = 8085, kind = "java" }
     indexing        = { image = "vkp-indexing-service", port = 8086, kind = "java" }
     indexing-wfs    = { image = "vkp-indexing-wfs", port = 8087, kind = "java" }
+    vector-config   = { image = "vkp-vector-config-service", port = 8088, kind = "java" }
     vehicle-explore = { image = "vkp-vehicle-explore-service", port = 8090, kind = "python" }
     guardrails      = { image = "vkp-guardrails-service", port = 8091, kind = "python" }
     agentic         = { image = "vkp-agentic-service", port = 8092, kind = "python" }

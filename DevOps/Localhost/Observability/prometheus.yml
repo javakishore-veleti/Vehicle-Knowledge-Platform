@@ -17,6 +17,7 @@ scrape_configs:
           - host.docker.internal:8085   # ingestion-service
           - host.docker.internal:8086   # indexing-service (control plane)
           - host.docker.internal:8087   # indexing-service (wfs-java executor)
+          - host.docker.internal:8088   # vector-config-service
 
   - job_name: vkp-explore
     metrics_path: /metrics

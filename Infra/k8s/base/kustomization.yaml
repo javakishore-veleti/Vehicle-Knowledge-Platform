@@ -17,6 +17,7 @@ resources:
   - ingestion.yaml
   - indexing.yaml
   - indexing-wfs.yaml
+  - vector-config.yaml
   - vehicle-explore.yaml
   - guardrails.yaml
   - agentic.yaml

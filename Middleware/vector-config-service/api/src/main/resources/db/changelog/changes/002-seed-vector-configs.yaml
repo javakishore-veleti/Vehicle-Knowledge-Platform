@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-seed-vector-configs
+      author: vkp
+      comment: Demo configs - pgvector primary + a Mongo secondary for the Chevrolet resource
+      changes:
+        - insert:
+            tableName: company_resource_vector_config
+            columns:
+              - { column: { name: vector_config_id, value: "30000000-0000-4000-8000-000000000001" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000001" } }
+              - { column: { name: vector_store_type, value: "pgvector" } }
+              - { column: { name: vector_store_name, value: "vkp-pg" } }
+              - { column: { name: collection_name, value: "vkp_chunks" } }
+              - { column: { name: index_name, value: "vkp_chunks_embedding_idx" } }
+              - { column: { name: embedding_model, value: "sentence-transformers/all-MiniLM-L6-v2" } }
+              - { column: { name: is_primary, valueBoolean: true } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-05T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-05T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }
+        - insert:
+            tableName: company_resource_vector_config
+            columns:
+              - { column: { name: vector_config_id, value: "30000000-0000-4000-8000-000000000002" } }
+              - { column: { name: company_id, value: "10000000-0000-4000-8000-000000000001" } }
+              - { column: { name: company_resource_id, value: "20000000-0000-4000-8000-000000000001" } }
+              - { column: { name: vector_store_type, value: "mongodb" } }
+              - { column: { name: vector_store_name, value: "atlas-vector" } }
+              - { column: { name: collection_name, value: "vkp_chunks" } }
+              - { column: { name: index_name, value: "vkp_vector_index" } }
+              - { column: { name: embedding_model, value: "sentence-transformers/all-MiniLM-L6-v2" } }
+              - { column: { name: is_primary, valueBoolean: false } }
+              - { column: { name: status, value: "ACTIVE" } }
+              - { column: { name: created_dt, valueDate: "2026-06-05T00:00:00" } }
+              - { column: { name: updated_dt, valueDate: "2026-06-05T00:00:00" } }
+              - { column: { name: created_by, value: "liquibase-seed" } }
+              - { column: { name: updated_by, value: "liquibase-seed" } }

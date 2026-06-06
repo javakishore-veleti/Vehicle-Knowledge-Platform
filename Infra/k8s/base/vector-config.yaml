@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-config
+  labels: { app: vector-config, tier: java }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: vector-config }
+  template:
+    metadata:
+      labels: { app: vector-config, tier: java }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: vector-config
+          image: vkp/vector-config-service:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8088
+          envFrom:
+            - configMapRef:
+                name: vkp-config
+            - secretRef:
+                name: vkp-secrets
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: 8088 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /actuator/health, port: 8088 }
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vector-config
+  labels: { app: vector-config }
+spec:
+  selector: { app: vector-config }
+  ports:
+    - port: 8088
+      targetPort: 8088

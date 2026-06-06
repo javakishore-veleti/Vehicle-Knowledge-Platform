@@ -67,6 +67,12 @@ jobs:
             build_args: |
               SERVICE=indexing-service
               JAR_PATH=indexing-service/wfs-java/target/indexing-service-wfs-java.jar
+          - image: vkp-vector-config-service
+            dockerfile: Infra/docker/java-service.Dockerfile
+            context: Middleware
+            build_args: |
+              SERVICE=vector-config-service
+              JAR_PATH=vector-config-service/api/target/vector-config-service.jar
           # --- Python services (context = the service dir) ---
           - image: vkp-vehicle-explore-service
             dockerfile: Infra/docker/python-service.Dockerfile
