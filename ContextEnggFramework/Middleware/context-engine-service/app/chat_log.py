@@ -136,36 +136,67 @@ def build(*, req: dict, result: dict, origin: Optional[dict], latency_ms: int) -
         {"name": "cef_memory.sessionId", "table": "cef_memory", "type": "Mongo index", "used": memory_turns > 0},
     ]
     llms = [{"role": "reasoning", "model": model, "vendor": reason_vendor, "framework": framework, "ok": True}]
+    _reason_desc = (f"agentic-service roster ({model}) — the reasoning is delegated to a pluggable agent SDK "
+                    "instead of a direct LLM call." if (model or '').startswith('agentic:')
+                    else f"{reason_vendor} chat API generates the final answer from the assembled context block ({model}).")
     vendors = [
-        {"name": reason_vendor, "kind": "reasoning", "role": f"answer generation ({model})", "ok": True},
-        {"name": embed_vendor, "kind": "embeddings", "role": f"query embedding ({config.EMBED_MODEL})", "ok": True},
-        {"name": "MongoDB", "kind": "memory store", "role": "cef_memory conversation turns", "ok": True},
+        {"name": reason_vendor, "kind": "reasoning", "role": f"answer generation ({model})", "ok": True,
+         "description": _reason_desc},
+        {"name": embed_vendor, "kind": "embeddings", "role": f"query embedding ({config.EMBED_MODEL})", "ok": True,
+         "description": ("Embeds the query IN-PROCESS via fastembed (ONNX) into a 384-dim vector with "
+                         f"{config.EMBED_MODEL} — no external call, no cost — to drive pgVector retrieval.")},
+        {"name": "MongoDB", "kind": "memory store", "role": "cef_memory conversation turns", "ok": True,
+         "description": ("Stores the conversation turns in the cef_memory collection. This is the Context "
+                         "Evolution loop: prior turns are recalled to give the next answer continuity.")},
     ]
+
+    vector_sql = (f"SELECT source_url, chunk_text, 1 - (embedding <=> :q::vector) AS score\n"
+                  f"  FROM {config.VECTOR_TABLE}\n  WHERE company_id = :company  -- scoped by Permission layer\n"
+                  f"  ORDER BY embedding <=> :q::vector\n  LIMIT {req.get('topK', 8)}\n"
+                  f"-- :q = 384-dim query embedding ({config.EMBED_MODEL})")
 
     steps = []
     n = [0]
-    def step(key, label, typ, status="ok", detail=None):
+    def step(key, label, typ, status="ok", desc="", detail=None):
         n[0] += 1
         steps.append({"n": n[0], "key": key, "label": label, "type": typ, "status": status,
-                      "ms": None, "detail": detail or {}})
+                      "ms": None, "desc": desc, "detail": detail or {}})
 
     osrc = (origin or {}).get("source") or "chat"
     step("request", "Message received", "request", "ok",
+         "The chat message arrives at the CEF Context Orchestrator. We record where it came from "
+         "(a suggestion chip or the composer) and the input params.",
          {"origin": osrc, "label": (origin or {}).get("label"), "query": query})
     step("permission", "Permission scope", "permission", "ok",
+         "The Permission layer (ABAC) decides what the caller may see: an ADMIN can query any company, "
+         f"a USER is confined to their company boundary. Here the knowledge base is scoped to {kb}.",
          {"role": role, "companyBoundary": scope.get("companyBoundary"), "knowledgeBase": kb})
     step("retrieve", "Retrieval (pgVector)", "retrieve", "ok",
-         {"table": config.VECTOR_TABLE, "topK": req.get("topK", 8), "retrieved": retrieved})
+         f"Embeds the query and runs a vector search over {config.VECTOR_TABLE}, scoped to the company, "
+         f"returning the top {req.get('topK', 8)} chunks. Retrieved {retrieved}.",
+         {"table": config.VECTOR_TABLE, "topK": req.get("topK", 8), "retrieved": retrieved,
+          "vectorQuery": vector_sql})
     step("memory", "Memory recall", "memory", "ok",
+         "Recalls the recent conversation turns for this session from MongoDB cef_memory, so the answer "
+         "has continuity (the Context Evolution loop's read side).",
          {"store": "MongoDB cef_memory", "turns": memory_turns})
     step("assemble", "Context assembly", "assemble", "ok",
+         "The Context Assembly layer applies the 5 strategies — selection, compression, ordering, "
+         "isolation, format — to fit the most relevant retrieved chunks + memory into the char budget.",
          {"strategies": strategies, "used": used, "charBudget": ctx.get("charBudget")})
     step("reason", "LLM reasoning", "reason", "ok",
+         _reason_desc,
          {"model": model, "vendor": reason_vendor, "framework": framework})
     step("evolve", "Context evolution", "evolve", "ok",
+         "Persists this exchange (user + assistant turns) back to cef_memory so future turns in the "
+         "session build on it — the write side of the Context Evolution loop.",
          {"appended": 2, "store": "cef_memory"})
-    step("answer", "Answer returned", "answer", "ok", {"sources": len(sources)})
-    step("persist", "Telemetry persisted", "store", "ok", {"table": "cef_chat_request_log"})
+    step("answer", "Answer returned", "answer", "ok",
+         f"The cited answer plus its {len(sources)} source(s) are returned to the chat UI.",
+         {"sources": len(sources)})
+    step("persist", "Telemetry persisted", "store", "ok",
+         "This row — every field on this page — is written to cef_chat_request_log for the Chat Logs view.",
+         {"table": "cef_chat_request_log"})
 
     title = f"CEF chat “{(query or '')[:48]}” · {kb} · {model}"
     description = (

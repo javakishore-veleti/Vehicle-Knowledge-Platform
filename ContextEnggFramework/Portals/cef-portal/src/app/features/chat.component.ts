@@ -1,11 +1,13 @@
 import { AfterViewChecked, Component, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CefService } from '../core/cef.service';
+import { RouterLink } from '@angular/router';
+import { CefService, FlowStep } from '../core/cef.service';
+import { FlowDiagramComponent } from '../shared/flow-diagram.component';
 
 interface Ctx { retrieved: number; used: number; memoryTurns: number; strategies: string[]; model: string; latencyMs: number; }
 interface Source { n: number; sourceUrl: string; score: number; }
-interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[]; }
+interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[]; steps?: FlowStep[]; logId?: string; }
 
 /** Customer context-aware vehicle chat — session persists so the Context Evolution loop carries
  *  memory across turns; each bot turn shows the context stats (retrieved/used/memory/strategies)
@@ -13,7 +15,7 @@ interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[
 @Component({
   selector: 'cef-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, FlowDiagramComponent],
   template: `
   <section class="panel">
     <div class="panel-head">
@@ -29,7 +31,9 @@ interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[
       <select [(ngModel)]="companyId" name="company">
         <option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</option>
       </select>
-      <span class="hint">answers are scoped to this automaker's content</span>
+      <label class="diag" title="Show the CEF pipeline diagram (permission → retrieve → memory → assemble → reason → evolve)">
+        <input type="checkbox" [(ngModel)]="includeDiagram" name="includeDiagram"> Include flow diagram
+      </label>
     </div>
 
     <div class="stream" #stream>
@@ -50,6 +54,12 @@ interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[
               <span class="n">{{ s.n }}</span>{{ host(s.sourceUrl) }}<small>{{ s.score | number:'1.2-2' }}</small>
             </a>
           </div>
+          <div class="flow" *ngIf="t.steps?.length">
+            <div class="flow-head"><span>🔀 CEF pipeline</span>
+              <a *ngIf="t.logId" [routerLink]="['/logs', t.logId]" class="flow-link">full log →</a></div>
+            <cef-flow-diagram [steps]="t.steps!"></cef-flow-diagram>
+          </div>
+          <a *ngIf="t.logId && !t.steps?.length" [routerLink]="['/logs', t.logId]" class="loglink">view request log →</a>
         </div>
       </div>
 
@@ -60,7 +70,7 @@ interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[
     </div>
 
     <div class="suggest" *ngIf="turns().length <= 1 && !busy()">
-      <button *ngFor="let s of suggestions" (click)="q = s; send()">{{ s }}</button>
+      <button *ngFor="let s of suggestions" (click)="pick(s)">{{ s }}</button>
     </div>
 
     <form class="composer" (ngSubmit)="send()">
@@ -86,6 +96,12 @@ interface Turn { who: 'user' | 'bot'; text: string; ctx?: Ctx; sources?: Source[
     .toolbar select { font-size:.85rem; font-weight:600; padding:.35rem .6rem; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:#fff; cursor:pointer; }
     .toolbar select:focus { outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(168,85,247,.18); }
     .toolbar .hint { font-size:.72rem; color:var(--muted); }
+    .toolbar .diag { display:flex; align-items:center; gap:.35rem; font-size:.78rem; font-weight:600; color:var(--muted); cursor:pointer; margin-left:auto; }
+    .flow { margin-top:.5rem; background:#fff; border:1px solid var(--line); border-radius:12px; padding:.7rem .8rem; box-shadow:var(--shadow-sm); width:100%; }
+    .flow-head { display:flex; align-items:center; justify-content:space-between; font-weight:700; color:var(--accent); font-size:.82rem; margin-bottom:.5rem; }
+    .flow-link, .loglink { color:var(--accent2); font-weight:700; text-decoration:none; font-size:.78rem; }
+    .flow-link:hover, .loglink:hover { text-decoration:underline; }
+    .loglink { margin-top:.3rem; display:inline-block; }
 
     .stream { flex:1; overflow-y:auto; padding:1.25rem; display:flex; flex-direction:column; gap:1rem; }
     .row { display:flex; gap:.7rem; align-items:flex-start; animation:cef-rise .18s ease; }
@@ -152,8 +168,13 @@ export class ChatComponent implements AfterViewChecked {
   ];
   companyId = this.companies[0].id;
   q = '';
+  includeDiagram = false;
+  private nextOrigin: Record<string, any> | null = null;
 
   constructor(private cef: CefService) {}
+
+  /** Send from a suggestion chip — origin recorded as the chip label. */
+  pick(s: string): void { this.q = s; this.nextOrigin = { source: 'suggestion-chip', label: s }; this.send(); }
 
   ngAfterViewChecked(): void {
     const n = this.turns().length + (this.busy() ? 1 : 0);
@@ -167,16 +188,20 @@ export class ChatComponent implements AfterViewChecked {
 
   send(): void {
     const query = this.q.trim(); if (!query || this.busy()) { return; }
+    const origin = this.nextOrigin || { source: 'composer', label: query };
+    this.nextOrigin = null;
     this.turns.update(t => [...t, { who: 'user', text: query }]);
     this.q = ''; this.busy.set(true);
-    this.cef.orchestrate({ query, companyId: this.companyId, sessionId: this.sid, role: 'USER' }).subscribe({
+    this.cef.orchestrate({ query, companyId: this.companyId, sessionId: this.sid, role: 'USER',
+                          includeDiagram: this.includeDiagram, origin }).subscribe({
       next: d => {
         const c = (d.context || {}) as any;
         const ctx: Ctx = {
           retrieved: c.retrieved, used: c.used, memoryTurns: c.memoryTurns,
           strategies: c.strategies || [], model: d.model, latencyMs: d.latencyMs,
         };
-        this.turns.update(t => [...t, { who: 'bot', text: d.answer, ctx, sources: d.sources || [] }]);
+        this.turns.update(t => [...t, { who: 'bot', text: d.answer, ctx, sources: d.sources || [],
+                                        steps: d.steps, logId: d.logId }]);
         this.busy.set(false);
       },
       error: e => {
