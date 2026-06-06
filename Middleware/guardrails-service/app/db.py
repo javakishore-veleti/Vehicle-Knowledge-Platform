@@ -58,11 +58,12 @@ CREATE TABLE IF NOT EXISTS search_feedback (
 
 def _conn():
     return psycopg2.connect(host=config.PG_HOST, port=config.PG_PORT, dbname=config.PG_DB,
-                            user=config.PG_USER, password=config.PG_PASSWORD)
+                            user=config.PG_USER, password=config.PG_PASSWORD, options=config.PG_OPTIONS)
 
 
 def init_db() -> None:
     with _conn() as c, c.cursor() as cur:
+        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {config.PG_SCHEMA}")
         cur.execute(DDL_GUEST)
         cur.execute(DDL_AUTH)
         cur.execute(DDL_FEEDBACK)

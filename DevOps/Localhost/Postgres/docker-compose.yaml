@@ -8,7 +8,9 @@ services:
     environment:
       POSTGRES_USER: vkp
       POSTGRES_PASSWORD: vkp
-      POSTGRES_DB: vkp
+      # One database named `postgres` (the default). The codebase's logical "DBs" are SCHEMAS inside
+      # it (see initdb/02-schemas.sql) — not separate databases — to keep one lean Postgres instance.
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:

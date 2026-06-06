@@ -1,12 +1,18 @@
 """Runtime config (env-overridable). Defaults match the localhost pgVector + minilm setup."""
 import os
 
-# --- pgVector (default store) ---
+# --- pgVector (default store). One `postgres` database; tables live in SCHEMAS (not separate DBs). ---
 PG_HOST = os.getenv("VKP_PG_HOST", "localhost")
 PG_PORT = int(os.getenv("VKP_PG_PORT", "5432"))
-PG_DB = os.getenv("VKP_PG_DB", "vkp")
+PG_DB = os.getenv("VKP_PG_DB", "postgres")
 PG_USER = os.getenv("VKP_PG_USER", "vkp")
 PG_PASSWORD = os.getenv("VKP_PG_PASSWORD", "vkp")
+# This service's own schema + the SHARED embeddings schema. search_path resolves unqualified names:
+# this service's tables -> PG_SCHEMA; the shared vec_* table -> VECTOR_SCHEMA.
+PG_SCHEMA = os.getenv("VKP_PG_SCHEMA", "vkp_explore")
+VECTOR_SCHEMA = os.getenv("VKP_VECTOR_SCHEMA", "vkp_vectors")
+PG_OPTIONS = f"-c search_path={PG_SCHEMA},{VECTOR_SCHEMA},public"      # own tables + read vec_*
+VEC_PG_OPTIONS = f"-c search_path={VECTOR_SCHEMA},public"             # create/write vec_* in shared schema
 
 # --- MongoDB Atlas Vector Search (alternative store) ---
 MONGO_URI = os.getenv("VKP_MONGO_URI", "mongodb://localhost:27017/vkp?directConnection=true")

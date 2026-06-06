@@ -29,7 +29,7 @@ _COMPANIES = {
 
 def _pg():
     return psycopg2.connect(host=config.PG_HOST, port=config.PG_PORT, dbname=config.PG_DB,
-                            user=config.PG_USER, password=config.PG_PASSWORD)
+                            user=config.PG_USER, password=config.PG_PASSWORD, options=config.PG_OPTIONS)
 
 
 def ensure_schema() -> None:
@@ -37,6 +37,7 @@ def ensure_schema() -> None:
     if _ready:
         return
     with _pg() as conn, conn.cursor() as cur:
+        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {config.PG_SCHEMA}")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS cef_chat_request_log (

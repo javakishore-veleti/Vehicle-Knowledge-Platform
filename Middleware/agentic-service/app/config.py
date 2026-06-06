@@ -5,9 +5,12 @@ import os
 # --- pgVector (the indexed chunks produced by the indexing subsystem) ---
 PG_HOST = os.getenv("VKP_PG_HOST", "localhost")
 PG_PORT = int(os.getenv("VKP_PG_PORT", "5432"))
-PG_DB = os.getenv("VKP_PG_DB", "vkp")
+PG_DB = os.getenv("VKP_PG_DB", "postgres")          # single `postgres` database
 PG_USER = os.getenv("VKP_PG_USER", "vkp")
 PG_PASSWORD = os.getenv("VKP_PG_PASSWORD", "vkp")
+# agentic only reads/writes the shared embeddings table -> pin to the vkp_vectors schema.
+VECTOR_SCHEMA = os.getenv("VKP_VECTOR_SCHEMA", "vkp_vectors")
+PG_OPTIONS = f"-c search_path={VECTOR_SCHEMA},public"
 
 # Query embedding must match the indexed table's model (default: local minilm 384d).
 EMBED_PROVIDER = os.getenv("VKP_EMBED_PROVIDER", "sentence-transformers")

@@ -1,12 +1,15 @@
 """CEF runtime config (env-overridable). Reuses VKP's datastore + LLM defaults."""
 import os
 
-# --- pgVector (the same indexed chunks VKP retrieval reads) ---
+# --- pgVector (the same indexed chunks VKP retrieval reads). One `postgres` DB; tables in schemas. ---
 PG_HOST = os.getenv("VKP_PG_HOST", "localhost")
 PG_PORT = int(os.getenv("VKP_PG_PORT", "5432"))
-PG_DB = os.getenv("VKP_PG_DB", "vkp")
+PG_DB = os.getenv("VKP_PG_DB", "postgres")
 PG_USER = os.getenv("VKP_PG_USER", "vkp")
 PG_PASSWORD = os.getenv("VKP_PG_PASSWORD", "vkp")
+PG_SCHEMA = os.getenv("VKP_PG_SCHEMA", "vkp_cef")              # cef_chat_request_log lives here
+VECTOR_SCHEMA = os.getenv("VKP_VECTOR_SCHEMA", "vkp_vectors")  # shared vec_* table read for retrieval
+PG_OPTIONS = f"-c search_path={PG_SCHEMA},{VECTOR_SCHEMA},public"
 EMBED_PROVIDER = os.getenv("VKP_EMBED_PROVIDER", "sentence-transformers")
 EMBED_MODEL = os.getenv("VKP_EMBED_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 VECTOR_TABLE = os.getenv("VKP_VECTOR_TABLE", "vec_all_minilm_l6_v2")

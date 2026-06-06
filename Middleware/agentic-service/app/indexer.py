@@ -24,6 +24,7 @@ def index_chunks(table: str, company_id: str, source_url: str, chunks: list[str]
     conn = retrieval._pg()
     try:
         with conn.cursor() as cur:
+            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {config.VECTOR_SCHEMA}")
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
             cur.execute(f"CREATE TABLE IF NOT EXISTS {table} ("
                         f"id TEXT PRIMARY KEY, company_id TEXT, source_url TEXT, chunk_index INT, "

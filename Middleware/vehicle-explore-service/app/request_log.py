@@ -21,15 +21,16 @@ _ready = False
 
 def _pg():
     return psycopg2.connect(host=config.PG_HOST, port=config.PG_PORT, dbname=config.PG_DB,
-                            user=config.PG_USER, password=config.PG_PASSWORD)
+                            user=config.PG_USER, password=config.PG_PASSWORD, options=config.PG_OPTIONS)
 
 
 def ensure_schema() -> None:
-    """Idempotently create the table + indexes (jsonb columns for the rich 'what happened' detail)."""
+    """Idempotently create the `explore` schema + the table + indexes (within the postgres database)."""
     global _ready
     if _ready:
         return
     with _pg() as conn, conn.cursor() as cur:
+        cur.execute(f"CREATE SCHEMA IF NOT EXISTS {config.PG_SCHEMA}")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS veh_search_request_log (

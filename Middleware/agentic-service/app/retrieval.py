@@ -16,7 +16,7 @@ _TABLE_RE = re.compile(r"[a-z0-9_]{1,63}")
 
 def _pg():
     return psycopg2.connect(host=config.PG_HOST, port=config.PG_PORT, dbname=config.PG_DB,
-                            user=config.PG_USER, password=config.PG_PASSWORD)
+                            user=config.PG_USER, password=config.PG_PASSWORD, options=config.PG_OPTIONS)
 
 
 @lru_cache(maxsize=1)
