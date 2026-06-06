@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "prestart": "npm install --no-audit --no-fund",
-    "start": "ng serve",
+    "start": "ng serve --port 4202",
     "build": "ng build"
   },
   "private": true,

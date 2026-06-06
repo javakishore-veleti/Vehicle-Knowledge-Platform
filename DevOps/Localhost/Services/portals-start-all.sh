@@ -5,12 +5,13 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-PORTALS="$ROOT/Portals"
+ROOTS=("$ROOT/Portals" "$ROOT/ContextEnggFramework/Portals")
 RUN_DIR="$ROOT/DevOps/Localhost/.run"
 mkdir -p "$RUN_DIR"
 
 found=0
-if [[ -d "$PORTALS" ]]; then
+for PORTALS in "${ROOTS[@]}"; do
+  [[ -d "$PORTALS" ]] || continue
   for dir in "$PORTALS"/*/; do
     [[ -d "$dir" ]] || continue
     name="$(basename "$dir")"
@@ -27,9 +28,10 @@ if [[ -d "$PORTALS" ]]; then
     ( nohup npm --prefix "$dir" start >"$RUN_DIR/portal-$name.log" 2>&1 & echo $! >"$pidfile" )
     found=1
   done
-fi
+done
 
-if [[ "$found" -eq 0 ]]; then echo "==> No portals found under Portals/."; fi
+if [[ "$found" -eq 0 ]]; then echo "==> No portals found."; fi
 echo "Portals starting (logs in DevOps/Localhost/.run/portal-*.log):"
 echo "    admin-portal           -> http://localhost:4200"
 echo "    vehicle-search-portal  -> http://localhost:4201"
+echo "    cef-portal (CEF)       -> http://localhost:4202"
