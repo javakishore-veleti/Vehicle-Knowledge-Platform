@@ -51,17 +51,27 @@ import { FlowDiagramComponent } from '../../shared/flow-diagram.component';
 
       <section class="card">
         <h2>🏢 3rd-party vendors</h2>
-        <div class="chips"><span class="chip" *ngFor="let v of d.vendors" [class.bad]="v.ok===false">{{ v.name }} <small>{{ v.kind }}</small></span></div>
+        <ul class="vlist">
+          <li *ngFor="let v of d.vendors" [class.bad]="v.ok===false">
+            <div class="vrow"><b>{{ v.name }}</b> <span class="vkind">{{ v.kind }}</span>
+              <span class="vok" [class.no]="v.ok===false">{{ v.ok===false ? 'failed' : 'ok' }}</span></div>
+            <p *ngIf="v.description">{{ v.description }}</p>
+            <small *ngIf="v.role">role: {{ v.role }}</small>
+          </li>
+        </ul>
       </section>
 
       <section class="card" *ngIf="d.llms?.length">
         <h2>🤖 LLMs invoked</h2>
+        <p class="cap">Invoked <b>after retrieval</b> — all selected providers run <b>in parallel</b> over the
+          same retrieved sources (a fan-out so you can compare answers/latency/cost side by side).</p>
         <table class="grid-tbl">
-          <thead><tr><th>provider</th><th>model</th><th>ok</th><th>tokens</th><th>cost</th><th>ms</th></tr></thead>
+          <thead><tr><th>provider</th><th>model</th><th>ok</th><th>tokens</th><th>cost</th><th>ms</th><th>when</th></tr></thead>
           <tbody><tr *ngFor="let l of d.llms">
             <td>{{ l['label'] || l['provider'] }}</td><td>{{ l['model'] }}</td>
             <td>{{ l['ok'] ? '✓' : '✗' }}</td><td>{{ l['totalTokens'] || '–' }}</td>
             <td>{{ l['costUsd'] != null ? ('$'+l['costUsd']) : '–' }}</td><td>{{ l['latencyMs'] || '–' }}</td>
+            <td><small>{{ l['whenInvoked'] || 'after retrieval' }}</small></td>
           </tr></tbody>
         </table>
       </section>
@@ -106,6 +116,17 @@ import { FlowDiagramComponent } from '../../shared/flow-diagram.component';
     .chip { font-size:.74rem; font-weight:600; color:#7c3aed; background:#f1ecfe; border:1px solid #e4d4ff; border-radius:999px; padding:.2rem .6rem; }
     .chip.bad { color:#c0392b; background:#fde8e8; border-color:#f8c4c4; }
     .chip small { color:var(--vs-muted); font-weight:500; }
+    .vlist { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.6rem; }
+    .vlist li { border:1px solid var(--vs-border); border-left:4px solid #a855f7; border-radius:10px; padding:.55rem .7rem; background:#faf8ff; }
+    .vlist li.bad { border-left-color:#ef4444; background:#fff5f5; }
+    .vrow { display:flex; align-items:center; gap:.5rem; }
+    .vrow b { color:var(--vs-text); }
+    .vkind { font-size:.66rem; font-weight:700; text-transform:uppercase; color:#7c3aed; background:#f1ecfe; border-radius:999px; padding:.06rem .45rem; }
+    .vok { margin-left:auto; font-size:.64rem; font-weight:800; text-transform:uppercase; color:#0f8a5f; background:#e7faf1; border-radius:999px; padding:.06rem .45rem; }
+    .vok.no { color:#c0392b; background:#fde8e8; }
+    .vlist p { margin:.35rem 0 .2rem; font-size:.8rem; color:var(--vs-muted); line-height:1.45; }
+    .vlist small { color:var(--vs-faint,#94a3b8); font-size:.72rem; }
+    .cap { margin:0 0 .6rem; font-size:.8rem; color:var(--vs-muted); line-height:1.45; }
     .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#d4c8f5; margin-right:.4rem; }
     .dot.used { background:#10b981; }
     pre { margin:0; background:#2a1d52; color:#e9defb; padding:.7rem; border-radius:10px; font-size:.74rem; white-space:pre-wrap; word-break:break-word; }

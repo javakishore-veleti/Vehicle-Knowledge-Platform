@@ -76,6 +76,25 @@ _VENDOR = {
     "google": "Google", "anthropic": "Anthropic", "bedrock": "AWS Bedrock",
 }
 
+_VENDOR_DESC = {
+    "Groq": ("Groq's ultra-low-latency LLM inference API (OpenAI-compatible). Runs open models "
+             "(Llama 3.x) on Groq LPUs; here it generates the answer from the retrieved sources. Free tier."),
+    "OpenAI": ("OpenAI Chat Completions API (gpt-4o-mini). Generates the answer from the retrieved sources; billed per token."),
+    "Hugging Face": "Hugging Face Inference (OpenAI-compatible) serving a hosted Llama model for answer generation.",
+    "Google": "Google Gemini API (OpenAI-compatible endpoint) — answer generation.",
+    "Anthropic": "Anthropic Claude API (OpenAI-compatible endpoint) — answer generation.",
+    "AWS Bedrock": "AWS Bedrock (boto3) — answer generation via a Bedrock-hosted model.",
+}
+
+# What input/output guardrails actually do (surfaced on the corresponding flow steps).
+_GUARD_IN_DESC = ("Pre-retrieval safety gate (guardrails-service :8091, LLM Guard + a Groq safeguard model). "
+                  "Blocks off-topic/non-vehicle questions, prompt-injection and unsafe content BEFORE any "
+                  "embedding, vector search or LLM spend, and may sanitize the query. If blocked, the request "
+                  "short-circuits — no retrieval, no LLM call — and the user gets a safe refusal.")
+_GUARD_OUT_DESC = ("Post-generation safety gate. Re-checks EVERY provider answer (and the extractive fallback) "
+                   "for unsafe/policy-violating content and data leakage, and can REDACT or WITHHOLD an answer "
+                   "before it reaches the user.")
+
 
 def build(*, query: str, store: str, mode: str, framework: str, query_id: str, session_id: str,
           user_type: str, llm_enabled: bool, top_k: int, providers_requested, company_id,
@@ -86,15 +105,17 @@ def build(*, query: str, store: str, mode: str, framework: str, query_id: str, s
     gin = (guardrails or {}).get("input") or {}
     gout = (guardrails or {}).get("output") or {}
 
-    # --- LLMs invoked (per provider, with tokens/cost/latency) ---
+    # --- LLMs invoked (per provider, with tokens/cost/latency). When: AFTER retrieval, all providers
+    #     run in PARALLEL over the same retrieved sources (a fan-out for side-by-side comparison). ---
     llms = [{
         "provider": a.get("provider"), "label": a.get("label"), "model": a.get("model"),
         "ok": bool(a.get("ok")), "promptTokens": a.get("promptTokens"),
         "completionTokens": a.get("completionTokens"), "totalTokens": a.get("totalTokens"),
         "costUsd": a.get("costUsd"), "latencyMs": a.get("latencyMs"), "error": a.get("error"),
-    } for a in (answers or [])]
+        "whenInvoked": "after retrieval — parallel fan-out over the same sources",
+    } for a in (answers or [])] if llm_enabled else []
 
-    # --- 3rd-party vendors invoked ---
+    # --- 3rd-party vendors invoked (with a description of what each does here) ---
     vendors = []
     seen = set()
     for a in (answers or []):
@@ -102,11 +123,21 @@ def build(*, query: str, store: str, mode: str, framework: str, query_id: str, s
         if v and v not in seen:
             seen.add(v)
             vendors.append({"name": v, "kind": "LLM API", "via": a.get("provider"),
-                            "role": "answer generation", "ok": bool(a.get("ok"))})
+                            "role": "answer generation", "ok": bool(a.get("ok")),
+                            "description": _VENDOR_DESC.get(v, f"External LLM provider ({v}) — generates "
+                            "an answer from the retrieved sources via an OpenAI-compatible chat API.")})
     vendors.append({"name": embed_vendor, "kind": "embeddings",
-                    "role": f"query embedding ({config.EMBED_MODEL})", "ok": mode != "fts"})
-    vendors.append({"name": "guardrails-service", "kind": "safety",
-                    "role": "input/output content checks", "ok": True})
+                    "role": f"query embedding ({config.EMBED_MODEL})", "ok": mode != "fts",
+                    "description": ("Runs the embedding model IN-PROCESS via fastembed (ONNX) — no data "
+                    "leaves the service and there is no API cost. Turns the query into a 384-dim vector "
+                    f"with {config.EMBED_MODEL}, matching the vectors stored at index time. Skipped in pure FTS mode.")
+                    if config.EMBED_PROVIDER != "openai" else
+                    ("OpenAI embeddings API — embeds the query with " + config.EMBED_MODEL + " for vector search.")})
+    vendors.append({"name": "guardrails-service", "kind": "safety", "role": "input/output content checks", "ok": True,
+                    "description": ("VKP's own safety microservice (:8091, LLM Guard + a Groq safeguard model). "
+                    "On INPUT it blocks off-topic/non-vehicle questions, prompt-injection and unsafe content "
+                    "before any retrieval or LLM spend; on OUTPUT it re-checks every generated answer and can "
+                    "redact or withhold it. Also writes the user_queries ledger.")})
 
     # --- tech stack ---
     tech_stack = [
@@ -135,48 +166,102 @@ def build(*, query: str, store: str, mode: str, framework: str, query_id: str, s
     if store == "pgvector":
         indexes = [
             {"name": f"{config.VECTOR_TABLE} (ivfflat/hnsw on embedding)", "table": config.VECTOR_TABLE,
-             "type": "vector (cosine <=>)", "used": mode in ("vector", "hybrid")},
+             "type": "vector (cosine <=>)", "used": mode in ("vector", "hybrid"),
+             "whenInvoked": "retrieval step (vector / hybrid modes)"},
             {"name": f"{config.VECTOR_TABLE}_tsv_gin", "table": config.VECTOR_TABLE,
-             "type": "GIN (full-text tsvector)", "used": mode in ("fts", "hybrid")},
+             "type": "GIN (full-text tsvector)", "used": mode in ("fts", "hybrid"),
+             "whenInvoked": "retrieval step (fts / hybrid modes)"},
         ]
     else:
-        indexes = [{"name": "vkp_vector_index", "table": "vkp_chunks", "type": "Atlas vectorSearch", "used": True}]
+        indexes = [{"name": "vkp_vector_index", "table": "vkp_chunks", "type": "Atlas vectorSearch",
+                    "used": True, "whenInvoked": "retrieval step"}]
 
-    # --- ordered flow steps (drive the UI flow diagram) ---
+    # --- the real Groq/OpenAI prompt + the actual vector query, for the step detail ---
+    try:
+        from . import providers as _prov
+        system_prompt = _prov.PROMPT_SYS
+    except Exception:  # noqa: BLE001
+        system_prompt = ("You are a vehicle research assistant. Answer the user's question using ONLY the "
+                         "provided sources. Cite sources inline as [n]. Be concise (2-4 sentences).")
+    _ctx_lines = []
+    for _i, _r in enumerate(results or [], 1):
+        _sn = (_r.get("snippet") or "").replace("\n", " ")[:240]
+        _ctx_lines.append(f"[{_i}] {_r.get('sourceUrl')}\n{_sn}")
+    user_prompt = f"Question: {query}\n\nSources:\n" + ("\n\n".join(_ctx_lines) if _ctx_lines else "(no sources retrieved)")
+
+    tbl = config.VECTOR_TABLE
+    if store == "pgvector" and mode == "vector":
+        _where = "\n  WHERE company_id = :company" if company_id else ""
+        vector_query = (f"SELECT source_url, chunk_text, 1 - (embedding <=> :q::vector) AS score\n"
+                        f"  FROM {tbl}{_where}\n  ORDER BY embedding <=> :q::vector\n  LIMIT {top_k}\n"
+                        f"-- :q = the {len(_ctx_lines) and '384' or '384'}-dim query embedding ({config.EMBED_MODEL})")
+    elif store == "pgvector" and mode == "fts":
+        _where = "\n    AND company_id = :company" if company_id else ""
+        vector_query = (f"SELECT source_url, chunk_text, ts_rank_cd(content_tsv, q) AS score\n"
+                        f"  FROM {tbl}, to_tsquery('english', :terms) AS q\n"
+                        f"  WHERE content_tsv @@ q{_where}\n  ORDER BY score DESC\n  LIMIT {top_k}")
+    elif store == "pgvector":
+        vector_query = "Hybrid = Reciprocal-Rank-Fusion of the vector query and the FTS query (both run, lists fused)."
+    else:
+        vector_query = ("MongoDB Atlas $vectorSearch on the 'vkp_chunks' index "
+                        "(queryVector = embedded query, numCandidates ~10x, limit = topK).")
+
+    # --- ordered flow steps (drive the UI flow diagram); each step explains itself via `desc` ---
     steps = []
     n = [0]
-    def step(key, label, typ, status="ok", ms=None, detail=None):
+    def step(key, label, typ, status="ok", ms=None, desc="", detail=None):
         n[0] += 1
         steps.append({"n": n[0], "key": key, "label": label, "type": typ,
-                      "status": status, "ms": ms, "detail": detail or {}})
+                      "status": status, "ms": ms, "desc": desc, "detail": detail or {}})
 
     osrc = (origin or {}).get("source") or "url"
     step("request", "Request received", "request", "ok", None,
-         {"origin": osrc, "label": (origin or {}).get("label"), "query": query})
+         "The search request arrives at vehicle-explore-service. We record where it came from "
+         "(a 'Try' example chip, the search button, or a shared URL deep-link) and the input params.",
+         {"origin": osrc, "label": (origin or {}).get("label"), "query": query,
+          "framework": framework, "store": store, "mode": mode})
     step("guardrail_in", "Input guardrail", "guardrail",
-         "ok" if gin.get("allowed", True) else "blocked", None,
-         {"allowed": gin.get("allowed", True), "queryId": query_id})
+         "ok" if gin.get("allowed", True) else "blocked", None, _GUARD_IN_DESC,
+         {"allowed": gin.get("allowed", True), "queryId": query_id,
+          "sanitized": bool(gin.get("sanitizedText")), "reason": gin.get("reason"),
+          "categories": gin.get("categories")})
     if mode != "fts":
         step("embed", "Embed query", "embed", "ok", None,
-             {"provider": config.EMBED_PROVIDER, "model": config.EMBED_MODEL, "vendor": embed_vendor})
+             f"Turns the query into a 384-dim vector with {config.EMBED_MODEL} (run in-process via "
+             "fastembed — no external call), so it can be compared to the stored chunk embeddings by cosine distance.",
+             {"provider": config.EMBED_PROVIDER, "model": config.EMBED_MODEL, "dims": 384, "vendor": embed_vendor})
     step("retrieve", f"{mode} retrieval", "retrieve", "ok", None,
+         (f"Runs the {mode} query against {('Postgres/pgVector · ' + config.VECTOR_TABLE) if store=='pgvector' else 'MongoDB Atlas vkp_chunks'} "
+          f"and returns the top {top_k} chunks by similarity. Found {len(results or [])}."),
          {"store": store, "mode": mode,
           "table": config.VECTOR_TABLE if store == "pgvector" else "vkp_chunks",
-          "topK": top_k, "found": len(results or [])})
+          "topK": top_k, "found": len(results or []), "vectorQuery": vector_query})
     if llm_enabled and answers:
         for a in answers:
             step(f"llm_{a.get('provider')}", f"LLM · {a.get('label') or a.get('provider')}", "llm",
                  "ok" if a.get("ok") else "error", a.get("latencyMs"),
+                 (f"Invoked AFTER retrieval (all selected providers run in parallel over the SAME sources, "
+                  f"for side-by-side comparison). {_VENDOR.get(a.get('provider'),'')} generates the answer "
+                  f"from the prompt below using model {a.get('model')}."),
                  {"model": a.get("model"), "vendor": _VENDOR.get(a.get("provider")),
-                  "totalTokens": a.get("totalTokens"), "costUsd": a.get("costUsd"), "error": a.get("error")})
+                  "promptTokens": a.get("promptTokens"), "completionTokens": a.get("completionTokens"),
+                  "totalTokens": a.get("totalTokens"), "costUsd": a.get("costUsd"),
+                  "latencyMs": a.get("latencyMs"), "error": a.get("error"),
+                  "systemPrompt": system_prompt, "userPrompt": user_prompt})
     else:
-        step("extractive", "Extractive answer (no LLM)", "answer", "ok", None, {})
-    step("guardrail_out", "Output guardrail", "guardrail", "ok", None,
-         {"checked": (gout or {}).get("checked"), "blocked": (gout or {}).get("blocked")})
+        step("extractive", "Extractive answer (no LLM)", "answer", "ok", None,
+             "AI answer is off (or no LLM credentials), so the top retrieved snippets are returned directly "
+             "as an extractive answer — no LLM is invoked and there is no token cost.", {})
+    step("guardrail_out", "Output guardrail", "guardrail", "ok", None, _GUARD_OUT_DESC,
+         {"checked": (gout or {}).get("checked"), "blocked": (gout or {}).get("blocked"),
+          "action": (gout or {}).get("action")})
     step("answer", "Answer returned", "answer",
          "blocked" if answer_source == "blocked" else "ok", None,
+         f"The final answer ({answer_source}) plus the {len(results or [])} cited source(s) are returned to the portal.",
          {"answerSource": answer_source, "sources": len(results or [])})
-    step("persist", "Telemetry persisted", "store", "ok", None, {"table": "veh_search_request_log"})
+    step("persist", "Telemetry persisted", "store", "ok", None,
+         "This very row — every field on this page — is written to veh_search_request_log for the Logs view.",
+         {"table": "veh_search_request_log"})
 
     # --- result summary ---
     scored = sorted(results or [], key=lambda r: r.get("score") or 0, reverse=True)

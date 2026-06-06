@@ -43,6 +43,7 @@ export interface FlowStep {
   type: 'request' | 'guardrail' | 'embed' | 'retrieve' | 'llm' | 'store' | 'answer' | string;
   status: 'ok' | 'blocked' | 'error' | 'skip' | string;
   ms?: number | null;
+  desc?: string;
   detail?: Record<string, any>;
 }
 
@@ -112,7 +113,7 @@ export interface LogDetail extends LogListItem {
   db_tables: { name: string; db: string; role: string; op: string }[];
   indexes: { name: string; table: string; type: string; used: boolean }[];
   llms: Record<string, any>[];
-  vendors: { name: string; kind: string; role?: string; ok?: boolean }[];
+  vendors: { name: string; kind: string; role?: string; ok?: boolean; description?: string }[];
   guardrails: Record<string, any>;
   steps: FlowStep[];
   result_summary: Record<string, any>;

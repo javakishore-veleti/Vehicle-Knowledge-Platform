@@ -26,9 +26,16 @@ import { FlowStep } from '../core/explore.service';
 
   <div class="detail" *ngIf="current() as s">
     <div class="dh"><span class="ico">{{ icon(s.type) }}</span> <b>{{ s.label }}</b> <span class="type">{{ s.type }}</span></div>
+    <p class="sdesc" *ngIf="s.desc">{{ s.desc }}</p>
     <table>
-      <tr *ngFor="let kv of entries(s.detail)"><td>{{ kv[0] }}</td><td>{{ fmt(kv[1]) }}</td></tr>
-      <tr *ngIf="!entries(s.detail).length"><td colspan="2" class="empty">no extra detail</td></tr>
+      <tr *ngFor="let kv of entries(s.detail)">
+        <td>{{ kv[0] }}</td>
+        <td>
+          <pre *ngIf="isLong(kv[1]); else shortv">{{ fmt(kv[1]) }}</pre>
+          <ng-template #shortv>{{ fmt(kv[1]) }}</ng-template>
+        </td>
+      </tr>
+      <tr *ngIf="!entries(s.detail).length && !s.desc"><td colspan="2" class="empty">no extra detail</td></tr>
     </table>
   </div>
   `,
@@ -63,8 +70,11 @@ import { FlowStep } from '../core/explore.service';
     .dh .type { font-size:.66rem; font-weight:700; text-transform:uppercase; color:#a855f7; background:#f1ecfe; padding:.08rem .45rem; border-radius:999px; }
     .detail table { width:100%; border-collapse:collapse; font-size:.8rem; }
     .detail td { padding:.2rem .4rem; border-bottom:1px solid #efeafc; vertical-align:top; }
-    .detail td:first-child { color:var(--vs-muted); font-weight:600; width:34%; }
+    .detail td:first-child { color:var(--vs-muted); font-weight:600; width:30%; }
     .detail .empty { color:var(--vs-muted); text-align:center; }
+    .sdesc { margin:0 0 .6rem; color:var(--vs-text); font-size:.84rem; line-height:1.5; }
+    .detail pre { margin:0; background:#2a1d52; color:#e9defb; padding:.5rem .6rem; border-radius:8px;
+      font-size:.72rem; white-space:pre-wrap; word-break:break-word; max-height:280px; overflow:auto; }
     @keyframes vsrise { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
   `]
 })
@@ -76,10 +86,12 @@ export class FlowDiagramComponent {
   current(): FlowStep | undefined { return this.steps.find(s => s.n === this.open()); }
 
   icon(type: string): string {
-    return ({ request: '📥', guardrail: '🛡️', embed: '🧬', retrieve: '🔎', llm: '🤖', store: '💾', answer: '✅' } as Record<string, string>)[type] || '•';
+    return ({ request: '📥', guardrail: '🛡️', embed: '🧬', retrieve: '🔎', llm: '🤖', store: '💾', answer: '✅',
+              permission: '🔐', memory: '🧠', assemble: '🧩', reason: '🤖', evolve: '🔄' } as Record<string, string>)[type] || '•';
   }
   entries(d?: Record<string, any>): [string, any][] {
     return Object.entries(d || {}).filter(([, v]) => v !== null && v !== undefined && v !== '');
   }
-  fmt(v: any): string { return typeof v === 'object' ? JSON.stringify(v) : String(v); }
+  isLong(v: any): boolean { return typeof v === 'string' && (v.length > 60 || v.includes('\n')); }
+  fmt(v: any): string { return typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v); }
 }
