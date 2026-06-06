@@ -237,3 +237,7 @@ Infra/k8s/base/secret.yaml
 # Angular build cache
 .angular/
 **/.angular/
+
+# macOS
+.DS_Store
+**/.DS_Store
