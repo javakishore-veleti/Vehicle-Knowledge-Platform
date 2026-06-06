@@ -233,3 +233,7 @@ crash.log
 
 # Kubernetes real secrets (keep secret.example.yaml)
 Infra/k8s/base/secret.yaml
+
+# Angular build cache
+.angular/
+**/.angular/

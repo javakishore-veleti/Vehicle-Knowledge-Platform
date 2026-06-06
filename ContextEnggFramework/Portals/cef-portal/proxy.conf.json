@@ -1,0 +1,4 @@
+{
+  "/context-engine": { "target": "http://localhost:8093", "secure": false, "changeOrigin": true },
+  "/admin/context-engine": { "target": "http://localhost:8094", "secure": false, "changeOrigin": true }
+}
