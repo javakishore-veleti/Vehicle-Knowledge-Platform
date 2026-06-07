@@ -27,6 +27,39 @@ The platform supports intelligent ingestion of publicly available vehicle-relate
 
 ---
 
+## Architecture diagram
+
+A multi-tab **draw.io** diagram lives at [`Docs/Design/vkp-architecture.drawio`](Docs/Design/vkp-architecture.drawio)
+— open it at [diagrams.net](https://app.diagrams.net) or with the VS Code *Draw.io Integration* extension.
+Tabs: **1. System Overview**, **2. Middleware Services**, **3. Database & Schema model**,
+**4. Search Flow**, **5. CEF Pipeline**, **6. AWS Deployment**.
+
+## Local quickstart & operations
+
+All ops run from the root `package.json` (`npm run localhost:*`), delegating to `DevOps/Localhost/`:
+
+| Command | Does |
+|---|---|
+| `localhost:start-all` / `stop-all` / `status-all` | containers + middleware + portals |
+| `localhost:restart-all` | restart middleware + portals (leaves containers running) |
+| `localhost:containers:start-all` / `stop-all` / `restart-all` | DBs + Airflow (observability disabled by default) |
+| `localhost:containers:airflow:start` / `stop` / `status` | Airflow on its own — heaviest stack; stop it when idle |
+| `localhost:services:*` · `localhost:portals:*` | start/stop/status/restart middleware or portals |
+
+Observability (Jaeger/Prometheus/Grafana) is disabled in the container scripts by default to save
+memory/disk — re-enable by uncommenting the `STACKS` line in `DevOps/Localhost/docker-all-*.sh`.
+
+## Database & schema model
+
+One Postgres **server** (Docker, `pgvector/pgvector:pg16`) → one **database named `postgres`** → the
+codebase's logical DBs are **schemas** inside it (not separate databases), each `vkp_`-prefixed:
+`vkp_company`, `vkp_user`, `vkp_data_collection`, `vkp_ingestion`, `vkp_indexing`, `vkp_vector_config`,
+`vkp_guardrails`, `vkp_explore`, `vkp_cef`, plus a shared **`vkp_vectors`** schema for the embeddings
+table (`vec_all_minilm_l6_v2`) read by indexing, explore and CEF. Services connect with
+`search_path=<vkp_schema>,vkp_vectors,public`; see `DevOps/Localhost/Postgres/initdb/02-schemas.sql`.
+
+---
+
 # Platform Vision
 
 VKP is not just a crawler.
