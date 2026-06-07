@@ -8,6 +8,9 @@
     "localhost:containers:stop-all": "bash DevOps/Localhost/docker-all-down.sh",
     "localhost:containers:status-all": "bash DevOps/Localhost/docker-all-status.sh",
     "localhost:containers:restart-all": "npm run localhost:containers:stop-all && npm run localhost:containers:start-all",
+    "localhost:containers:airflow:start": "docker compose -f DevOps/Localhost/Airflow/docker-compose.yaml up -d",
+    "localhost:containers:airflow:stop": "docker compose -f DevOps/Localhost/Airflow/docker-compose.yaml down",
+    "localhost:containers:airflow:status": "docker compose -f DevOps/Localhost/Airflow/docker-compose.yaml ps",
 
     "localhost:services:java:start-all": "bash DevOps/Localhost/Services/java-start-all.sh",
     "localhost:services:java:stop-all": "bash DevOps/Localhost/Services/java-stop-all.sh",
