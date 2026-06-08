@@ -5,10 +5,13 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/vkp
+    url: jdbc:postgresql://localhost:5432/postgres
     driver-class-name: org.postgresql.Driver
     username: vkp
     password: vkp
+  liquibase:
+    default-schema: ${VKP_PG_SCHEMA:vkp_company}
+    liquibase-schema: public
   jpa:
     # Liquibase owns the schema + seed data; Hibernate must not alter it.
     hibernate:
@@ -18,3 +21,4 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_schema: ${VKP_PG_SCHEMA:vkp_company}

@@ -3,9 +3,10 @@ kind: ConfigMap
 metadata:
   name: vkp-config
 data:
-  # --- Spring (Java services) ---
+  # --- Spring (Java services). One `postgres` database; each service uses its baked-in vkp_<svc>
+  #     schema (spring.liquibase.default-schema / hibernate.default_schema in application-postgres.yml). ---
   SPRING_PROFILES_ACTIVE: "postgres"
-  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/vkp"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/postgres"
   SPRING_DATASOURCE_USERNAME: "vkp"
   # SPRING_DATASOURCE_PASSWORD comes from the Secret (vkp-secrets).
 
@@ -21,10 +22,12 @@ data:
   # --- Postgres / Mongo for the Python services ---
   VKP_PG_HOST: "postgres"
   VKP_PG_PORT: "5432"
-  VKP_PG_DB: "vkp"
+  VKP_PG_DB: "postgres"
   VKP_PG_USER: "vkp"
+  # Python services use their own per-service VKP_PG_SCHEMA default (vkp_explore / vkp_guardrails / vkp_cef)
+  # + the shared vkp_vectors schema; no global VKP_PG_SCHEMA here (it would override all of them).
   VKP_MONGO_URI: "mongodb://mongodb:27017/vkp"
-  WFS_PG_URL: "jdbc:postgresql://postgres:5432/vkp"
+  WFS_PG_URL: "jdbc:postgresql://postgres:5432/postgres?currentSchema=vkp_vectors"
   WFS_MONGO_URI: "mongodb://mongodb:27017/vkp"
 
   # --- explore + guardrails wiring ---

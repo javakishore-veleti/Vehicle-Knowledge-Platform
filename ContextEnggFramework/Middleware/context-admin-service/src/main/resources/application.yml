@@ -38,6 +38,13 @@ spring:
     activate:
       on-profile: postgres
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/vkp}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
     username: ${SPRING_DATASOURCE_USERNAME:vkp}
     password: ${SPRING_DATASOURCE_PASSWORD:vkp}
+  jpa:
+    properties:
+      hibernate:
+        # cef_strategy lives in the vkp_cef schema; create_namespaces lets Hibernate make the schema.
+        default_schema: ${VKP_PG_SCHEMA:vkp_cef}
+        hbm2ddl:
+          create_namespaces: true

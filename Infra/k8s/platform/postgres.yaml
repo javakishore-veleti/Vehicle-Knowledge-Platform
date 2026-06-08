@@ -8,6 +8,17 @@ metadata:
 data:
   01-vector.sql: |
     CREATE EXTENSION IF NOT EXISTS vector;
+  02-schemas.sql: |
+    CREATE SCHEMA IF NOT EXISTS vkp_company;
+    CREATE SCHEMA IF NOT EXISTS vkp_user;
+    CREATE SCHEMA IF NOT EXISTS vkp_data_collection;
+    CREATE SCHEMA IF NOT EXISTS vkp_ingestion;
+    CREATE SCHEMA IF NOT EXISTS vkp_indexing;
+    CREATE SCHEMA IF NOT EXISTS vkp_vector_config;
+    CREATE SCHEMA IF NOT EXISTS vkp_guardrails;
+    CREATE SCHEMA IF NOT EXISTS vkp_explore;
+    CREATE SCHEMA IF NOT EXISTS vkp_cef;
+    CREATE SCHEMA IF NOT EXISTS vkp_vectors;
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -30,7 +41,7 @@ spec:
             - { name: POSTGRES_USER, value: vkp }
             - name: POSTGRES_PASSWORD
               valueFrom: { secretKeyRef: { name: vkp-secrets, key: VKP_PG_PASSWORD } }
-            - { name: POSTGRES_DB, value: vkp }
+            - { name: POSTGRES_DB, value: postgres }
             - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
           ports:
             - containerPort: 5432

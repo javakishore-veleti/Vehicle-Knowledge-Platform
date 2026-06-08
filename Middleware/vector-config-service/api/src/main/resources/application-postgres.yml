@@ -4,10 +4,13 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/vkp}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
     driver-class-name: org.postgresql.Driver
     username: ${SPRING_DATASOURCE_USERNAME:vkp}
     password: ${SPRING_DATASOURCE_PASSWORD:vkp}
+  liquibase:
+    default-schema: ${VKP_PG_SCHEMA:vkp_vector_config}
+    liquibase-schema: public
   jpa:
     hibernate:
       ddl-auto: none
@@ -16,3 +19,4 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        default_schema: ${VKP_PG_SCHEMA:vkp_vector_config}

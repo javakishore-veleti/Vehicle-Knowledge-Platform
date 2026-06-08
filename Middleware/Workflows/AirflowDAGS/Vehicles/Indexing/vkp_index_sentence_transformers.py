@@ -120,11 +120,17 @@ def _write_pgvector(conf: dict, vector_target: str, dim: int, company_id: str,
     import psycopg2
     from pgvector.psycopg2 import register_vector
 
+    # One `postgres` database; the shared vec_* table lives in the vkp_vectors schema. Pin search_path
+    # so the unqualified table is created/written there (read the same way by explore + CEF).
+    vec_schema = conf.get("vector_schema") or "vkp_vectors"
     conn = psycopg2.connect(host=conf.get("pg_host"), port=int(conf.get("pg_port") or 5432),
-                            dbname=conf.get("pg_db"), user=conf.get("pg_user"), password=conf.get("pg_password"))
+                            dbname=conf.get("pg_db") or "postgres", user=conf.get("pg_user"),
+                            password=conf.get("pg_password"),
+                            options=f"-c search_path={vec_schema},public")
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
+            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {vec_schema}")
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
             cur.execute(
                 f"CREATE TABLE IF NOT EXISTS {vector_target} ("

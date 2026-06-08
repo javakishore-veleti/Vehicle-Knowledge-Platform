@@ -63,7 +63,7 @@ resource "kubernetes_config_map_v1" "vkp_config" {
   }
   data = {
     SPRING_PROFILES_ACTIVE             = "postgres"
-    SPRING_DATASOURCE_URL              = "jdbc:postgresql://postgres:5432/vkp"
+    SPRING_DATASOURCE_URL              = "jdbc:postgresql://postgres:5432/postgres"
     SPRING_DATASOURCE_USERNAME         = "vkp"
     AIRFLOW_ADAPTER_BASE_URL           = "http://airflow-adapter:8083"
     INDEXING_WFS_BASE_URL              = "http://indexing-wfs:8087"
@@ -74,10 +74,10 @@ resource "kubernetes_config_map_v1" "vkp_config" {
     WFS_DC_BASE_URL                    = "http://data-collection:8084"
     VKP_PG_HOST                        = "postgres"
     VKP_PG_PORT                        = "5432"
-    VKP_PG_DB                          = "vkp"
+    VKP_PG_DB                          = "postgres"
     VKP_PG_USER                        = "vkp"
     VKP_MONGO_URI                      = "mongodb://mongodb:27017/vkp"
-    WFS_PG_URL                         = "jdbc:postgresql://postgres:5432/vkp"
+    WFS_PG_URL                         = "jdbc:postgresql://postgres:5432/postgres?currentSchema=vkp_vectors"
     WFS_MONGO_URI                      = "mongodb://mongodb:27017/vkp"
     VKP_GUARDRAILS_URL                 = "http://guardrails:8091"
     VKP_VECTOR_STORE                   = "pgvector"

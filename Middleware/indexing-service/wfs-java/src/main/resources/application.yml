@@ -5,9 +5,10 @@ server:
 spring:
   application:
     name: indexing-service-wfs-java
-  # pgVector datasource for vector writes (vec_<model> tables). Startup tolerates pg being down.
+  # pgVector datasource for vector writes (vec_<model> tables in the SHARED vkp_vectors schema).
+  # currentSchema pins the search_path so the vec_* table is created/written in vkp_vectors.
   datasource:
-    url: ${WFS_PG_URL:jdbc:postgresql://localhost:5432/vkp}
+    url: ${WFS_PG_URL:jdbc:postgresql://localhost:5432/postgres?currentSchema=vkp_vectors}
     username: ${WFS_PG_USER:vkp}
     password: ${WFS_PG_PASSWORD:vkp}
     driver-class-name: org.postgresql.Driver

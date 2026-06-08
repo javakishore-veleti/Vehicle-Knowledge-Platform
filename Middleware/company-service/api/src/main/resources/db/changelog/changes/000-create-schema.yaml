@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 000-create-schema
+      author: vkp
+      dbms: postgresql
+      comment: >-
+        Create this service's schema before its tables. postgres profile only (dbms guard) — the
+        default H2 profile skips it and uses PUBLIC. The schema name follows spring.liquibase.default-schema.
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS ${database.defaultSchemaName}
