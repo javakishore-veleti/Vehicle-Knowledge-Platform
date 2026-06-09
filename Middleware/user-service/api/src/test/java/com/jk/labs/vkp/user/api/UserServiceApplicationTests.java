@@ -14,10 +14,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.test.context.TestPropertySource;
 
 /** End-to-end auth + profile smoke test against the default H2 profile. */
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = "vkp.jwt.enabled=false")
 class UserServiceApplicationTests {
 
     private static final String AUTH = "/customer/user/service/v1/auth";
