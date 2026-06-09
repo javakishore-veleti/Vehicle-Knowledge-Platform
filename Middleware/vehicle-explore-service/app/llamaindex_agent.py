@@ -12,7 +12,7 @@ from typing import Optional
 
 from .frameworks import _extractive_answer, _retrieve
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.llamaindex_agent")
 
 LI_MODEL = os.getenv("VKP_LLAMAINDEX_MODEL", "groq/llama-3.3-70b-versatile")
 

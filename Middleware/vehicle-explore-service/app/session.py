@@ -10,7 +10,7 @@ from typing import Optional
 
 from . import config
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.session")
 
 
 def decrypt_session(token: Optional[str]) -> Optional[dict]:

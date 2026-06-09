@@ -19,7 +19,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 from . import db, engine, telemetry
 from .models import FeedbackReq, InputCheckReq, OutputCheckReq
 
-log = logging.getLogger("guardrails")
+log = logging.getLogger("guardrails.main")
 app = FastAPI(title="VKP Guardrails Service", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 telemetry.setup_tracing(app, "guardrails-service")

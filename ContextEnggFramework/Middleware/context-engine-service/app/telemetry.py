@@ -14,7 +14,7 @@ Best-effort: if the OTel libs aren't installed, logs a warning and no-ops (never
 import logging
 import os
 
-log = logging.getLogger("cef")
+log = logging.getLogger("cef.telemetry")
 
 
 def setup_tracing(app, service_name: str) -> None:

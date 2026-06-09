@@ -15,7 +15,7 @@ os.environ.setdefault("HAYSTACK_TELEMETRY_ENABLED", "False")
 
 from .frameworks import _extractive_answer, _retrieve
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.haystack_agent")
 
 HS_MODEL = os.getenv("VKP_HAYSTACK_MODEL", "llama-3.3-70b-versatile")
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"

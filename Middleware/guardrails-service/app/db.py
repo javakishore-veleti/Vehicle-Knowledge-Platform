@@ -9,7 +9,7 @@ import psycopg2
 
 from . import config
 
-log = logging.getLogger("guardrails")
+log = logging.getLogger("guardrails.db")
 
 DDL_GUEST = """
 CREATE TABLE IF NOT EXISTS user_queries_guest (

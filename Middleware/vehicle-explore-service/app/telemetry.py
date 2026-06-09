@@ -14,7 +14,7 @@ Best-effort: if the OTel libs aren't installed, logs a warning and no-ops (never
 import logging
 import os
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.telemetry")
 
 
 def setup_tracing(app, service_name: str) -> None:

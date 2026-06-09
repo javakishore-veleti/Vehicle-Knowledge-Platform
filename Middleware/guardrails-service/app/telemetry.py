@@ -10,7 +10,7 @@ Best-effort: no-ops with a warning if the OTel libs aren't installed.
 import logging
 import os
 
-log = logging.getLogger("guardrails")
+log = logging.getLogger("guardrails.telemetry")
 
 
 def setup_tracing(app, service_name: str) -> None:

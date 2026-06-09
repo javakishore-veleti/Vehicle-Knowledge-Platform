@@ -6,7 +6,7 @@ from typing import Optional
 
 from . import config
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.guardrails")
 
 
 def _post(path: str, payload: dict, timeout: int = 20) -> dict:

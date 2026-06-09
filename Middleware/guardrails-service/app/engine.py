@@ -11,7 +11,7 @@ import logging
 
 from . import config, scanners
 
-log = logging.getLogger("guardrails")
+log = logging.getLogger("guardrails.engine")
 
 
 def active_engine() -> str:

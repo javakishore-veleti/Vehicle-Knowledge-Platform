@@ -12,7 +12,7 @@ from typing import Optional
 
 from . import config, providers, search
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.frameworks")
 
 IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack"}
 KNOWN = {"langgraph", "crewai", "llamaindex", "haystack"}

@@ -10,7 +10,7 @@ from typing import Callable
 
 from .. import config, indexer, platform, retrieval, tools
 
-log = logging.getLogger("agentic")
+log = logging.getLogger("agentic.frameworks._base")
 
 INSTRUCTIONS = (
     "You are a vehicle shopping assistant. Answer the user's question using ONLY the provided "

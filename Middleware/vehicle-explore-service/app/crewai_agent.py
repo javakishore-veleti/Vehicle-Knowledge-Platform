@@ -18,7 +18,7 @@ os.environ.setdefault("OTEL_SDK_DISABLED", "true")
 from . import config
 from .frameworks import _extractive_answer, _retrieve
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.crewai_agent")
 
 CREW_MODEL = os.getenv("VKP_CREWAI_MODEL", "groq/llama-3.3-70b-versatile")
 

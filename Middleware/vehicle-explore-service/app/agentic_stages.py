@@ -13,7 +13,7 @@ from typing import Callable
 
 from . import agentic_indexer, config, platform, tools
 
-log = logging.getLogger("vehicle-explore")
+log = logging.getLogger("vehicle-explore.agentic_stages")
 
 COLLECT_INSTRUCTIONS = (
     "You are a vehicle resource scout. Given a seed URL, call the fetch_page tool to discover its "
