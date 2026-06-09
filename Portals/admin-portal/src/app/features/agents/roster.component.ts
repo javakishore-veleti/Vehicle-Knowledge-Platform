@@ -26,7 +26,7 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
       <tbody>
         <tr *ngFor="let f of frameworks()">
           <td class="fw">{{ f }}</td>
-          <td><span class="tag" [class.agentic]="r.byFramework[f].service === 'agentic'">{{ r.byFramework[f].service }}</span></td>
+          <td><span class="tag" [class.agentic]="r.byFramework[f].service === 'agentic'">{{ serviceLabel(r.byFramework[f].service) }}</span></td>
           <td *ngFor="let s of stages" class="cell">
             <i class="pi" [class.pi-check-circle]="has(f, s)" [class.pi-minus]="!has(f, s)"
                [class.yes]="has(f, s)"></i>
@@ -71,10 +71,10 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
           <p>Each framework is invoked as a <b>synchronous REST call</b> to a FastAPI service — the
              <b>Run</b> button above calls these live. No Airflow is involved on this page.</p>
           <ul>
-            <li><b>Service = explore</b> → <code>POST /api/vehicle-explore/&lt;framework&gt;/&lt;stage&gt;</code>
-                on <b>vehicle-explore-service</b> (:8090)</li>
-            <li><b>Service = agentic</b> → <code>POST /agentic/&lt;stage&gt;/&lt;framework&gt;/run</code>
-                on <b>agentic-service</b> (:8092)</li>
+            <li><b>Service = vehicle-explore-service</b> → <code>POST /api/vehicle-explore/&lt;framework&gt;/&lt;stage&gt;</code>
+                (:8090)</li>
+            <li><b>Service = agentic-service</b> → <code>POST /agentic/&lt;stage&gt;/&lt;framework&gt;/run</code>
+                (:8092)</li>
             <li>This matrix comes from <code>GET /api/vehicle-explore/roster</code> (explore aggregates agentic)</li>
           </ul>
         </div>
@@ -178,6 +178,10 @@ export class AgentRosterComponent implements OnInit {
   frameworks(): string[] { return Object.keys(this.roster()?.byFramework ?? {}); }
   frameworksFor(stage: string): string[] { return this.roster()?.matrix?.[stage] ?? []; }
   has(f: string, s: string): boolean { return (this.roster()?.byFramework?.[f]?.stages ?? []).includes(s); }
+  /** Friendly name for the hosting service (the raw value still drives run() routing). */
+  serviceLabel(s: string): string {
+    return s === 'explore' ? 'vehicle-explore-service' : s === 'agentic' ? 'agentic-service' : s;
+  }
 
   run(): void {
     const r = this.roster(); if (!r || !this.framework) { return; }
