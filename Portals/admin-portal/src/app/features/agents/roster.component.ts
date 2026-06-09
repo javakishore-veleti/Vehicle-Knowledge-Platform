@@ -60,6 +60,66 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
       </label>
       <pre class="vkp-result" *ngIf="result()">{{ result() }}</pre>
     </div>
+
+    <!-- how the roster actually works -->
+    <section class="vkp-info">
+      <h3>What are these, and how are they invoked?</h3>
+
+      <details open>
+        <summary>They are HTTP APIs — not Apache Airflow DAGs</summary>
+        <div>
+          <p>Each framework is invoked as a <b>synchronous REST call</b> to a FastAPI service — the
+             <b>Run</b> button above calls these live. No Airflow is involved on this page.</p>
+          <ul>
+            <li><b>Service = explore</b> → <code>POST /api/vehicle-explore/&lt;framework&gt;/&lt;stage&gt;</code>
+                on <b>vehicle-explore-service</b> (:8090)</li>
+            <li><b>Service = agentic</b> → <code>POST /agentic/&lt;stage&gt;/&lt;framework&gt;/run</code>
+                on <b>agentic-service</b> (:8092)</li>
+            <li>This matrix comes from <code>GET /api/vehicle-explore/roster</code> (explore aggregates agentic)</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>The 8 frameworks and where they run</summary>
+        <div>
+          <p><b>Classic frameworks</b> — hosted in <b>vehicle-explore-service</b> (:8090):
+             langgraph · crewai · llamaindex · haystack.</p>
+          <p><b>Agent-SDK frameworks</b> — hosted in <b>agentic-service</b> (:8092, isolated venv):
+             openai-agents · google-adk · msagent · strands.</p>
+          <p>Two services so the heavy modern agent SDKs don't collide with explore's legacy dependency pins.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>The three stages: collect → index → search</summary>
+        <div>
+          <ul>
+            <li><b>collect</b> — an agent discovers/crawls links from a seed URL, recording the
+                <code>company_resource_graph</code>.</li>
+            <li><b>index</b> — an agent chunks + embeds content into the shared pgVector table
+                (<code>vkp_vectors.vec_*</code>).</li>
+            <li><b>search</b> — an agent retrieves the most similar chunks and composes a cited answer.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>vs the Apache Airflow DAG pipeline (the other path)</summary>
+        <div>
+          <p>VKP has <b>two</b> ways to run the pipeline:</p>
+          <ul>
+            <li><b>This page (Agent Roster)</b> — an <b>interactive, single-call API</b> path: run one
+                stage with one framework and see the result immediately.</li>
+            <li><b>Data Management → Workflows</b> — the <b>orchestrated Airflow DAGs</b>
+                (<code>vkp_discover_resources</code>, <code>vkp_process_resources</code>,
+                <code>vkp_index_sentence_transformers</code>, <code>vkp_crawl_company_snapshot</code>),
+                triggered via <b>airflow-adapter-service</b> (:8083) for the bulk/scheduled pipeline.</li>
+          </ul>
+          <p>Both write the same stores — they're just different invocation mechanisms (live API vs orchestrated DAG).</p>
+        </div>
+      </details>
+    </section>
   </div>
   `,
   styles: [`
@@ -80,6 +140,17 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
     .vkp-run button { padding:.45rem 1rem; background:#3538cd; color:#fff; border:none; border-radius:6px; cursor:pointer; }
     .vkp-run button:disabled { opacity:.6; cursor:default; }
     .vkp-result { background:#0c111d; color:#d1e0ff; padding:.75rem; border-radius:8px; overflow:auto; max-height:340px; font-size:.8rem; }
+    .vkp-info { max-width:760px; margin-top:1.75rem; }
+    .vkp-info > h3 { margin:0 0 .6rem; }
+    .vkp-info details { border:1px solid #eaecf0; border-radius:8px; margin-bottom:.5rem; background:#fff; }
+    .vkp-info summary { cursor:pointer; padding:.6rem .85rem; font-weight:600; color:#1f2933; list-style:none; }
+    .vkp-info summary::-webkit-details-marker { display:none; }
+    .vkp-info summary:before { content:'▸'; margin-right:.5rem; color:#3538cd; }
+    .vkp-info details[open] summary:before { content:'▾'; }
+    .vkp-info details > div { padding:0 .9rem .8rem; color:#475467; font-size:.88rem; line-height:1.55; }
+    .vkp-info details > div p { margin:.4rem 0; }
+    .vkp-info ul { margin:.3rem 0; padding-left:1.2rem; }
+    .vkp-info code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.82rem; }
   `]
 })
 export class AgentRosterComponent implements OnInit {
