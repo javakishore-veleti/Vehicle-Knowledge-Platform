@@ -180,7 +180,7 @@ export class AgentRosterComponent implements OnInit {
   has(f: string, s: string): boolean { return (this.roster()?.byFramework?.[f]?.stages ?? []).includes(s); }
   /** Friendly name for the hosting service (the raw value still drives run() routing). */
   serviceLabel(s: string): string {
-    return s === 'explore' ? 'vehicle-explore-service' : s === 'agentic' ? 'agentic-service' : s;
+    return s === 'explore' ? 'vehicle-explore-service API' : s === 'agentic' ? 'agentic-service API' : s;
   }
 
   run(): void {
