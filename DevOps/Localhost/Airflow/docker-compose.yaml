@@ -56,13 +56,14 @@ services:
     <<: *airflow-common
     container_name: vkp-airflow-init
     entrypoint: /bin/bash
-    # Run migrate, then ALWAYS attempt admin creation (';' not '&&' so a migrate no-op
-    # can't skip user creation). '|| true' makes re-runs idempotent.
+    # Migrate MUST finish (so the FAB auth tables exist) before creating the admin user — the old
+    # ';' + '|| true' could create the user before migrate finished and then swallow the failure,
+    # leaving an empty user table ("Invalid login"). Now: migrate && create-only-if-missing (idempotent).
     command: >
-      -c "airflow db migrate;
-          airflow users create --username admin --password admin
-          --firstname admin --lastname admin --role Admin
-          --email admin@example.com || true"
+      -c "airflow db migrate &&
+          (airflow users list 2>/dev/null | grep -qw admin ||
+           airflow users create --username admin --password admin
+           --firstname admin --lastname admin --role Admin --email admin@example.com)"
     restart: "no"
 
   airflow-webserver:

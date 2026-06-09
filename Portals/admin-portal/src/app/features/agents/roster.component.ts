@@ -13,7 +13,7 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
   <div class="vkp-page">
     <h2>Agent Roster</h2>
     <p class="vkp-sub" *ngIf="roster() as r">
-      {{ r.frameworkCount }} frameworks · search / collect / index ·
+      {{ r.frameworkCount }} frameworks · collect / index / search ·
       <span [class.ok]="r.services.agenticReachable" [class.warn]="!r.services.agenticReachable">
         agentic-service {{ r.services.agenticReachable ? 'reachable' : 'unreachable' }}
       </span>
@@ -22,7 +22,7 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
 
     <!-- coverage matrix -->
     <table class="vkp-matrix" *ngIf="roster() as r">
-      <thead><tr><th>Framework</th><th>Service</th><th>search</th><th>collect</th><th>index</th></tr></thead>
+      <thead><tr><th>Framework</th><th>Service</th><th *ngFor="let s of stages">{{ s }}</th></tr></thead>
       <tbody>
         <tr *ngFor="let f of frameworks()">
           <td class="fw">{{ f }}</td>
@@ -87,9 +87,9 @@ export class AgentRosterComponent implements OnInit {
   readonly error = signal<string>('');
   readonly result = signal<string>('');
   readonly busy = signal<boolean>(false);
-  readonly stages = ['search', 'collect', 'index'];
+  readonly stages = ['collect', 'index', 'search'];
 
-  stage = 'search';
+  stage = 'collect';
   framework = '';
   query = 'What hybrid SUVs does Toyota offer?';
   seedUrl = 'https://www.toyota.com/';
