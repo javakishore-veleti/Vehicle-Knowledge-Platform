@@ -27,27 +27,94 @@ The platform supports intelligent ingestion of publicly available vehicle-relate
 
 ---
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Architecture diagram](#architecture-diagram)
+- [Database & schema model](#database--schema-model)
+- [Platform Vision](#platform-vision)
+- [Major Components](#major-components)
+- [High-Level Architecture](#high-level-architecture)
+- [Data Architecture](#data-architecture)
+- [Middleware Services](#middleware-services)
+- [Technology Stack](#technology-stack)
+
+> Everything below the Quick Start is the **design specification**. See `CLAUDE.md` for the as-built
+> layout and `Docs/Design/vkp-architecture.drawio` for the architecture diagram.
+
+## Quick Start
+
+### Prerequisites
+- **Docker Desktop** — Postgres + Mongo (and Airflow when you need DAGs)
+- **Java 21 + Maven** — the Spring Boot services
+- **Node + npm** — the Angular portals and the `npm run localhost:*` ops scripts
+- **Python 3.12** — the FastAPI services (each creates its own `.venv` on first run)
+
+### One command (everything)
+```bash
+npm install                    # once, in the repo root
+npm run localhost:start-all    # containers + middleware + portals
+npm run localhost:status-all   # see what is up
+```
+First run is slow (Python venvs, npm installs, Maven downloads). Then open:
+
+| Portal | URL |
+|---|---|
+| Admin Portal | http://localhost:4200 |
+| Vehicle Search | http://localhost:4201 |
+| CEF Portal | http://localhost:4202 |
+
+### Granular (recommended when low on memory/disk)
+```bash
+npm run localhost:containers:start-all   # Postgres + Mongo (+ Airflow; observability disabled)
+npm run localhost:services:start-all     # Java (8081–8088, 8094) + Python (8090–8093)
+npm run localhost:portals:start-all      # 4200 / 4201 / 4202
+```
+
+### Stop / restart / status
+| Command | Does |
+|---|---|
+| `npm run localhost:stop-all` | portals + services + containers |
+| `npm run localhost:restart-all` | restart middleware + portals (leaves containers up) |
+| `npm run localhost:services:restart-all` | restart just the services (after a code change) |
+| `npm run localhost:containers:airflow:stop` | shut down Airflow on its own (heaviest stack) |
+| `npm run localhost:status-all` | status of containers + services + portals |
+
+Observability (Jaeger/Prometheus/Grafana) is disabled in the container scripts by default to save
+memory/disk — re-enable by uncommenting the `STACKS` line in `DevOps/Localhost/docker-all-*.sh`.
+
+### Good to know
+- **Java services run on in-memory H2 by default** — they start without Postgres. (The `postgres`
+  profile + `vkp_*` schemas only apply to the cloud/deploy path.)
+- **Python services need the databases**: explore `:8090`, guardrails `:8091`, agentic `:8092`,
+  context-engine `:8093` use Postgres (the `postgres` database + `vkp_*` schemas, auto-created) and
+  Mongo — start the containers first.
+- **The vector table starts empty**, so search/chat return no sources until content is indexed. Seed one:
+  ```bash
+  curl -s -X POST http://localhost:8090/api/vehicle-explore/langgraph/index \
+    -H 'Content-Type: application/json' \
+    -d '{"content":"The Toyota RAV4 Hybrid is an AWD hybrid SUV, ~39 MPG, around $31k.","sourceUrl":"https://toyota.com/rav4","companyId":"10000000-0000-4000-8000-000000000004"}'
+  ```
+  Then search “hybrid SUV”. Real data flows through Discovery → Ingestion → Indexing (Admin Portal + Airflow).
+- **`indexing-wfs` (:8087)**: `java-start-all` starts only the indexing `api` module; run the wfs jar
+  separately for the Spring-AI executor.
+- Per-service logs live under `DevOps/Localhost/.run/{java,python,portal}-<name>.log`.
+
+### Ports
+- **Java** — company 8081 · user 8082 · airflow-adapter 8083 · data-collection 8084 · ingestion 8085 ·
+  indexing 8086 · indexing-wfs 8087 · vector-config 8088 · context-admin 8094
+- **Python** — vehicle-explore 8090 · guardrails 8091 · agentic 8092 · context-engine 8093
+
+### Cloud (AWS)
+Manual GitHub workflows provision EKS via CloudFormation — run `AWS_900_Run_All` (see
+`Infra/cloudformation/README.md`). Architecture: `Docs/Design/vkp-architecture.drawio`.
+
 ## Architecture diagram
 
 A multi-tab **draw.io** diagram lives at [`Docs/Design/vkp-architecture.drawio`](Docs/Design/vkp-architecture.drawio)
 — open it at [diagrams.net](https://app.diagrams.net) or with the VS Code *Draw.io Integration* extension.
 Tabs: **1. System Overview**, **2. Middleware Services**, **3. Database & Schema model**,
 **4. Search Flow**, **5. CEF Pipeline**, **6. AWS Deployment**.
-
-## Local quickstart & operations
-
-All ops run from the root `package.json` (`npm run localhost:*`), delegating to `DevOps/Localhost/`:
-
-| Command | Does |
-|---|---|
-| `localhost:start-all` / `stop-all` / `status-all` | containers + middleware + portals |
-| `localhost:restart-all` | restart middleware + portals (leaves containers running) |
-| `localhost:containers:start-all` / `stop-all` / `restart-all` | DBs + Airflow (observability disabled by default) |
-| `localhost:containers:airflow:start` / `stop` / `status` | Airflow on its own — heaviest stack; stop it when idle |
-| `localhost:services:*` · `localhost:portals:*` | start/stop/status/restart middleware or portals |
-
-Observability (Jaeger/Prometheus/Grafana) is disabled in the container scripts by default to save
-memory/disk — re-enable by uncommenting the `STACKS` line in `DevOps/Localhost/docker-all-*.sh`.
 
 ## Database & schema model
 
