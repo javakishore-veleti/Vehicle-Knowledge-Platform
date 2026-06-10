@@ -54,6 +54,13 @@ springdoc:
 
 # Shared session encryption (vkp-session-security). Same VKP_SESSION_SECRET across all services.
 vkp:
+  # Snapshot Browser storage backend (must match the crawl DAG's storage_backend).
+  #   local (default) -> reads vkp.snapshot.location dir (falls back to datacollection.snapshot-dir)
+  #   s3 | azure | gcs -> object storage (build with: mvn -Pcloud-snapshot). location = bucket/container:
+  #     s3://my-bucket/prefix  |  my-container/prefix  |  gs://my-bucket/prefix
+  snapshot:
+    backend: ${VKP_SNAPSHOT_STORAGE_BACKEND:local}
+    location: ${VKP_SNAPSHOT_STORAGE_LOCATION:}
   session:
     secret: ${VKP_SESSION_SECRET:}
     header: X-VKP-Session
