@@ -3,7 +3,7 @@
 
 :root {
   --vkp-bar-h: 56px;
-  --vkp-side-w: 248px;
+  --vkp-side-w: 288px;
   --vkp-brand: #7c3aed;        /* violet */
   --vkp-brand-2: #a855f7;
   --vkp-grad: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -97,6 +97,9 @@ html, body {
 
 /* Make the PrimeNG PanelMenu blend into the sidebar */
 .vkp-sidebar .p-panelmenu .p-panelmenu-header-link { font-weight: 600; }
+/* Keep menu labels on one line (e.g. nested "Data Management") instead of wrapping. */
+.vkp-sidebar .p-panelmenu .p-menuitem-text,
+.vkp-sidebar .p-panelmenu .p-panelmenu-header-link span { white-space: nowrap; }
 
 /* Inline alerts */
 .vkp-alert-ok  { background:#e8f4ea; color:#1c5b2c; border:1px solid #b4dcc0; padding:.6rem .9rem; border-radius:6px; margin-bottom:1rem; }
