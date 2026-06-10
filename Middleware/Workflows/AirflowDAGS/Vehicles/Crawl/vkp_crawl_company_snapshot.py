@@ -15,15 +15,21 @@ Each element: {url, depth, title, text, images:[{image_id, src, file}], links_co
 
 Idempotency: if <Company>/__COMPLETED__ exists, the run is skipped.
 
-Storage toggle (conf.storage_backend): "local" (default) writes to the mounted folder;
-"s3" | "azure" | "gcs" are stubs to be enabled per-cloud (add the SDK + creds), so the same
-DAG deployed in AWS/Azure/GCP writes to S3 / Blob / GCS instead.
+Storage toggle (conf.storage_backend, or env VKP_SNAPSHOT_STORAGE_BACKEND): "local" (default) writes
+to the mounted folder; "s3" | "azure" | "gcs" write to AWS S3 / Azure Blob / Google Cloud Storage —
+so the same DAG deployed in AWS/Azure/GCP persists snapshots to object storage. The target bucket/
+container is conf.storage_location (or env VKP_SNAPSHOT_STORAGE_LOCATION):
+  - s3:    's3://my-bucket/vkp-snapshots'   (creds via IAM role / AWS_* env; region via AWS_REGION)
+  - azure: 'my-container/vkp-snapshots'     (AZURE_STORAGE_CONNECTION_STRING, or *_ACCOUNT_URL + MI)
+  - gcs:   'gs://my-bucket/vkp-snapshots'   (GOOGLE_APPLICATION_CREDENTIALS / ADC)
+The SDKs (boto3 / azure-storage-blob / google-cloud-storage) ship in the Airflow image; each is
+imported lazily, so a missing SDK only errors if you actually select that backend.
 
 Expected conf:
   { "company_id": "<uuid>",
     "company_base_url": "http://host.docker.internal:8081",   # company-service (roots source)
     "max_pages": 1000, "max_depth": 100, "max_images_per_page": 8,
-    "storage_backend": "local", "storage_location": null,
+    "storage_backend": "local", "storage_location": null,     # e.g. "s3" + "s3://bucket/prefix"
     # Responsible-crawling controls:
     "respect_robots": true,            # obey robots.txt (default on)
     "request_delay_seconds": 1.0,      # polite delay between page fetches (honors robots Crawl-delay)
@@ -99,35 +105,135 @@ class LocalFsStorage:
             fh.write(data)
 
 
-class CloudStorageStub:
-    """Placeholder for S3 / Azure Blob / GCS — enable per cloud by adding the SDK."""
+JSON_CT = "application/json; charset=utf-8"
 
-    def __init__(self, backend: str, location):
-        self.backend = backend
-        self.location = location
+
+def _parse_bucket(location, scheme: str):
+    """'s3://bucket/prefix' | 'gs://bucket/prefix' | 'bucket/prefix' | 'bucket' -> (bucket, prefix/)."""
+    if not location:
+        raise RuntimeError(
+            f"storage_location is required for the '{scheme}' backend "
+            f"(e.g. '{scheme}://my-bucket/vkp-snapshots' or 'my-bucket')")
+    s = str(location)
+    for p in (f"{scheme}://", "s3://", "gs://"):
+        if s.startswith(p):
+            s = s[len(p):]
+            break
+    s = s.strip("/")
+    parts = s.split("/", 1)
+    bucket = parts[0]
+    prefix = (parts[1].rstrip("/") + "/") if len(parts) > 1 and parts[1] else ""
+    return bucket, prefix
+
+
+class S3Storage:
+    """AWS S3 backend. storage_location: 's3://bucket/prefix' or 'bucket'. Credentials come from the
+    standard AWS chain (IAM role / AWS_ACCESS_KEY_ID env / profile); region from AWS_REGION."""
+
+    def __init__(self, location):
+        try:
+            import boto3  # noqa: F401  (lazy: only this backend needs it)
+        except ImportError as e:
+            raise RuntimeError("S3 backend needs boto3 — add it to the Airflow image (pip install boto3).") from e
+        import boto3
+        self.bucket, self.prefix = _parse_bucket(location, "s3")
+        self._c = boto3.client("s3")
+
+    def _key(self, rel: str) -> str:
+        return f"{self.prefix}{rel}"
 
     def exists(self, rel: str) -> bool:
-        return False
-
-    def _fail(self):
-        raise NotImplementedError(
-            f"Storage backend '{self.backend}' is not enabled in this image. Add the SDK "
-            f"(boto3 / azure-storage-blob / google-cloud-storage), implement write_text/"
-            f"write_bytes/exists, and set storage_location (got: {self.location})."
-        )
+        from botocore.exceptions import ClientError
+        try:
+            self._c.head_object(Bucket=self.bucket, Key=self._key(rel))
+            return True
+        except ClientError:
+            return False
 
     def write_text(self, rel: str, text: str) -> None:
-        self._fail()
+        self._c.put_object(Bucket=self.bucket, Key=self._key(rel), Body=text.encode("utf-8"), ContentType=JSON_CT)
 
     def write_bytes(self, rel: str, data: bytes) -> None:
-        self._fail()
+        self._c.put_object(Bucket=self.bucket, Key=self._key(rel), Body=data)
+
+
+class AzureBlobStorage:
+    """Azure Blob backend. storage_location: 'container' or 'container/prefix'. Auth via
+    AZURE_STORAGE_CONNECTION_STRING, or AZURE_STORAGE_ACCOUNT_URL + DefaultAzureCredential (managed identity)."""
+
+    def __init__(self, location):
+        try:
+            from azure.storage.blob import ContainerClient
+        except ImportError as e:
+            raise RuntimeError("Azure backend needs azure-storage-blob (pip install azure-storage-blob).") from e
+        if not location:
+            raise RuntimeError("storage_location is required for 'azure' (e.g. 'my-container' or 'my-container/vkp').")
+        s = str(location).strip("/")
+        parts = s.split("/", 1)
+        container = parts[0]
+        self.prefix = (parts[1].rstrip("/") + "/") if len(parts) > 1 and parts[1] else ""
+        conn = os.environ.get("AZURE_STORAGE_CONNECTION_STRING")
+        if conn:
+            self._c = ContainerClient.from_connection_string(conn, container_name=container)
+        else:
+            acct = os.environ.get("AZURE_STORAGE_ACCOUNT_URL")
+            if not acct:
+                raise RuntimeError("Azure backend needs AZURE_STORAGE_CONNECTION_STRING or AZURE_STORAGE_ACCOUNT_URL.")
+            from azure.identity import DefaultAzureCredential
+            self._c = ContainerClient(account_url=acct, container_name=container, credential=DefaultAzureCredential())
+
+    def _name(self, rel: str) -> str:
+        return f"{self.prefix}{rel}"
+
+    def exists(self, rel: str) -> bool:
+        return self._c.get_blob_client(self._name(rel)).exists()
+
+    def write_text(self, rel: str, text: str) -> None:
+        self._c.upload_blob(self._name(rel), text.encode("utf-8"), overwrite=True)
+
+    def write_bytes(self, rel: str, data: bytes) -> None:
+        self._c.upload_blob(self._name(rel), data, overwrite=True)
+
+
+class GcsStorage:
+    """Google Cloud Storage backend. storage_location: 'gs://bucket/prefix' or 'bucket'. Auth via
+    GOOGLE_APPLICATION_CREDENTIALS (service-account JSON) or Application Default Credentials."""
+
+    def __init__(self, location):
+        try:
+            from google.cloud import storage
+        except ImportError as e:
+            raise RuntimeError("GCS backend needs google-cloud-storage (pip install google-cloud-storage).") from e
+        bucket, self.prefix = _parse_bucket(location, "gs")
+        self._bucket = storage.Client().bucket(bucket)
+
+    def _name(self, rel: str) -> str:
+        return f"{self.prefix}{rel}"
+
+    def exists(self, rel: str) -> bool:
+        return self._bucket.blob(self._name(rel)).exists()
+
+    def write_text(self, rel: str, text: str) -> None:
+        self._bucket.blob(self._name(rel)).upload_from_string(text, content_type=JSON_CT)
+
+    def write_bytes(self, rel: str, data: bytes) -> None:
+        self._bucket.blob(self._name(rel)).upload_from_string(data)
 
 
 def make_storage(conf: dict):
-    backend = (conf.get("storage_backend") or "local").lower()
+    """Feature toggle: conf.storage_backend (or env VKP_SNAPSHOT_STORAGE_BACKEND) selects the backend;
+    conf.storage_location (or env VKP_SNAPSHOT_STORAGE_LOCATION) is the bucket/container target."""
+    backend = (conf.get("storage_backend") or os.environ.get("VKP_SNAPSHOT_STORAGE_BACKEND") or "local").lower()
+    location = conf.get("storage_location") or os.environ.get("VKP_SNAPSHOT_STORAGE_LOCATION")
     if backend == "local":
         return LocalFsStorage(os.environ.get("VKP_CRAWL_SNAPSHOT_DIR", "/opt/airflow/crawl-snapshot"))
-    return CloudStorageStub(backend, conf.get("storage_location"))
+    if backend == "s3":
+        return S3Storage(location)
+    if backend == "azure":
+        return AzureBlobStorage(location)
+    if backend == "gcs":
+        return GcsStorage(location)
+    raise ValueError(f"Unknown storage_backend '{backend}' (use: local | s3 | azure | gcs).")
 
 
 # ------------------------------- helpers ------------------------------------

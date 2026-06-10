@@ -16,7 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Playwright + Chromium as the airflow user (browser cache lives in the user home).
 # Also install embedding providers (fastembed = ONNX sentence-transformers, no torch; openai)
-# + vector-store deps (pgVector via psycopg2; pymongo) for the config-driven indexing DAG.
+# + vector-store deps (pgVector via psycopg2; pymongo) for the config-driven indexing DAG,
+# + cloud object-storage SDKs for the crawl-snapshot storage_backend toggle (s3 / azure / gcs).
 USER airflow
 RUN pip install --no-cache-dir \
       "playwright==${PLAYWRIGHT_VERSION}" \
@@ -25,4 +26,7 @@ RUN pip install --no-cache-dir \
       "pgvector>=0.3" \
       "openai>=1.30" \
       "pymongo>=4.6" \
+      "boto3>=1.34" \
+      "azure-storage-blob>=12.19" "azure-identity>=1.16" \
+      "google-cloud-storage>=2.16" \
     && playwright install chromium
