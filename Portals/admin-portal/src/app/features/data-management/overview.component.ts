@@ -48,11 +48,11 @@ const SECTION_MEANING: Record<string, string> = {
   `,
   styles: [`
     .ov-acc { border:1px solid #eaecf0; border-radius:8px; background:#fff; margin-bottom:.6rem; }
-    .ov-acc > summary { cursor:pointer; padding:.65rem .9rem; font-weight:700; color:#1f2933; list-style:none; }
+    .ov-acc > summary { cursor:pointer; padding:.7rem .95rem; font-weight:700; font-size:1.12rem; color:#1f2933; list-style:none; }
     .ov-acc > summary::-webkit-details-marker { display:none; }
     .ov-acc > summary:before { content:'▾'; margin-right:.5rem; color:#3538cd; }
     .ov-acc:not([open]) > summary:before { content:'▸'; }
-    .ov-acc > div { padding:0 .9rem .85rem; color:#344054; font-size:1.02rem; line-height:1.6; }
+    .ov-acc > div { padding:0 .95rem .9rem; color:#344054; font-size:1.15rem; line-height:1.65; }
     .ov-acc code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.92rem; }
   `]
 })
