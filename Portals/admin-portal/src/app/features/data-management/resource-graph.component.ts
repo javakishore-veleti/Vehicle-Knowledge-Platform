@@ -18,6 +18,18 @@ import { Company, ResourceGraphNode } from '../../core/models';
   template: `
   <h1 class="vkp-page-title">Data Collection <span class="vkp-muted">› Resource Graph</span></h1>
 
+  <details open class="vkp-explain">
+    <summary>What is this?</summary>
+    <div>
+      <p>The <b>Resource Graph</b> is the output of Data Collection — the catalog of <b>discovered links</b>
+         for a company (<code>company_resource_graph</code>). Each row is one discovered resource: its URL,
+         its <b>type</b> (page / image / document) and crawl status. It's the "map of what exists" on the
+         company's site — addresses only, <b>no page content</b> (that's fetched later by Data Ingestion).
+         Pick a company to view its graph, or <b>Trigger Discovery</b> to (re)populate it via the
+         <code>vkp_discover_resources</code> DAG.</p>
+    </div>
+  </details>
+
   <div class="vkp-card">
     <div class="vkp-toolbar">
       <label style="font-weight:600;">Company</label>

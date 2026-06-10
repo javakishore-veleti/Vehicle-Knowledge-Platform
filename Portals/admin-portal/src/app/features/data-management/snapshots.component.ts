@@ -13,6 +13,18 @@ import { SnapshotCompany, SnapshotPage, SnapshotService } from '../../core/snaps
   template: `
   <h1 class="vkp-page-title">Data Collection <span class="vkp-muted">› Snapshot Browser</span></h1>
 
+  <details open class="vkp-explain">
+    <summary>What is this?</summary>
+    <div>
+      <p>The <b>Snapshot Browser</b> browses the filesystem <b>snapshots</b> produced by the
+         <b>Crawl Snapshot</b> DAG (<code>vkp_crawl_company_snapshot</code>) — a real Playwright/Chromium
+         crawl that saves <b>files</b> (not the database) under <code>Crawling-Snapshot/&lt;Company&gt;/</code>:
+         numbered page captures (<code>crawl-NNNNN.json</code>), downloaded images, and a
+         <code>__COMPLETED__</code> manifest. Pick a company to page through what the crawl captured (pages +
+         images + completed status). It stays empty until you run a crawl from the <b>Crawl Snapshot</b> page.</p>
+    </div>
+  </details>
+
   <div class="vkp-card" style="margin-bottom:1.25rem;">
     <div class="vkp-toolbar">
       <label style="font-weight:600;">Company snapshot</label>

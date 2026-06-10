@@ -8,12 +8,32 @@ import { TagModule } from 'primeng/tag';
 import { WorkflowService } from '../../core/workflow.service';
 import { SECTION_DAGS, SECTION_LABELS, WorkflowRun } from '../../core/models';
 
+const SECTION_WF: Record<string, string> = {
+  'data-collection': 'This page lists and monitors runs of the <code>vkp_discover_resources</code> DAG — the ' +
+    'DISCOVERY workflow. It crawls a company\'s seed links, extracts the links it finds (sitemaps, page / ' +
+    'image / document URLs), and records them in the resource graph (<code>company_resource_graph</code>). ' +
+    'Each row below is one DAG run and its state; use it to trigger and watch discovery jobs. It does ' +
+    '<b>not</b> fetch page content — that is Data Ingestion.',
+  'data-ingestion': 'This page lists and monitors runs of the <code>vkp_process_resources</code> DAG — the ' +
+    'INGESTION workflow. It reads the discovered links, crawls each page, extracts clean text (+ a content ' +
+    'hash) into <code>company_resource_content</code>, and then triggers indexing. Each row below is one DAG ' +
+    'run and its state.',
+  'data-indexing': 'This page lists and monitors runs of the indexing DAG, which chunks + embeds the extracted ' +
+    'content and routes the vectors into the configured vector store(s) (<code>vkp_vectors</code>). Each row ' +
+    'below is one DAG run and its state.'
+};
+
 @Component({
   selector: 'vkp-workflows',
   standalone: true,
   imports: [CommonModule, RouterLink, TableModule, ButtonModule, TagModule],
   template: `
   <h1 class="vkp-page-title">{{ label }} <span class="vkp-muted">› Workflows</span></h1>
+
+  <details open class="vkp-explain">
+    <summary>What is this?</summary>
+    <div [innerHTML]="explain"></div>
+  </details>
 
   <div class="vkp-card">
     <div class="vkp-toolbar">
@@ -55,6 +75,7 @@ export class WorkflowsComponent implements OnInit, OnDestroy {
   section = 'data-collection';
   label = 'Data Collection';
   dagId = '';
+  explain = '';
   runs: WorkflowRun[] = [];
   loading = false;
   error = '';
@@ -67,6 +88,7 @@ export class WorkflowsComponent implements OnInit, OnDestroy {
       this.section = p.get('section') ?? 'data-collection';
       this.label = SECTION_LABELS[this.section] ?? this.section;
       this.dagId = SECTION_DAGS[this.section] ?? '';
+      this.explain = SECTION_WF[this.section] ?? '';
       this.reload();
     });
   }

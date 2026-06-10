@@ -119,3 +119,12 @@ html, body {
 .vkp-field { display:flex; flex-direction:column; gap:.35rem; margin-bottom:1rem; }
 .vkp-field > label { font-weight:600; }
 .vkp-field select, .vkp-field input { padding:.5rem; border:1px solid var(--vkp-border); border-radius:6px; }
+
+/* Reusable "What is this?" explainer accordion for Data Management pages. */
+.vkp-explain { border: 1px solid var(--vkp-border); border-radius: 8px; background: #fff; margin-bottom: 1.25rem; }
+.vkp-explain > summary { cursor: pointer; padding: .7rem .95rem; font-weight: 700; font-size: 1.12rem; color: var(--vkp-text); list-style: none; }
+.vkp-explain > summary::-webkit-details-marker { display: none; }
+.vkp-explain > summary:before { content: '▾'; margin-right: .5rem; color: var(--vkp-brand); }
+.vkp-explain:not([open]) > summary:before { content: '▸'; }
+.vkp-explain > div { padding: 0 .95rem .9rem; color: #344054; font-size: 1.12rem; line-height: 1.65; }
+.vkp-explain code { background: #f1f3f9; padding: .05rem .35rem; border-radius: 4px; font-size: .9rem; }
