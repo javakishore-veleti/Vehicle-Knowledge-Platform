@@ -65,17 +65,17 @@ discover LINKS             fetch CONTENT              embed → vectors
     .arch { padding: 1rem 1.5rem; max-width: 1040px; }
     .arch h2 { margin: 0 0 .4rem; }
     .arch h3 { margin: 1.5rem 0 .5rem; color:#1f2933; }
-    .arch .lead { font-size:.96rem; line-height:1.6; color:#344054; }
-    .arch code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.84rem; }
-    .arch .bullets { line-height:1.7; color:#344054; font-size:.92rem; }
-    .t { border-collapse:collapse; width:100%; font-size:.9rem; margin:.5rem 0 1rem; }
+    .arch .lead { font-size:1.06rem; line-height:1.6; color:#344054; }
+    .arch code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.92rem; }
+    .arch .bullets { line-height:1.7; color:#344054; font-size:1.02rem; }
+    .t { border-collapse:collapse; width:100%; font-size:.98rem; margin:.5rem 0 1rem; }
     .t th, .t td { border:1px solid #eaecf0; padding:.5rem .7rem; text-align:left; vertical-align:top; }
     .t thead th { background:#f6f1ff; color:#4c1d95; }
     .t tbody tr:hover { background:#faf8ff; }
     .t td:first-child { white-space:nowrap; }
     .flow { background:#0c111d; color:#d1e0ff; padding:.8rem; border-radius:8px; font-size:.8rem; white-space:pre; overflow-x:auto; line-height:1.6; }
-    .arch .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.75rem .95rem; font-size:.92rem; line-height:1.65; color:#344054; }
-    .arch .foot { color:#475467; font-size:.9rem; }
+    .arch .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.75rem .95rem; font-size:1.02rem; line-height:1.65; color:#344054; }
+    .arch .foot { color:#475467; font-size:.98rem; }
     .arch a { color:#3538cd; }
   `]
 })

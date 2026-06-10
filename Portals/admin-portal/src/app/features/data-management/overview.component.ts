@@ -52,8 +52,8 @@ const SECTION_MEANING: Record<string, string> = {
     .ov-acc > summary::-webkit-details-marker { display:none; }
     .ov-acc > summary:before { content:'▾'; margin-right:.5rem; color:#3538cd; }
     .ov-acc:not([open]) > summary:before { content:'▸'; }
-    .ov-acc > div { padding:0 .9rem .85rem; color:#344054; font-size:.92rem; line-height:1.6; }
-    .ov-acc code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.84rem; }
+    .ov-acc > div { padding:0 .9rem .85rem; color:#344054; font-size:1.02rem; line-height:1.6; }
+    .ov-acc code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.92rem; }
   `]
 })
 export class OverviewComponent implements OnInit, OnDestroy {

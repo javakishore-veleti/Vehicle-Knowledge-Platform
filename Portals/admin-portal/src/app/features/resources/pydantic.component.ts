@@ -71,16 +71,16 @@ import { CommonModule } from '@angular/common';
     .tool { padding: 1rem 1.5rem; max-width: 1040px; }
     .tool h2 { margin: 0 0 .4rem; }
     .tool h3 { margin: 1.5rem 0 .5rem; color:#1f2933; }
-    .tool .lead { font-size:.96rem; line-height:1.6; color:#344054; }
-    .tool code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.85rem; }
-    .tool .gives, .tool .bullets { line-height:1.7; color:#344054; font-size:.92rem; }
+    .tool .lead { font-size:1.06rem; line-height:1.6; color:#344054; }
+    .tool code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.93rem; }
+    .tool .gives, .tool .bullets { line-height:1.7; color:#344054; font-size:1.02rem; }
     .tool .code { background:#0c111d; color:#d1e0ff; padding:.9rem; border-radius:8px; font-size:.82rem; white-space:pre; overflow-x:auto; line-height:1.55; }
-    .tool .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.7rem .9rem; font-size:.9rem; line-height:1.6; color:#344054; }
-    .uses { border-collapse:collapse; width:100%; font-size:.9rem; margin:.5rem 0 1rem; }
+    .tool .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.7rem .9rem; font-size:.98rem; line-height:1.6; color:#344054; }
+    .uses { border-collapse:collapse; width:100%; font-size:.98rem; margin:.5rem 0 1rem; }
     .uses th, .uses td { border:1px solid #eaecf0; padding:.5rem .7rem; text-align:left; }
     .uses thead th { background:#f6f1ff; color:#4c1d95; }
     .uses tbody tr:hover { background:#faf8ff; }
-    .tool .foot { color:#475467; font-size:.9rem; }
+    .tool .foot { color:#475467; font-size:.98rem; }
   `]
 })
 export class PydanticComponent {

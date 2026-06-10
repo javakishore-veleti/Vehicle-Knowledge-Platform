@@ -54,7 +54,7 @@ const CRAWL_DAG = 'vkp_crawl_company_snapshot';
       </div>
       <div *ngIf="message" style="background:#e8f4ea;color:#1c5b2c;border:1px solid #b4dcc0;padding:.6rem .9rem;border-radius:6px;">{{ message }}</div>
       <div *ngIf="error" style="background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;padding:.6rem .9rem;border-radius:6px;">{{ error }}</div>
-      <p class="vkp-muted" style="margin:.75rem 0 0;font-size:.85rem;">
+      <p class="vkp-muted" style="margin:.75rem 0 0;font-size:.93rem;">
         Runs a real (Playwright/Chromium) recursive crawl and stores a filesystem snapshot under
         <code>Crawling-Snapshot/&lt;Company&gt;/</code>. Large crawls run in the background — watch the runs below.
         Re-crawling a company that has a <code>__COMPLETED__</code> marker is skipped.
@@ -95,8 +95,8 @@ const CRAWL_DAG = 'vkp_crawl_company_snapshot';
     .cr-acc > summary::-webkit-details-marker { display:none; }
     .cr-acc > summary:before { content:'▾'; margin-right:.5rem; color:#3538cd; }
     .cr-acc:not([open]) > summary:before { content:'▸'; }
-    .cr-acc > div { padding:0 .95rem .95rem; }
-    .cr-acc code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.84rem; }
+    .cr-acc > div { padding:0 .95rem .95rem; font-size:1.02rem; line-height:1.6; }
+    .cr-acc code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.92rem; }
   `]
 })
 export class CrawlComponent implements OnInit {

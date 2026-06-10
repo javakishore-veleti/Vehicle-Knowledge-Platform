@@ -54,19 +54,19 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
     .ap { padding: 1rem 1.5rem; max-width: 1040px; }
     .ap h2 { margin: 0 0 .4rem; }
     .ap h3 { margin: 1.5rem 0 .5rem; color:#1f2933; }
-    .ap .lead { font-size:.96rem; line-height:1.6; color:#344054; }
-    .ap code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.85rem; }
+    .ap .lead { font-size:1.06rem; line-height:1.6; color:#344054; }
+    .ap code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.93rem; }
     .ap .flow { background:#0c111d; color:#d1e0ff; padding:.8rem; border-radius:8px; font-size:.82rem; white-space:pre-wrap; line-height:1.6; }
-    .ap-table { border-collapse:collapse; width:100%; font-size:.9rem; margin:.5rem 0 1rem; }
+    .ap-table { border-collapse:collapse; width:100%; font-size:.98rem; margin:.5rem 0 1rem; }
     .ap-table th, .ap-table td { border:1px solid #eaecf0; padding:.5rem .7rem; text-align:left; vertical-align:top; }
     .ap-table thead th { background:#f6f1ff; color:#4c1d95; }
     .ap-table tbody tr:hover { background:#faf8ff; }
     .ap-table tr.react { background:#f3eefe; }
     .ap-table tr.react:hover { background:#ede7ff; }
-    .ap .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.7rem .9rem; font-size:.9rem; line-height:1.6; color:#344054; }
-    .ap .map { line-height:1.7; color:#344054; font-size:.92rem; }
+    .ap .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.7rem .9rem; font-size:.98rem; line-height:1.6; color:#344054; }
+    .ap .map { line-height:1.7; color:#344054; font-size:1.02rem; }
     .ap .map code { font-size:.82rem; }
-    .ap .foot { color:#475467; font-size:.9rem; }
+    .ap .foot { color:#475467; font-size:.98rem; }
     .ap .foot a { color:#3538cd; }
   `]
 })
