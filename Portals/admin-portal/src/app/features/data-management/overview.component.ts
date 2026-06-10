@@ -29,7 +29,7 @@ const SECTION_MEANING: Record<string, string> = {
   imports: [CommonModule, RouterLink, ButtonModule],
   template: `
   <h1 class="vkp-page-title">{{ label }} <span class="vkp-muted">› Overview</span></h1>
-  <div style="max-width:1040px;">
+  <div>
     <details open class="ov-acc">
       <summary>What is {{ label }}?</summary>
       <div><p>{{ meaning }}</p></div>
