@@ -13,8 +13,10 @@ import { RouterLink } from '@angular/router';
     <h2>Data Management pipelines vs the AI Agents roster</h2>
     <p class="lead">
       They touch the <b>same pipeline</b> but from <b>opposite ends</b>: one is the <i>production
-      control plane</i>, the other is an <i>interactive lab</i>. They differ in <b>purpose,
-      mechanism, scale, and persistence</b>.
+      control plane</i> (<b>Data Management</b>), the other is an <i>interactive lab</i>
+      (<b>AI Agents / Agent Roster</b>). They differ in <b>purpose, mechanism, scale, and
+      persistence</b> — in short, <b>Data Management is the production control plane</b> and the
+      <b>AI Agents roster is the interactive lab</b>.
     </p>
 
     <h3>Data Management — the orchestrated production pipeline</h3>
