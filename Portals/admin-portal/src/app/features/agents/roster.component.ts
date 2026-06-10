@@ -36,30 +36,43 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
     </table>
 
     <!-- run a stage -->
-    <div class="vkp-run" *ngIf="roster() as r">
-      <h3>Run a stage</h3>
-      <div class="row">
-        <label>Stage
-          <select [(ngModel)]="stage"><option *ngFor="let s of stages">{{ s }}</option></select>
+    <details class="vkp-run" open *ngIf="roster() as r">
+      <summary>Run a stage</summary>
+      <div class="run-body">
+        <div class="row">
+          <label>Stage
+            <select [(ngModel)]="stage"><option *ngFor="let s of stages">{{ s }}</option></select>
+          </label>
+          <label>Framework
+            <select [(ngModel)]="framework">
+              <option *ngFor="let f of frameworksFor(stage)" [value]="f">{{ f }}</option>
+            </select>
+          </label>
+          <button (click)="run()" [disabled]="busy()">{{ busy() ? 'Running…' : 'Run' }}</button>
+        </div>
+        <label class="full" *ngIf="stage === 'search'">Query
+          <input [(ngModel)]="query" placeholder="What hybrid SUVs does Toyota offer?" />
         </label>
-        <label>Framework
-          <select [(ngModel)]="framework">
-            <option *ngFor="let f of frameworksFor(stage)" [value]="f">{{ f }}</option>
-          </select>
+        <label class="full" *ngIf="stage === 'collect'">Seed URL
+          <input [(ngModel)]="seedUrl" placeholder="https://www.toyota.com/" />
         </label>
-        <button (click)="run()" [disabled]="busy()">{{ busy() ? 'Running…' : 'Run' }}</button>
+        <label class="full" *ngIf="stage === 'index'">Content
+          <textarea [(ngModel)]="content" rows="4" placeholder="Paste vehicle content to chunk + index…"></textarea>
+        </label>
+
+        <!-- read-only agent instructions for the selected stage -->
+        <div class="instr" *ngIf="stage === 'collect'">
+          <span class="instr-name">COLLECT_INSTRUCTIONS</span>
+          <p>{{ collectInstructions }}</p>
+        </div>
+        <div class="instr" *ngIf="stage === 'index'">
+          <span class="instr-name">INDEX_INSTRUCTIONS</span>
+          <p>{{ indexInstructions }}</p>
+        </div>
+
+        <pre class="vkp-result" *ngIf="result()">{{ result() }}</pre>
       </div>
-      <label class="full" *ngIf="stage === 'search'">Query
-        <input [(ngModel)]="query" placeholder="What hybrid SUVs does Toyota offer?" />
-      </label>
-      <label class="full" *ngIf="stage === 'collect'">Seed URL
-        <input [(ngModel)]="seedUrl" placeholder="https://www.toyota.com/" />
-      </label>
-      <label class="full" *ngIf="stage === 'index'">Content
-        <textarea [(ngModel)]="content" rows="4" placeholder="Paste vehicle content to chunk + index…"></textarea>
-      </label>
-      <pre class="vkp-result" *ngIf="result()">{{ result() }}</pre>
-    </div>
+    </details>
 
     <!-- how the roster actually works -->
     <section class="vkp-info">
@@ -148,7 +161,16 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
     .vkp-matrix .pi.yes { color:#16a34a; } .vkp-matrix .pi-minus { color:#d0d5dd; }
     .tag { background:#eef2ff; color:#3538cd; border-radius:10px; padding:.1rem .5rem; font-size:.78rem; }
     .tag.agentic { background:#ecfdf3; color:#067647; }
-    .vkp-run { max-width:760px; } .vkp-run .row { display:flex; gap:1rem; align-items:flex-end; margin-bottom:.6rem; }
+    .vkp-run { max-width:760px; border:1px solid #eaecf0; border-radius:8px; background:#fff; margin-bottom:1rem; }
+    .vkp-run > summary { cursor:pointer; padding:.6rem .85rem; font-weight:700; font-size:1.05rem; color:#1f2933; list-style:none; }
+    .vkp-run > summary::-webkit-details-marker { display:none; }
+    .vkp-run > summary:before { content:'▾'; margin-right:.5rem; color:#3538cd; }
+    .vkp-run:not([open]) > summary:before { content:'▸'; }
+    .run-body { padding:0 .85rem .85rem; }
+    .instr { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.5rem .7rem; margin:.5rem 0; }
+    .instr-name { font-family:ui-monospace,Menlo,monospace; font-size:.72rem; font-weight:700; color:#3538cd; letter-spacing:.02em; }
+    .instr p { margin:.25rem 0 0; font-size:.84rem; color:#475467; line-height:1.5; white-space:pre-wrap; }
+    .vkp-run .row { display:flex; gap:1rem; align-items:flex-end; margin-bottom:.6rem; }
     .vkp-run label { display:flex; flex-direction:column; font-size:.82rem; color:#475467; gap:.2rem; }
     .vkp-run label.full { margin:.4rem 0; } .vkp-run input, .vkp-run textarea, .vkp-run select { padding:.4rem; border:1px solid #d0d5dd; border-radius:6px; }
     .vkp-run label.full input, .vkp-run label.full textarea { width:100%; }
@@ -176,6 +198,17 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
   `]
 })
 export class AgentRosterComponent implements OnInit {
+  /** Read-only copies of the agent system prompts (vehicle-explore-service agentic_stages.py). */
+  readonly collectInstructions =
+    'You are a vehicle resource scout. Given a seed URL, call the fetch_page tool to discover its ' +
+    'links, then return ONLY a JSON array (no prose) of the most relevant vehicle resource links ' +
+    '(vehicle/model pages, brochures, images), at most 15 items, each: ' +
+    '{"url": "...", "type": "page|image|document", "title": "..."}.';
+  readonly indexInstructions =
+    'You are a content indexer. Split the given web content into clean, self-contained chunks for ' +
+    'semantic search: each chunk a coherent passage about one vehicle/topic, with navigation, menus, ' +
+    'and boilerplate removed. Return ONLY a JSON array of strings (the chunk texts), at most 12.';
+
   /** Architecture diagrams shown in the accordion. Add an entry + an SVG under
    *  public/images/arch-diagrams/ to extend (e.g. an index/search sequence per framework). */
   readonly diagrams = [
