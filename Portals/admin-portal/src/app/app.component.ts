@@ -120,7 +120,8 @@ export class AppComponent {
           items: [
             { label: 'Pipelines', icon: 'pi pi-bolt', routerLink: '/resources/architecture/data-management/pipelines' },
             { label: 'Interactive Lab', icon: 'pi pi-sparkles', routerLink: '/resources/architecture/data-management/interactive-lab' },
-            { label: 'Collection vs Ingestion', icon: 'pi pi-arrow-right-arrow-left', routerLink: '/resources/architecture/data-management/collection-vs-ingestion' }
+            { label: 'Collection vs Ingestion', icon: 'pi pi-arrow-right-arrow-left', routerLink: '/resources/architecture/data-management/collection-vs-ingestion' },
+            { label: 'Database Model', icon: 'pi pi-database', routerLink: '/resources/architecture/data-management/database-model' }
           ]
         }
       ]

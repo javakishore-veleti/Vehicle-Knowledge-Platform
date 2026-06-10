@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1340 720" font-family="Inter,Segoe UI,Roboto,Arial,sans-serif">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6d28d9"/></marker></defs>
+<rect width="1340" height="720" fill="#ffffff"/>
+<text x="670.0" y="32" font-size="19" font-weight="800" fill="#2c2550" text-anchor="middle">Data Management — database model &amp; lifecycle</text>
+<text x="30" y="62" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="start">PIPELINE DATA  (one row flows left → right as each stage runs)</text>
+<rect x="30" y="74" width="240" height="101" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<path d="M30,112 L30,82 Q30,74 38,74 L262,74 Q270,74 270,82 L270,112 Z" fill="#2563eb"/>
+<text x="42" y="92" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">companies</text>
+<text x="42" y="106" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_company</text>
+<text x="42" y="127" font-size="11" font-weight="700" fill="#475467" text-anchor="start">company_id  PK</text>
+<line x1="30" y1="133" x2="270" y2="133" stroke="#f1f0f7"/>
+<text x="42" y="148" font-size="11" font-weight="500" fill="#475467" text-anchor="start">name, status</text>
+<line x1="30" y1="154" x2="270" y2="154" stroke="#f1f0f7"/>
+<text x="42" y="169" font-size="11" font-weight="500" fill="#475467" text-anchor="start">created_dt …</text>
+<rect x="30" y="224" width="240" height="101" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<path d="M30,262 L30,232 Q30,224 38,224 L262,224 Q270,224 270,232 L270,262 Z" fill="#2563eb"/>
+<text x="42" y="242" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">company_resources</text>
+<text x="42" y="256" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_company</text>
+<text x="42" y="277" font-size="11" font-weight="700" fill="#475467" text-anchor="start">company_resource_id  PK</text>
+<line x1="30" y1="283" x2="270" y2="283" stroke="#f1f0f7"/>
+<text x="42" y="298" font-size="11" font-weight="700" fill="#475467" text-anchor="start">company_id  FK</text>
+<line x1="30" y1="304" x2="270" y2="304" stroke="#f1f0f7"/>
+<text x="42" y="319" font-size="11" font-weight="500" fill="#475467" text-anchor="start">resource_url, type</text>
+<rect x="330" y="74" width="240" height="122" rx="8" fill="#ffffff" stroke="#0f8a5f" stroke-width="1.5"/>
+<path d="M330,112 L330,82 Q330,74 338,74 L562,74 Q570,74 570,82 L570,112 Z" fill="#0f8a5f"/>
+<text x="342" y="92" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">company_resource_graph</text>
+<text x="342" y="106" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_data_collection</text>
+<text x="342" y="127" font-size="11" font-weight="700" fill="#475467" text-anchor="start">resource_graph_id  PK</text>
+<line x1="330" y1="133" x2="570" y2="133" stroke="#f1f0f7"/>
+<text x="342" y="148" font-size="11" font-weight="700" fill="#475467" text-anchor="start">company_id  FK</text>
+<line x1="330" y1="154" x2="570" y2="154" stroke="#f1f0f7"/>
+<text x="342" y="169" font-size="11" font-weight="500" fill="#475467" text-anchor="start">resource_url, type</text>
+<line x1="330" y1="175" x2="570" y2="175" stroke="#f1f0f7"/>
+<text x="342" y="190" font-size="11" font-weight="500" fill="#475467" text-anchor="start">crawl_status</text>
+<rect x="640" y="74" width="240" height="122" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+<path d="M640,112 L640,82 Q640,74 648,74 L872,74 Q880,74 880,82 L880,112 Z" fill="#b45309"/>
+<text x="652" y="92" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">company_resource_content</text>
+<text x="652" y="106" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_ingestion</text>
+<text x="652" y="127" font-size="11" font-weight="700" fill="#475467" text-anchor="start">content_id  PK</text>
+<line x1="640" y1="133" x2="880" y2="133" stroke="#f1f0f7"/>
+<text x="652" y="148" font-size="11" font-weight="700" fill="#475467" text-anchor="start">resource_graph_id  FK</text>
+<line x1="640" y1="154" x2="880" y2="154" stroke="#f1f0f7"/>
+<text x="652" y="169" font-size="11" font-weight="500" fill="#475467" text-anchor="start">url, title, text</text>
+<line x1="640" y1="175" x2="880" y2="175" stroke="#f1f0f7"/>
+<text x="652" y="190" font-size="11" font-weight="500" fill="#475467" text-anchor="start">content_sha256, status</text>
+<rect x="950" y="74" width="240" height="122" rx="8" fill="#ffffff" stroke="#be185d" stroke-width="1.5"/>
+<path d="M950,112 L950,82 Q950,74 958,74 L1182,74 Q1190,74 1190,82 L1190,112 Z" fill="#be185d"/>
+<text x="962" y="92" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">vec_*  (embeddings)</text>
+<text x="962" y="106" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_vectors · pgvector</text>
+<text x="962" y="127" font-size="11" font-weight="700" fill="#475467" text-anchor="start">id  PK</text>
+<line x1="950" y1="133" x2="1190" y2="133" stroke="#f1f0f7"/>
+<text x="962" y="148" font-size="11" font-weight="500" fill="#475467" text-anchor="start">content (chunk)</text>
+<line x1="950" y1="154" x2="1190" y2="154" stroke="#f1f0f7"/>
+<text x="962" y="169" font-size="11" font-weight="500" fill="#475467" text-anchor="start">embedding  vector(N)</text>
+<line x1="950" y1="175" x2="1190" y2="175" stroke="#f1f0f7"/>
+<text x="962" y="190" font-size="11" font-weight="500" fill="#475467" text-anchor="start">metadata  jsonb</text>
+<text x="30" y="430" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="start">INDEXING CONTROL PLANE  (config + the dedup/restart ledger)</text>
+<rect x="30" y="444" width="240" height="122" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+<path d="M30,482 L30,452 Q30,444 38,444 L262,444 Q270,444 270,452 L270,482 Z" fill="#7c3aed"/>
+<text x="42" y="462" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">company_resource_vector_config</text>
+<text x="42" y="476" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_vector_config</text>
+<text x="42" y="497" font-size="11" font-weight="700" fill="#475467" text-anchor="start">id  PK</text>
+<line x1="30" y1="503" x2="270" y2="503" stroke="#f1f0f7"/>
+<text x="42" y="518" font-size="11" font-weight="700" fill="#475467" text-anchor="start">company_resource_id  FK</text>
+<line x1="30" y1="524" x2="270" y2="524" stroke="#f1f0f7"/>
+<text x="42" y="539" font-size="11" font-weight="500" fill="#475467" text-anchor="start">store, model</text>
+<line x1="30" y1="545" x2="270" y2="545" stroke="#f1f0f7"/>
+<text x="42" y="560" font-size="11" font-weight="500" fill="#475467" text-anchor="start">is_primary</text>
+<rect x="330" y="444" width="240" height="122" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+<path d="M330,482 L330,452 Q330,444 338,444 L562,444 Q570,444 570,452 L570,482 Z" fill="#7c3aed"/>
+<text x="342" y="462" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">indexing_workflow</text>
+<text x="342" y="476" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_indexing</text>
+<text x="342" y="497" font-size="11" font-weight="700" fill="#475467" text-anchor="start">workflow_id  PK</text>
+<line x1="330" y1="503" x2="570" y2="503" stroke="#f1f0f7"/>
+<text x="342" y="518" font-size="11" font-weight="500" fill="#475467" text-anchor="start">company_id</text>
+<line x1="330" y1="524" x2="570" y2="524" stroke="#f1f0f7"/>
+<text x="342" y="539" font-size="11" font-weight="500" fill="#475467" text-anchor="start">wf_type (AIRFLOW|SPRING_AI)</text>
+<line x1="330" y1="545" x2="570" y2="545" stroke="#f1f0f7"/>
+<text x="342" y="560" font-size="11" font-weight="700" fill="#475467" text-anchor="start">index_formula_id  FK</text>
+<rect x="640" y="444" width="240" height="101" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+<path d="M640,482 L640,452 Q640,444 648,444 L872,444 Q880,444 880,452 L880,482 Z" fill="#7c3aed"/>
+<text x="652" y="462" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">index_formula</text>
+<text x="652" y="476" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_indexing</text>
+<text x="652" y="497" font-size="11" font-weight="700" fill="#475467" text-anchor="start">index_formula_id  PK</text>
+<line x1="640" y1="503" x2="880" y2="503" stroke="#f1f0f7"/>
+<text x="652" y="518" font-size="11" font-weight="500" fill="#475467" text-anchor="start">model, dims</text>
+<line x1="640" y1="524" x2="880" y2="524" stroke="#f1f0f7"/>
+<text x="652" y="539" font-size="11" font-weight="500" fill="#475467" text-anchor="start">chunk_size, overlap</text>
+<rect x="950" y="444" width="240" height="101" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+<path d="M950,482 L950,452 Q950,444 958,444 L1182,444 Q1190,444 1190,452 L1190,482 Z" fill="#7c3aed"/>
+<text x="962" y="462" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">provider_credentials</text>
+<text x="962" y="476" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_indexing</text>
+<text x="962" y="497" font-size="11" font-weight="700" fill="#475467" text-anchor="start">id  PK</text>
+<line x1="950" y1="503" x2="1190" y2="503" stroke="#f1f0f7"/>
+<text x="962" y="518" font-size="11" font-weight="500" fill="#475467" text-anchor="start">provider, label</text>
+<line x1="950" y1="524" x2="1190" y2="524" stroke="#f1f0f7"/>
+<text x="962" y="539" font-size="11" font-weight="500" fill="#475467" text-anchor="start">secret (encrypted)</text>
+<rect x="950" y="564" width="240" height="122" rx="8" fill="#ffffff" stroke="#be185d" stroke-width="1.5"/>
+<path d="M950,602 L950,572 Q950,564 958,564 L1182,564 Q1190,564 1190,572 L1190,602 Z" fill="#be185d"/>
+<text x="962" y="582" font-size="13" font-weight="800" fill="#ffffff" text-anchor="start">resource_graph_index_log</text>
+<text x="962" y="596" font-size="10" font-weight="500" fill="#eef" text-anchor="start">vkp_indexing</text>
+<text x="962" y="617" font-size="11" font-weight="700" fill="#475467" text-anchor="start">id  PK</text>
+<line x1="950" y1="623" x2="1190" y2="623" stroke="#f1f0f7"/>
+<text x="962" y="638" font-size="11" font-weight="700" fill="#475467" text-anchor="start">company_id, workflow_id  FK</text>
+<line x1="950" y1="644" x2="1190" y2="644" stroke="#f1f0f7"/>
+<text x="962" y="659" font-size="11" font-weight="700" fill="#475467" text-anchor="start">formula_id  FK</text>
+<line x1="950" y1="665" x2="1190" y2="665" stroke="#f1f0f7"/>
+<text x="962" y="680" font-size="11" font-weight="500" fill="#475467" text-anchor="start">status, attempts</text>
+<path d="M150,224 L150,180" stroke="#6d28d9" stroke-width="1.7" fill="none"  marker-end="url(#a)"/>
+<text x="150.0" y="197.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">FK</text>
+<path d="M270,259 L330,194" stroke="#6d28d9" stroke-width="1.7" fill="none"  marker-end="url(#a)"/>
+<text x="300.0" y="221.5" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">vkp_discover_resources</text>
+<path d="M570,144 L640,144" stroke="#6d28d9" stroke-width="1.7" fill="none"  marker-end="url(#a)"/>
+<text x="605.0" y="139.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">vkp_process_resources</text>
+<path d="M880,144 L950,144" stroke="#6d28d9" stroke-width="1.7" fill="none"  marker-end="url(#a)"/>
+<text x="915.0" y="139.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">index (embed)</text>
+<path d="M440,444 L760,189" stroke="#6d28d9" stroke-width="1.7" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="600.0" y="311.5" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">wf_type routes the run</text>
+<path d="M760,444 L720,204" stroke="#6d28d9" stroke-width="1.7" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="740.0" y="319.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">formula</text>
+<path d="M1070,444 L1070,188" stroke="#6d28d9" stroke-width="1.7" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="1070.0" y="311.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">provider creds</text>
+<path d="M150,444 L1010,192" stroke="#6d28d9" stroke-width="1.7" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="580.0" y="313.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">which store(s) — rule #3</text>
+<path d="M1070,564 L1070,514" stroke="#6d28d9" stroke-width="1.7" fill="none"  marker-end="url(#a)"/>
+<text x="1070.0" y="534.0" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="middle">ledger</text>
+</svg>
