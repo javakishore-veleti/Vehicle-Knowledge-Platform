@@ -117,6 +117,12 @@ export class AppComponent {
       items: [
         { label: 'Agentic Patterns', icon: 'pi pi-android', routerLink: '/resources/design-patterns/agentic-patterns' }
       ]
+    },
+    {
+      label: 'Tools', icon: 'pi pi-wrench', expanded: true,
+      items: [
+        { label: 'Pydantic', icon: 'pi pi-check-square', routerLink: '/resources/tools/pydantic' }
+      ]
     }
   ];
 

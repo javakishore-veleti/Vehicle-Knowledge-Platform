@@ -16,6 +16,7 @@ import { IndexLogsComponent } from './features/data-management/indexing/index-lo
 import { QueryLogComponent } from './features/data-management/guardrails/query-log.component';
 import { AgentRosterComponent } from './features/agents/roster.component';
 import { AgenticPatternsComponent } from './features/resources/agentic-patterns.component';
+import { PydanticComponent } from './features/resources/pydantic.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -23,6 +24,8 @@ export const routes: Routes = [
   { path: 'resources', redirectTo: 'resources/design-patterns/agentic-patterns', pathMatch: 'full' },
   { path: 'resources/design-patterns', redirectTo: 'resources/design-patterns/agentic-patterns', pathMatch: 'full' },
   { path: 'resources/design-patterns/agentic-patterns', component: AgenticPatternsComponent, title: 'Agentic Patterns' },
+  { path: 'resources/tools', redirectTo: 'resources/tools/pydantic', pathMatch: 'full' },
+  { path: 'resources/tools/pydantic', component: PydanticComponent, title: 'Pydantic' },
 
   { path: 'companies', component: CompaniesComponent, title: 'Companies' },
   { path: 'companies/resources', component: ResourcesComponent, title: 'Company Resources' },
