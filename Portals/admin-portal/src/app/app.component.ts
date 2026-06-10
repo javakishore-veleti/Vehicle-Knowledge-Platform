@@ -24,6 +24,9 @@ import { MenuItem } from 'primeng/api';
         <a routerLink="/agents" [class.active]="mainMenu() === 'agents'">
           <i class="pi pi-android"></i> AI Agents
         </a>
+        <a routerLink="/resources" [class.active]="mainMenu() === 'resources'">
+          <i class="pi pi-book"></i> Resources
+        </a>
       </nav>
       <div class="vkp-topbar-right">
         <i class="pi pi-search" title="Search"></i>
@@ -52,6 +55,7 @@ export class AppComponent {
     const u = this.url();
     if (u.startsWith('/data-management')) { return 'data-management'; }
     if (u.startsWith('/agents')) { return 'agents'; }
+    if (u.startsWith('/resources')) { return 'resources'; }
     return 'companies';
   });
 
@@ -107,10 +111,20 @@ export class AppComponent {
     }
   ];
 
+  private readonly resourcesMenu: MenuItem[] = [
+    {
+      label: 'Design Patterns', icon: 'pi pi-sitemap', expanded: true,
+      items: [
+        { label: 'Agentic Patterns', icon: 'pi pi-android', routerLink: '/resources/design-patterns/agentic-patterns' }
+      ]
+    }
+  ];
+
   readonly sideMenu = computed(() => {
     switch (this.mainMenu()) {
       case 'data-management': return this.dataMenu;
       case 'agents': return this.agentsMenu;
+      case 'resources': return this.resourcesMenu;
       default: return this.companiesMenu;
     }
   });
@@ -119,6 +133,7 @@ export class AppComponent {
     switch (this.mainMenu()) {
       case 'data-management': return 'Data Management';
       case 'agents': return 'AI Agents';
+      case 'resources': return 'Resources';
       default: return 'Companies';
     }
   });
