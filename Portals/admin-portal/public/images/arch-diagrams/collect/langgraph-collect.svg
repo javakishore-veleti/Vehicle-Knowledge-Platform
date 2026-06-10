@@ -9,7 +9,7 @@
 <line x1="100" y1="96" x2="100" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
 <rect x="215.0" y="50" width="150" height="46" rx="9" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.5"/><text x="290.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">vehicle-explore-service</text><text x="290.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">/langgraph/collect :8090</text>
 <line x1="290" y1="96" x2="290" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
-<rect x="395.0" y="50" width="150" height="46" rx="9" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="470.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">LangGraph agent</text><text x="470.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">ReAct StateGraph</text>
+<rect x="395.0" y="50" width="150" height="46" rx="9" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="470.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">LangGraph ReAct agent</text><text x="470.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">langgraph_agent.py</text>
 <line x1="470" y1="96" x2="470" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
 <rect x="565.0" y="50" width="150" height="46" rx="9" fill="#fff5e6" stroke="#b45309" stroke-width="1.5"/><text x="640.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">fetch_page tool</text><text x="640.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">tools.py</text>
 <line x1="640" y1="96" x2="640" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
