@@ -24,14 +24,27 @@ import { RouterLink } from '@angular/router';
        through <b>Apache Airflow DAGs</b> (triggered via <code>airflow-adapter-service</code>) and
        <b>persists to the real stores</b>:</p>
     <table class="t">
-      <thead><tr><th>Sub-section</th><th>What it does</th><th>DAG / store</th></tr></thead>
+      <thead><tr><th>Sub-section</th><th>What it does</th><th>DAG / Database (table)</th><th>Database technology</th></tr></thead>
       <tbody>
-        <tr><td><b>Data Collection</b></td><td>discover links from a company's seeds, crawl snapshots</td><td><code>vkp_discover_resources</code> → <code>company_resource_graph</code></td></tr>
-        <tr><td><b>Data Ingestion</b></td><td>fetch each page's <b>actual content</b></td><td><code>vkp_process_resources</code> → <code>company_resource_content</code></td></tr>
-        <tr><td><b>Data Indexing</b></td><td>embed content → vectors (formulas, creds, logs)</td><td><code>vkp_index_*</code> → <code>vkp_vectors.vec_*</code></td></tr>
-        <tr><td><b>Guardrails</b></td><td>the query / safety ledger</td><td><code>user_queries_*</code></td></tr>
+        <tr><td><b>Data Collection</b></td><td>discover links from a company's seeds, crawl snapshots</td>
+            <td><code>vkp_discover_resources</code> → <code>company_resource_graph</code></td>
+            <td>PostgreSQL <span class="dim">— schema <code>vkp_data_collection</code> (H2 in local dev)</span></td></tr>
+        <tr><td><b>Data Ingestion</b></td><td>fetch each page's <b>actual content</b></td>
+            <td><code>vkp_process_resources</code> → <code>company_resource_content</code></td>
+            <td>PostgreSQL <span class="dim">— schema <code>vkp_ingestion</code> (H2 in local dev)</span></td></tr>
+        <tr><td><b>Data Indexing</b></td><td>embed content → vectors (formulas, creds, logs)</td>
+            <td><code>vkp_index_*</code> → <code>vkp_vectors.vec_*</code></td>
+            <td>PostgreSQL + <b>pgvector</b> <span class="dim">for the embeddings (schema <code>vkp_vectors</code>); MongoDB Atlas Vector Search as a config-driven alternative store</span></td></tr>
+        <tr><td><b>Guardrails</b></td><td>the query / safety ledger</td>
+            <td><code>user_queries_*</code></td>
+            <td>PostgreSQL <span class="dim">— schema <code>vkp_guardrails</code></span></td></tr>
       </tbody>
     </table>
+    <p class="note"><b>DB technologies:</b> <b>PostgreSQL</b> is the backbone — one <code>postgres</code>
+       database with per-service <code>vkp_*</code> schemas; the embeddings table uses the <b>pgvector</b>
+       extension. In local dev the Java services default to in-memory <b>H2</b> (Postgres in the
+       <code>postgres</code> profile / deploy). <b>MongoDB</b> is a config-driven alternative vector
+       store and also backs CEF chat memory.</p>
     <p>It's <b>batch, scheduled/triggered, stateful, recorded</b> (runs, ledgers, logs) — the way you'd
        actually populate the knowledge base for thousands of pages.</p>
 
@@ -98,6 +111,8 @@ import { RouterLink } from '@angular/router';
     .t thead th { background:#f6f1ff; color:#4c1d95; }
     .t tbody tr:hover { background:#faf8ff; }
     .t td:first-child { white-space:nowrap; }
+    .t .dim { color:#94a3b8; font-size:.84rem; }
+    .arch .note { background:#f1fdf7; border:1px solid #c5f0db; border-left:3px solid #0f8a5f; border-radius:6px; padding:.6rem .85rem; font-size:.88rem; line-height:1.6; color:#344054; }
     .arch .frame { background:#f7f9ff; border:1px solid #e0e7ff; border-left:3px solid #3538cd; border-radius:6px; padding:.75rem .95rem; font-size:.92rem; line-height:1.65; color:#344054; }
     .arch .frame a { color:#3538cd; }
   `]
