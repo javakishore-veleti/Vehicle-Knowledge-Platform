@@ -19,6 +19,7 @@ import { AgenticPatternsComponent } from './features/resources/agentic-patterns.
 import { PydanticComponent } from './features/resources/pydantic.component';
 import { DmPipelinesComponent } from './features/resources/dm-pipelines.component';
 import { InteractiveLabComponent } from './features/resources/interactive-lab.component';
+import { CollectionVsIngestionComponent } from './features/resources/collection-vs-ingestion.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -31,6 +32,7 @@ export const routes: Routes = [
   { path: 'resources/architecture', redirectTo: 'resources/architecture/data-management/pipelines', pathMatch: 'full' },
   { path: 'resources/architecture/data-management/pipelines', component: DmPipelinesComponent, title: 'Data Management Pipelines' },
   { path: 'resources/architecture/data-management/interactive-lab', component: InteractiveLabComponent, title: 'Interactive Lab' },
+  { path: 'resources/architecture/data-management/collection-vs-ingestion', component: CollectionVsIngestionComponent, title: 'Collection vs Ingestion' },
 
   { path: 'companies', component: CompaniesComponent, title: 'Companies' },
   { path: 'companies/resources', component: ResourcesComponent, title: 'Company Resources' },
