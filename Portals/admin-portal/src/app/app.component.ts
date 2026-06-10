@@ -113,6 +113,17 @@ export class AppComponent {
 
   private readonly resourcesMenu: MenuItem[] = [
     {
+      label: 'Architecture', icon: 'pi pi-objects-column', expanded: true,
+      items: [
+        {
+          label: 'Data Management', icon: 'pi pi-sitemap', expanded: true,
+          items: [
+            { label: 'Pipelines', icon: 'pi pi-bolt', routerLink: '/resources/architecture/data-management/pipelines' }
+          ]
+        }
+      ]
+    },
+    {
       label: 'Design Patterns', icon: 'pi pi-sitemap', expanded: true,
       items: [
         { label: 'Agentic Patterns', icon: 'pi pi-android', routerLink: '/resources/design-patterns/agentic-patterns' }
