@@ -11,24 +11,20 @@ import com.jk.labs.vkp.datacollection.common.dto.snapshot.SnapshotCompanyDTO;
 import com.jk.labs.vkp.datacollection.common.dto.snapshot.SnapshotImageRefDTO;
 import com.jk.labs.vkp.datacollection.common.dto.snapshot.SnapshotPageDTO;
 import com.jk.labs.vkp.datacollection.common.error.ResourceNotFoundException;
+import com.jk.labs.vkp.datacollection.service.snapshot.SnapshotStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
- * Reads crawl snapshots from the local filesystem (the same folder the crawl DAG writes,
- * which this host-run service can read directly). Pagination is seek-by-file: each
- * crawl-NNNNN.json holds exactly {@code PAGE_SIZE} elements, so a page request reads only
- * the file(s) covering [offset, offset+limit) — never the whole snapshot.
+ * Reads crawl snapshots through a {@link SnapshotStore} (local FS, S3, Azure Blob, or GCS — selected by
+ * {@code vkp.snapshot.backend}), so the Browser works regardless of where the crawl DAG wrote the bytes.
+ * Pagination is seek-by-file: each crawl-NNNNN.json holds exactly {@code PAGE_SIZE} elements, so a page
+ * request reads only the file(s) covering [offset, offset+limit) — never the whole snapshot.
  */
 @Service
 @Slf4j
@@ -40,9 +36,7 @@ public class SnapshotService {
     private static final int MAX_LIMIT = 200;
 
     private final ObjectMapper mapper;
-
-    @Value("${datacollection.snapshot-dir:${user.home}/runtime_data/ai_projects/Vehicle-Knowledge-Platform/Crawling-Snapshot}")
-    private String snapshotDir;
+    private final SnapshotStore store;
 
     /** Raw image bytes + content type for serving. */
     public record ImageData(byte[] data, String contentType) {
@@ -54,10 +48,10 @@ public class SnapshotService {
 
     /** Read every page's url/title/depth across all crawl files (used by graph registration). */
     public List<PageRef> collectPageRefs(String company) {
-        Path dir = resolveCompanyDir(company);
+        validateCompany(company);
         List<PageRef> out = new ArrayList<>();
-        for (Path f : crawlFiles(dir)) {
-            JsonNode arr = readJson(f);
+        for (String key : crawlFiles(company)) {
+            JsonNode arr = readJson(key);
             if (arr == null || !arr.isArray()) {
                 continue;
             }
@@ -73,25 +67,20 @@ public class SnapshotService {
     }
 
     public void listCompanies(ListSnapshotsCtx ctx) {
-        Path base = Path.of(snapshotDir);
         List<SnapshotCompanyDTO> out = new ArrayList<>();
-        if (Files.isDirectory(base)) {
-            try (Stream<Path> dirs = Files.list(base)) {
-                dirs.filter(Files::isDirectory).sorted().forEach(d -> out.add(readCompany(d)));
-            } catch (IOException e) {
-                log.warn("Failed to list snapshot dir {}: {}", base, e.getMessage());
-            }
+        for (String company : store.listCompanies()) {
+            out.add(readCompany(company));
         }
         ctx.setRespDTO(new ListSnapshotsRespDTO(out, out.size()));
     }
 
     public void listPages(ListPagesCtx ctx) {
         ListPagesReqDTO req = ctx.getReqDTO();
-        Path dir = resolveCompanyDir(req.getCompany());
+        validateCompany(req.getCompany());
         int offset = Math.max(0, req.getOffset());
         int limit = req.getLimit() > 0 ? Math.min(req.getLimit(), MAX_LIMIT) : 50;
 
-        List<Path> files = crawlFiles(dir);
+        List<String> files = crawlFiles(req.getCompany());
         int total = totalPages(files);
 
         List<SnapshotPageDTO> pages = new ArrayList<>();
@@ -111,67 +100,60 @@ public class SnapshotService {
     }
 
     public ImageData readImage(String company, String imageId) {
+        validateCompany(company);
         if (imageId == null || !imageId.matches("[a-fA-F0-9]{8,64}")) {
             throw new ResourceNotFoundException("Invalid image id");
         }
-        Path imagesDir = resolveCompanyDir(company).resolve("images");
-        if (!Files.isDirectory(imagesDir)) {
-            throw new ResourceNotFoundException("No images for company");
-        }
-        try (Stream<Path> s = Files.list(imagesDir)) {
-            Path file = s.filter(p -> p.getFileName().toString().startsWith(imageId + ".")).findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Image not found: " + imageId));
-            byte[] data = Files.readAllBytes(file);
-            String ct = contentType(file.getFileName().toString());
-            if ("application/octet-stream".equals(ct)) {
-                String sniffed = sniff(data);
-                if (sniffed != null) {
-                    ct = sniffed;
-                }
-            }
-            return new ImageData(data, ct);
-        } catch (IOException e) {
+        String file = store.listFiles(company, "images").stream()
+                .filter(n -> n.startsWith(imageId + "."))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found: " + imageId));
+        byte[] data = store.read(company + "/images/" + file);
+        if (data == null) {
             throw new ResourceNotFoundException("Image not readable: " + imageId);
         }
+        String ct = contentType(file);
+        if ("application/octet-stream".equals(ct)) {
+            String sniffed = sniff(data);
+            if (sniffed != null) {
+                ct = sniffed;
+            }
+        }
+        return new ImageData(data, ct);
     }
 
     // ------------------------------------------------------------------
-    private SnapshotCompanyDTO readCompany(Path dir) {
-        String name = dir.getFileName().toString();
-        Path manifest = dir.resolve("__COMPLETED__").resolve("manifest.json");
-        boolean completed = Files.exists(manifest);
-        List<Path> files = crawlFiles(dir);
+    private SnapshotCompanyDTO readCompany(String company) {
+        boolean completed = store.exists(company + "/__COMPLETED__/manifest.json");
+        List<String> files = crawlFiles(company);
         int pages = totalPages(files);
-        int images = countDir(dir.resolve("images"));
+        int images = store.listFiles(company, "images").size();
         String completedAt = null;
         if (completed) {
-            JsonNode m = readJson(manifest);
+            JsonNode m = readJson(company + "/__COMPLETED__/manifest.json");
             if (m != null) {
                 completedAt = m.path("completed_at").asText(null);
             }
         }
         return SnapshotCompanyDTO.builder()
-                .company(name).completed(completed)
+                .company(company).completed(completed)
                 .pages(pages).files(files.size()).images(images).completedAt(completedAt)
                 .build();
     }
 
-    private List<Path> crawlFiles(Path dir) {
-        if (!Files.isDirectory(dir)) {
-            return List.of();
+    /** Relative keys of the company's crawl-*.json files, sorted (the store already sorts leaf names). */
+    private List<String> crawlFiles(String company) {
+        List<String> out = new ArrayList<>();
+        for (String name : store.listFiles(company, "")) {
+            if (name.startsWith("crawl-") && name.endsWith(".json")) {
+                out.add(company + "/" + name);
+            }
         }
-        try (Stream<Path> s = Files.list(dir)) {
-            return s.filter(p -> {
-                String n = p.getFileName().toString();
-                return n.startsWith("crawl-") && n.endsWith(".json");
-            }).sorted(Comparator.comparing(p -> p.getFileName().toString())).toList();
-        } catch (IOException e) {
-            return List.of();
-        }
+        return out;
     }
 
     /** total = (numFiles-1)*PAGE_SIZE + size(last file); reads only the last file. */
-    private int totalPages(List<Path> files) {
+    private int totalPages(List<String> files) {
         if (files.isEmpty()) {
             return 0;
         }
@@ -204,35 +186,22 @@ public class SnapshotService {
                 .build();
     }
 
-    private Path resolveCompanyDir(String company) {
+    private void validateCompany(String company) {
         if (company == null || company.isBlank() || company.contains("/") || company.contains("..")) {
             throw new ResourceNotFoundException("Invalid company");
         }
-        Path base = Path.of(snapshotDir).toAbsolutePath().normalize();
-        Path dir = base.resolve(company).normalize();
-        if (!dir.startsWith(base) || !Files.isDirectory(dir)) {
-            throw new ResourceNotFoundException("Snapshot not found: " + company);
-        }
-        return dir;
     }
 
-    private JsonNode readJson(Path file) {
-        try {
-            return mapper.readTree(file.toFile());
-        } catch (IOException e) {
-            log.warn("Failed to read {}: {}", file, e.getMessage());
+    private JsonNode readJson(String relKey) {
+        byte[] data = store.read(relKey);
+        if (data == null) {
             return null;
         }
-    }
-
-    private int countDir(Path dir) {
-        if (!Files.isDirectory(dir)) {
-            return 0;
-        }
-        try (Stream<Path> s = Files.list(dir)) {
-            return (int) s.filter(Files::isRegularFile).count();
+        try {
+            return mapper.readTree(data);
         } catch (IOException e) {
-            return 0;
+            log.warn("Failed to parse {}: {}", relKey, e.getMessage());
+            return null;
         }
     }
 
