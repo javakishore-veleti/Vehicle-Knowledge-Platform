@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 600" font-family="Inter,Segoe UI,Roboto,Arial,sans-serif">
+<defs>
+  <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6d28d9"/></marker>
+  <marker id="arro" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/></marker>
+</defs>
+<rect x="0" y="0" width="1180" height="600" fill="#ffffff"/>
+<text x="590.0" y="30" text-anchor="middle" font-size="18" font-weight="800" fill="#065f46">agentic-service — architecture (:8092, FastAPI · isolated venv)</text>
+<rect x="40" y="56" width="1100" height="56" rx="10" fill="#e7faf1" stroke="#0f8a5f" stroke-width="1.5"/><text x="590.0" y="80.0" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">REST API  (app/main.py)</text><text x="590.0" y="97.0" text-anchor="middle" font-size="11" fill="#64748b">GET /agentic/frameworks (coverage matrix)   |   POST /agentic/{stage}/{framework}/run</text>
+<rect x="40" y="140" width="540" height="70" rx="10" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="310.0" y="171.0" text-anchor="middle" font-size="13" font-weight="700" fill="#4c1d95">frameworks/ registry  (_base + per-SDK adapters)</text><text x="310.0" y="188.0" text-anchor="middle" font-size="11" fill="#64748b">STAGES = collect · index · search   x   frameworks</text>
+<rect x="56" y="226" width="120" height="34" rx="8" fill="#ecfdf3" stroke="#0f8a5f"/>
+<text x="116" y="247" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">openai-agents</text>
+<rect x="188" y="226" width="120" height="34" rx="8" fill="#ecfdf3" stroke="#0f8a5f"/>
+<text x="248" y="247" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">google-adk</text>
+<rect x="320" y="226" width="120" height="34" rx="8" fill="#ecfdf3" stroke="#0f8a5f"/>
+<text x="380" y="247" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">msagent</text>
+<rect x="452" y="226" width="120" height="34" rx="8" fill="#ecfdf3" stroke="#0f8a5f"/>
+<text x="512" y="247" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">strands</text>
+<rect x="56" y="270" width="120" height="34" rx="8" fill="#eef2ff" stroke="#3538cd"/>
+<text x="116" y="291" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">langgraph</text>
+<rect x="188" y="270" width="120" height="34" rx="8" fill="#eef2ff" stroke="#3538cd"/>
+<text x="248" y="291" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">crewai</text>
+<rect x="320" y="270" width="120" height="34" rx="8" fill="#eef2ff" stroke="#3538cd"/>
+<text x="380" y="291" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">llamaindex</text>
+<rect x="452" y="270" width="120" height="34" rx="8" fill="#eef2ff" stroke="#3538cd"/>
+<text x="512" y="291" text-anchor="middle" font-size="11" font-weight="700" fill="#1f2933">haystack</text>
+<text x="56" y="320" text-anchor="start" font-size="10" font-weight="500" fill="#94a3b8">green = new agent SDKs · blue = classic frameworks (also in explore)</text>
+<rect x="640" y="140" width="500" height="36" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/><text x="890.0" y="162.0" text-anchor="middle" font-size="12" font-weight="700" fill="#475569">Per-stage flow (registry.run dispatches to the chosen framework)</text>
+<rect x="640" y="188" width="500" height="50" rx="8" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="890.0" y="209.0" text-anchor="middle" font-size="12" font-weight="700" fill="#831843">collect</text><text x="890.0" y="226.0" text-anchor="middle" font-size="11" fill="#64748b">agent discovers links -&gt; platform.record_graph()</text>
+<rect x="640" y="248" width="500" height="50" rx="8" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="890.0" y="269.0" text-anchor="middle" font-size="12" font-weight="700" fill="#831843">index</text><text x="890.0" y="286.0" text-anchor="middle" font-size="11" fill="#64748b">agent chunks + embeds -&gt; indexer -&gt; vkp_vectors</text>
+<rect x="640" y="308" width="500" height="50" rx="8" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="890.0" y="329.0" text-anchor="middle" font-size="12" font-weight="700" fill="#831843">search</text><text x="890.0" y="346.0" text-anchor="middle" font-size="11" fill="#64748b">agent retrieves from vkp_vectors -&gt; cited answer</text>
+<text x="590.0" y="400" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">Data stores  &amp;  external dependencies</text>
+<rect x="90" y="420" width="200" height="70" rx="10" fill="#fff5e6" stroke="#b45309" stroke-width="1.5"/>
+<text x="190" y="442" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">Postgres</text>
+<text x="190" y="460" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">vkp_vectors.vec_* (shared</text>
+<text x="190" y="474" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">embeddings table)</text>
+<rect x="390" y="420" width="200" height="70" rx="10" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="490" y="442" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">data-collection</text>
+<text x="490" y="460" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">:8084 persist resource graph</text>
+<rect x="690" y="420" width="200" height="70" rx="10" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="790" y="442" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">indexing-service</text>
+<text x="790" y="460" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">:8086 report to index ledger</text>
+<rect x="990" y="420" width="200" height="70" rx="10" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+<text x="1090" y="442" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">LLM vendors</text>
+<text x="1090" y="460" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">OpenAI · Groq · Google</text>
+<text x="1090" y="474" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">Microsoft · AWS</text>
+<rect x="40" y="520" width="1100" height="46" rx="10" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/><text x="590.0" y="539.0" text-anchor="middle" font-size="12" font-weight="700" fill="#334155">Isolated from vehicle-explore-service so heavy modern agent SDKs don't collide with explore's legacy dependency pins</text><text x="590.0" y="556.0" text-anchor="middle" font-size="11" fill="#64748b">explore's /roster + reasoning call this service over HTTP</text>
+<line x1="310" y1="112" x2="310" y2="140" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<line x1="880" y1="112" x2="880" y2="140" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+</svg>

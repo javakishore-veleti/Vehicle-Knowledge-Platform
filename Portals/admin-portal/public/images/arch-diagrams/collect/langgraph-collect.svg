@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 660" font-family="Inter,Segoe UI,Roboto,Arial,sans-serif">
+<defs>
+  <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6d28d9"/></marker>
+  <marker id="arro" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/></marker>
+</defs>
+<rect x="0" y="0" width="1280" height="660" fill="#ffffff"/>
+<text x="640.0" y="30" text-anchor="middle" font-size="18" font-weight="800" fill="#4c1d95">LangGraph · collect stage — sequence</text>
+<rect x="25.0" y="50" width="150" height="46" rx="9" fill="#ede7ff" stroke="#7c3aed" stroke-width="1.5"/><text x="100.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">Admin Portal</text><text x="100.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">Agent Roster</text>
+<line x1="100" y1="96" x2="100" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="215.0" y="50" width="150" height="46" rx="9" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.5"/><text x="290.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">vehicle-explore-service</text><text x="290.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">/langgraph/collect :8090</text>
+<line x1="290" y1="96" x2="290" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="395.0" y="50" width="150" height="46" rx="9" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="470.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">LangGraph agent</text><text x="470.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">ReAct StateGraph</text>
+<line x1="470" y1="96" x2="470" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="565.0" y="50" width="150" height="46" rx="9" fill="#fff5e6" stroke="#b45309" stroke-width="1.5"/><text x="640.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">fetch_page tool</text><text x="640.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">tools.py</text>
+<line x1="640" y1="96" x2="640" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="725.0" y="50" width="150" height="46" rx="9" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/><text x="800.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">Seed website</text><text x="800.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">e.g. toyota.com</text>
+<line x1="800" y1="96" x2="800" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="875.0" y="50" width="150" height="46" rx="9" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/><text x="950.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">LLM</text><text x="950.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">Groq / OpenAI</text>
+<line x1="950" y1="96" x2="950" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<rect x="1065.0" y="50" width="150" height="46" rx="9" fill="#e7faf1" stroke="#0f8a5f" stroke-width="1.5"/><text x="1140.0" y="69.0" text-anchor="middle" font-size="12" font-weight="700" fill="#1f2933">data-collection</text><text x="1140.0" y="86.0" text-anchor="middle" font-size="11" fill="#64748b">:8084 (opt persist)</text>
+<line x1="1140" y1="96" x2="1140" y2="620" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3 4"/>
+<line x1="100" y1="126" x2="290" y2="126" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<text x="195.0" y="120" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">1. POST /api/vehicle-explore/langgraph/collect  {seedUrl}</text>
+<line x1="290" y1="166" x2="470" y2="166" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<text x="380.0" y="160" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">2. dispatch_collect -&gt; collect_flow(seed)</text>
+<line x1="470" y1="206" x2="640" y2="206" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<text x="555.0" y="200" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">3. fetch_page(seed)</text>
+<line x1="640" y1="246" x2="800" y2="246" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<text x="720.0" y="240" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">4. HTTP GET seed URL</text>
+<line x1="800" y1="286" x2="640" y2="286" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arro)"/>
+<text x="720.0" y="280" text-anchor="middle" font-size="11" font-weight="500" fill="#64748b">5. HTML + anchor links</text>
+<line x1="640" y1="326" x2="470" y2="326" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arro)"/>
+<text x="555.0" y="320" text-anchor="middle" font-size="11" font-weight="500" fill="#64748b">6. page links</text>
+<line x1="470" y1="366" x2="950" y2="366" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<text x="710.0" y="360" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">7. prompt: pick the most relevant vehicle links</text>
+<line x1="950" y1="406" x2="470" y2="406" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arro)"/>
+<text x="710.0" y="400" text-anchor="middle" font-size="11" font-weight="500" fill="#64748b">8. JSON array of links</text>
+<line x1="470" y1="446" x2="290" y2="446" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arro)"/>
+<text x="380.0" y="440" text-anchor="middle" font-size="11" font-weight="500" fill="#64748b">9. links text -&gt; parse_links() (structured)</text>
+<line x1="290" y1="486" x2="1140" y2="486" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<text x="715.0" y="480" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">10. POST /graph/record   (only if persist=true)</text>
+<line x1="1140" y1="526" x2="290" y2="526" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arro)"/>
+<text x="715.0" y="520" text-anchor="middle" font-size="11" font-weight="500" fill="#64748b">11. company_resource_graph rows inserted (Postgres)</text>
+<line x1="290" y1="566" x2="100" y2="566" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arro)"/>
+<text x="195.0" y="560" text-anchor="middle" font-size="11" font-weight="500" fill="#64748b">12. { count, links, source, providers, latencyMs }</text>
+<rect x="320" y="612" width="430" height="40" rx="8" fill="#fff7ed" stroke="#f59e0b"/>
+<text x="330" y="629" text-anchor="start" font-size="11" font-weight="600" fill="#7c2d12">Note: if the agent fails or returns no links, collect_flow falls</text>
+<text x="330" y="643" text-anchor="start" font-size="11" font-weight="600" fill="#7c2d12">back to a direct fetch_page crawl (source = "fallback").</text>
+</svg>

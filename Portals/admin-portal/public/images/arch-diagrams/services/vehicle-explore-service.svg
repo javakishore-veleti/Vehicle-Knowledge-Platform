@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" font-family="Inter,Segoe UI,Roboto,Arial,sans-serif">
+<defs>
+  <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6d28d9"/></marker>
+  <marker id="arro" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/></marker>
+</defs>
+<rect x="0" y="0" width="1180" height="760" fill="#ffffff"/>
+<text x="590.0" y="30" text-anchor="middle" font-size="18" font-weight="800" fill="#1e3a8a">vehicle-explore-service — architecture (:8090, FastAPI)</text>
+<rect x="40" y="56" width="1100" height="56" rx="10" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.5"/><text x="590.0" y="80.0" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">REST API  (app/main.py)</text><text x="590.0" y="97.0" text-anchor="middle" font-size="11" fill="#64748b">GET /roster · /frameworks · /providers   |   POST /{framework}/search · /collect · /index   |   GET /logs · /logs/{id}</text>
+<rect x="40" y="130" width="340" height="300" rx="12" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="54" y="150" text-anchor="start" font-size="12" font-weight="800" fill="#475569">SEARCH</text>
+<text x="54" y="166" text-anchor="start" font-size="10" font-weight="500" fill="#94a3b8">frameworks.py routes by {framework}</text>
+<rect x="54" y="178" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="210.0" y="199.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">langgraph_agent</text><text x="210.0" y="216.0" text-anchor="middle" font-size="11" fill="#64748b">ReAct retrieve-&gt;generate</text>
+<rect x="54" y="238" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="210.0" y="259.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">crewai · llamaindex · haystack</text><text x="210.0" y="276.0" text-anchor="middle" font-size="11" fill="#64748b">agent adapters</text>
+<rect x="54" y="298" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="210.0" y="319.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">search.py</text><text x="210.0" y="336.0" text-anchor="middle" font-size="11" fill="#64748b">pgVector: vector / fts / hybrid</text>
+<rect x="54" y="358" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="210.0" y="379.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">providers.py</text><text x="210.0" y="396.0" text-anchor="middle" font-size="11" fill="#64748b">LLM fan-out (compare N)</text>
+<rect x="420" y="130" width="340" height="300" rx="12" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="434" y="150" text-anchor="start" font-size="12" font-weight="800" fill="#475569">COLLECT + INDEX</text>
+<text x="434" y="166" text-anchor="start" font-size="10" font-weight="500" fill="#94a3b8">agentic_stages.py (per-framework registry)</text>
+<rect x="434" y="178" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="590.0" y="199.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">collect_flow</text><text x="590.0" y="216.0" text-anchor="middle" font-size="11" fill="#64748b">agent -&gt; tools.fetch_page -&gt; links</text>
+<rect x="434" y="238" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="590.0" y="259.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">index_flow</text><text x="590.0" y="276.0" text-anchor="middle" font-size="11" fill="#64748b">chunk + embed</text>
+<rect x="434" y="298" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="590.0" y="319.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">agentic_indexer.py</text><text x="590.0" y="336.0" text-anchor="middle" font-size="11" fill="#64748b">write vectors -&gt; vkp_vectors</text>
+<rect x="434" y="358" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="590.0" y="379.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">tools.py</text><text x="590.0" y="396.0" text-anchor="middle" font-size="11" fill="#64748b">fetch_page crawler</text>
+<rect x="800" y="130" width="340" height="300" rx="12" fill="none" stroke="#cbd5e1" stroke-dasharray="4 4"/>
+<text x="814" y="150" text-anchor="start" font-size="12" font-weight="800" fill="#475569">CROSS-CUTTING</text>
+<text x="814" y="166" text-anchor="start" font-size="10" font-weight="500" fill="#94a3b8">applied to every request</text>
+<rect x="814" y="178" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="970.0" y="199.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">guardrails.py</text><text x="970.0" y="216.0" text-anchor="middle" font-size="11" fill="#64748b">-&gt; guardrails-service :8091</text>
+<rect x="814" y="238" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="970.0" y="259.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">session.py</text><text x="970.0" y="276.0" text-anchor="middle" font-size="11" fill="#64748b">decrypt shared session token</text>
+<rect x="814" y="298" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="970.0" y="319.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">request_log.py</text><text x="970.0" y="336.0" text-anchor="middle" font-size="11" fill="#64748b">veh_search_request_log telemetry</text>
+<rect x="814" y="358" width="312" height="50" rx="8" fill="#faf8ff" stroke="#a855f7" stroke-width="1.5"/><text x="970.0" y="379.0" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">telemetry.py / metrics.py</text><text x="970.0" y="396.0" text-anchor="middle" font-size="11" fill="#64748b">OTel + Prometheus</text>
+<text x="590.0" y="470" text-anchor="middle" font-size="13" font-weight="700" fill="#475569">Data stores  &amp;  external dependencies</text>
+<rect x="40" y="490" width="200" height="70" rx="10" fill="#fff5e6" stroke="#b45309" stroke-width="1.5"/>
+<text x="140" y="512" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">Postgres</text>
+<text x="140" y="530" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">vkp_vectors.vec_* (embeddings)</text>
+<text x="140" y="544" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">vkp_explore.veh_search_request_log</text>
+<rect x="340" y="490" width="200" height="70" rx="10" fill="#fff5e6" stroke="#b45309" stroke-width="1.5"/>
+<text x="440" y="512" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">MongoDB</text>
+<text x="440" y="530" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">alt vector store + sessions</text>
+<rect x="640" y="490" width="200" height="70" rx="10" fill="#e7faf1" stroke="#0f8a5f" stroke-width="1.5"/>
+<text x="740" y="512" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">guardrails-service</text>
+<text x="740" y="530" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">:8091 input/output safety</text>
+<rect x="940" y="490" width="200" height="70" rx="10" fill="#f1f5f9" stroke="#475569" stroke-width="1.5"/>
+<text x="1040" y="512" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2933">LLM vendors</text>
+<text x="1040" y="530" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">OpenAI · Groq · Gemini</text>
+<text x="1040" y="544" text-anchor="middle" font-size="10" font-weight="500" fill="#64748b">Anthropic · Bedrock</text>
+<rect x="40" y="590" width="1100" height="50" rx="10" fill="#fdeef6" stroke="#be185d" stroke-width="1.5"/><text x="590.0" y="611.0" text-anchor="middle" font-size="12" font-weight="700" fill="#831843">Also: /roster aggregates agentic-service (:8092); reasoning can route to the agentic roster</text><text x="590.0" y="628.0" text-anchor="middle" font-size="11" fill="#64748b">the 8-framework matrix the Agent Roster page renders comes from here</text>
+<line x1="210" y1="112" x2="210" y2="130" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<line x1="590" y1="112" x2="590" y2="130" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+<line x1="970" y1="112" x2="970" y2="130" stroke="#6d28d9" stroke-width="1.6"  marker-end="url(#arr)"/>
+</svg>

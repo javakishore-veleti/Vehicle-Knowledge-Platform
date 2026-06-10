@@ -65,7 +65,22 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
     <section class="vkp-info">
       <h3>What are these, and how are they invoked?</h3>
 
-      <details open>
+      <details open class="diagrams-acc">
+        <summary>Architecture diagrams</summary>
+        <div>
+          <p>Visual reference for how a stage runs and how the two services are built. More diagrams
+             drop into <code>public/images/arch-diagrams/</code> and are listed here.</p>
+          <div class="diagram" *ngFor="let d of diagrams">
+            <div class="dtitle">{{ d.title }}</div>
+            <div class="ddesc">{{ d.desc }}</div>
+            <a [href]="d.src" target="_blank" rel="noopener" [title]="'Open ' + d.title + ' full size'">
+              <img [src]="d.src" [alt]="d.title" loading="lazy" />
+            </a>
+          </div>
+        </div>
+      </details>
+
+      <details>
         <summary>They are HTTP APIs — not Apache Airflow DAGs</summary>
         <div>
           <p>Each framework is invoked as a <b>synchronous REST call</b> to a FastAPI service — the
@@ -151,9 +166,30 @@ import { AgentRosterService, Roster } from '../../core/agent-roster.service';
     .vkp-info details > div p { margin:.4rem 0; }
     .vkp-info ul { margin:.3rem 0; padding-left:1.2rem; }
     .vkp-info code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.82rem; }
+    .diagrams-acc { max-width:none; }
+    .diagram { margin:1rem 0 1.25rem; }
+    .diagram .dtitle { font-weight:700; color:#1f2933; font-size:.95rem; }
+    .diagram .ddesc { color:#64748b; font-size:.84rem; margin:.15rem 0 .5rem; }
+    .diagram img { width:100%; max-width:1180px; border:1px solid #eaecf0; border-radius:10px; background:#fff;
+      box-shadow:0 1px 2px rgba(124,58,237,.08), 0 8px 24px rgba(124,58,237,.08); }
+    .diagram a:hover img { border-color:#a855f7; }
   `]
 })
 export class AgentRosterComponent implements OnInit {
+  /** Architecture diagrams shown in the accordion. Add an entry + an SVG under
+   *  public/images/arch-diagrams/ to extend (e.g. an index/search sequence per framework). */
+  readonly diagrams = [
+    { title: 'LangGraph · collect — sequence',
+      desc: 'How the Run button drives the collect stage: explore → LangGraph agent → fetch_page tool → website → LLM → links (+ optional persist).',
+      src: '/images/arch-diagrams/collect/langgraph-collect.svg' },
+    { title: 'vehicle-explore-service — architecture',
+      desc: 'The :8090 FastAPI service: search/collect/index APIs, the 4 classic frameworks, retrieval, providers, guardrails, telemetry and stores.',
+      src: '/images/arch-diagrams/services/vehicle-explore-service.svg' },
+    { title: 'agentic-service — architecture',
+      desc: 'The :8092 FastAPI service: the framework registry (8 SDKs) across the collect/index/search stages, in an isolated venv.',
+      src: '/images/arch-diagrams/services/agentic-service.svg' },
+  ];
+
   readonly roster = signal<Roster | null>(null);
   readonly error = signal<string>('');
   readonly result = signal<string>('');
