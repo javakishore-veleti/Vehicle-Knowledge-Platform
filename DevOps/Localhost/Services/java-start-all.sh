@@ -10,6 +10,11 @@ mkdir -p "$RUN_DIR"
 
 ROOTS=("$ROOT/Middleware" "$ROOT/ContextEnggFramework/Middleware")
 
+# Local dev: disable the vkp-jwt-rbac filter so the Airflow DAGs (and curl) can call the services'
+# /admin/** endpoints without minting a JWT. The portal still works (it just stops needing its token).
+# Deploy keeps JWT ON — the k8s ConfigMap sets VKP_JWT_ENABLED=true. Override by exporting it first.
+export VKP_JWT_ENABLED="${VKP_JWT_ENABLED:-false}"
+
 mvn_cmd() { command -v mvn >/dev/null 2>&1 && echo "mvn" || echo "./mvnw"; }
 
 found=0
