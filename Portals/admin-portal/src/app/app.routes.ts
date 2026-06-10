@@ -18,6 +18,7 @@ import { AgentRosterComponent } from './features/agents/roster.component';
 import { AgenticPatternsComponent } from './features/resources/agentic-patterns.component';
 import { PydanticComponent } from './features/resources/pydantic.component';
 import { DmPipelinesComponent } from './features/resources/dm-pipelines.component';
+import { InteractiveLabComponent } from './features/resources/interactive-lab.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -29,6 +30,7 @@ export const routes: Routes = [
   { path: 'resources/tools/pydantic', component: PydanticComponent, title: 'Pydantic' },
   { path: 'resources/architecture', redirectTo: 'resources/architecture/data-management/pipelines', pathMatch: 'full' },
   { path: 'resources/architecture/data-management/pipelines', component: DmPipelinesComponent, title: 'Data Management Pipelines' },
+  { path: 'resources/architecture/data-management/interactive-lab', component: InteractiveLabComponent, title: 'Interactive Lab' },
 
   { path: 'companies', component: CompaniesComponent, title: 'Companies' },
   { path: 'companies/resources', component: ResourcesComponent, title: 'Company Resources' },

@@ -118,7 +118,8 @@ export class AppComponent {
         {
           label: 'Data Management', icon: 'pi pi-sitemap', expanded: true,
           items: [
-            { label: 'Pipelines', icon: 'pi pi-bolt', routerLink: '/resources/architecture/data-management/pipelines' }
+            { label: 'Pipelines', icon: 'pi pi-bolt', routerLink: '/resources/architecture/data-management/pipelines' },
+            { label: 'Interactive Lab', icon: 'pi pi-flask', routerLink: '/resources/architecture/data-management/interactive-lab' }
           ]
         }
       ]
