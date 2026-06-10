@@ -20,60 +20,84 @@ const CRAWL_DAG = 'vkp_crawl_company_snapshot';
   template: `
   <h1 class="vkp-page-title">Data Collection <span class="vkp-muted">› Crawl Snapshot</span></h1>
 
-  <div class="vkp-card" style="margin-bottom:1.25rem;">
-    <div class="vkp-toolbar" style="flex-wrap:wrap;">
-      <div>
-        <label style="display:block;font-weight:600;margin-bottom:.3rem;">Company</label>
-        <select [(ngModel)]="companyId" style="padding:.5rem;border:1px solid var(--vkp-border);border-radius:6px;min-width:240px;">
-          <option *ngFor="let c of companies" [value]="c.companyId">{{ c.name }}</option>
-        </select>
-      </div>
-      <div>
-        <label style="display:block;font-weight:600;margin-bottom:.3rem;">Max pages</label>
-        <input type="number" min="1" [(ngModel)]="maxPages" style="width:120px;padding:.5rem;border:1px solid var(--vkp-border);border-radius:6px;" />
-      </div>
-      <div>
-        <label style="display:block;font-weight:600;margin-bottom:.3rem;">Max depth</label>
-        <input type="number" min="0" [(ngModel)]="maxDepth" style="width:120px;padding:.5rem;border:1px solid var(--vkp-border);border-radius:6px;" />
-      </div>
-      <span class="vkp-spacer"></span>
-      <p-button label="Trigger Crawl" icon="pi pi-bolt" (onClick)="trigger()" [disabled]="!companyId || running"></p-button>
+  <details open class="cr-acc">
+    <summary>What is Crawl Snapshot?</summary>
+    <div>
+      <p>Crawl Snapshot runs a <b>real headless-browser (Playwright/Chromium) recursive crawl</b> of a
+         company's site and saves a <b>filesystem snapshot</b> (pages + images) under
+         <code>Crawling-Snapshot/&lt;Company&gt;/</code> — it does <b>not</b> write the database. It's a
+         heavier, browser-based alternative to the link-only discovery DAG, handy for JavaScript-rendered
+         sites. Large crawls run in the background; a <code>__COMPLETED__</code> marker makes a re-crawl skip.</p>
     </div>
-    <div *ngIf="message" style="background:#e8f4ea;color:#1c5b2c;border:1px solid #b4dcc0;padding:.6rem .9rem;border-radius:6px;">{{ message }}</div>
-    <div *ngIf="error" style="background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;padding:.6rem .9rem;border-radius:6px;">{{ error }}</div>
-    <p class="vkp-muted" style="margin:.75rem 0 0;font-size:.85rem;">
-      Runs a real (Playwright/Chromium) recursive crawl and stores a filesystem snapshot under
-      <code>Crawling-Snapshot/&lt;Company&gt;/</code>. Large crawls run in the background — watch the runs below.
-      Re-crawling a company that has a <code>__COMPLETED__</code> marker is skipped.
-    </p>
-  </div>
+  </details>
 
-  <div class="vkp-card">
-    <div class="vkp-toolbar">
-      <h2 style="margin:0;font-size:1.1rem;">Crawl runs</h2>
-      <span class="vkp-muted">(<code>{{ CRAWL_DAG }}</code>)</span>
-      <span class="vkp-spacer"></span>
-      <a [routerLink]="['/data-management','data-collection','graph']"><p-button label="Resource Graph" [text]="true" icon="pi pi-sitemap"></p-button></a>
-      <p-button label="Refresh" icon="pi pi-refresh" [outlined]="true" (onClick)="loadRuns()"></p-button>
+  <details open class="cr-acc">
+    <summary>Trigger a crawl</summary>
+    <div>
+      <div class="vkp-toolbar" style="flex-wrap:wrap;">
+        <div>
+          <label style="display:block;font-weight:600;margin-bottom:.3rem;">Company</label>
+          <select [(ngModel)]="companyId" style="padding:.5rem;border:1px solid var(--vkp-border);border-radius:6px;min-width:240px;">
+            <option *ngFor="let c of companies" [value]="c.companyId">{{ c.name }}</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-weight:600;margin-bottom:.3rem;">Max pages</label>
+          <input type="number" min="1" [(ngModel)]="maxPages" style="width:120px;padding:.5rem;border:1px solid var(--vkp-border);border-radius:6px;" />
+        </div>
+        <div>
+          <label style="display:block;font-weight:600;margin-bottom:.3rem;">Max depth</label>
+          <input type="number" min="0" [(ngModel)]="maxDepth" style="width:120px;padding:.5rem;border:1px solid var(--vkp-border);border-radius:6px;" />
+        </div>
+        <span class="vkp-spacer"></span>
+        <p-button label="Trigger Crawl" icon="pi pi-bolt" (onClick)="trigger()" [disabled]="!companyId || running"></p-button>
+      </div>
+      <div *ngIf="message" style="background:#e8f4ea;color:#1c5b2c;border:1px solid #b4dcc0;padding:.6rem .9rem;border-radius:6px;">{{ message }}</div>
+      <div *ngIf="error" style="background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4;padding:.6rem .9rem;border-radius:6px;">{{ error }}</div>
+      <p class="vkp-muted" style="margin:.75rem 0 0;font-size:.85rem;">
+        Runs a real (Playwright/Chromium) recursive crawl and stores a filesystem snapshot under
+        <code>Crawling-Snapshot/&lt;Company&gt;/</code>. Large crawls run in the background — watch the runs below.
+        Re-crawling a company that has a <code>__COMPLETED__</code> marker is skipped.
+      </p>
     </div>
-    <p-table [value]="runs" [loading]="loadingRuns" [paginator]="runs.length > 10" [rows]="10" [tableStyle]="{ 'min-width': '42rem' }">
-      <ng-template pTemplate="header">
-        <tr><th>Run ID</th><th>State</th><th>Started</th><th>Ended</th></tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-r>
-        <tr>
-          <td><code>{{ r.dagRunId }}</code></td>
-          <td><p-tag [value]="r.state || 'unknown'" [severity]="stateSeverity(r.state)"></p-tag></td>
-          <td>{{ r.startDate ? (r.startDate | date:'medium') : '—' }}</td>
-          <td>{{ r.endDate ? (r.endDate | date:'medium') : '—' }}</td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr><td colspan="4" class="vkp-muted" style="text-align:center;padding:1.5rem;">No crawl runs yet.</td></tr>
-      </ng-template>
-    </p-table>
-  </div>
-  `
+  </details>
+
+  <details open class="cr-acc">
+    <summary>Crawl runs <span class="vkp-muted">(<code>{{ CRAWL_DAG }}</code>)</span></summary>
+    <div>
+      <div class="vkp-toolbar">
+        <span class="vkp-spacer"></span>
+        <a [routerLink]="['/data-management','data-collection','graph']"><p-button label="Resource Graph" [text]="true" icon="pi pi-sitemap"></p-button></a>
+        <p-button label="Refresh" icon="pi pi-refresh" [outlined]="true" (onClick)="loadRuns()"></p-button>
+      </div>
+      <p-table [value]="runs" [loading]="loadingRuns" [paginator]="runs.length > 10" [rows]="10" [tableStyle]="{ 'min-width': '42rem' }">
+        <ng-template pTemplate="header">
+          <tr><th>Run ID</th><th>State</th><th>Started</th><th>Ended</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-r>
+          <tr>
+            <td><code>{{ r.dagRunId }}</code></td>
+            <td><p-tag [value]="r.state || 'unknown'" [severity]="stateSeverity(r.state)"></p-tag></td>
+            <td>{{ r.startDate ? (r.startDate | date:'medium') : '—' }}</td>
+            <td>{{ r.endDate ? (r.endDate | date:'medium') : '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="4" class="vkp-muted" style="text-align:center;padding:1.5rem;">No crawl runs yet.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </details>
+  `,
+  styles: [`
+    .cr-acc { border:1px solid var(--vkp-border); border-radius:8px; background:#fff; margin-bottom:.75rem; }
+    .cr-acc > summary { cursor:pointer; padding:.7rem .95rem; font-weight:700; font-size:1.05rem; color:#1f2933; list-style:none; }
+    .cr-acc > summary::-webkit-details-marker { display:none; }
+    .cr-acc > summary:before { content:'▾'; margin-right:.5rem; color:#3538cd; }
+    .cr-acc:not([open]) > summary:before { content:'▸'; }
+    .cr-acc > div { padding:0 .95rem .95rem; }
+    .cr-acc code { background:#f1f3f9; padding:.05rem .35rem; border-radius:4px; font-size:.84rem; }
+  `]
 })
 export class CrawlComponent implements OnInit {
   readonly CRAWL_DAG = CRAWL_DAG;
