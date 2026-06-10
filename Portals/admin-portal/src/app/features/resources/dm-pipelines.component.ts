@@ -46,6 +46,21 @@ import { RouterLink } from '@angular/router';
       <li>Purpose: <b>experiment with and compare</b> agent SDKs/patterns, debug a single step, learn the flow.</li>
     </ul>
 
+    <p class="why"><b>Why do we need an interactive lab?</b> Because choosing and trusting an agent
+       framework needs a <b>fast, safe feedback loop</b> that the orchestrated pipeline can't give you:</p>
+    <ul class="bullets">
+      <li><b>Compare frameworks before committing</b> — see which of the 8 SDKs actually finds the right
+          links / makes the cleanest chunks / answers best, then wire the winner into the production DAGs.</li>
+      <li><b>Fast feedback</b> — one request, instant JSON; no Airflow scheduling, no batch run, no DB
+          rows to clean up afterwards.</li>
+      <li><b>Debug a single step in isolation</b> — is collect missing links? is chunking too coarse?
+          Test just that one stage with just that one input.</li>
+      <li><b>Safe to experiment</b> — dry-run by default, so trying things never corrupts production data.</li>
+      <li><b>Learn / demo the flow</b> — onboard developers and show how a stage works end to end.</li>
+    </ul>
+    <p>In other words, the lab is where you <b>pick and tune</b> the agent; Data Management is where you
+       <b>run the chosen one for real</b>.</p>
+
     <h3>Same stages, different intent</h3>
     <table class="t">
       <thead><tr><th></th><th>Data Management</th><th>AI Agents (Roster)</th></tr></thead>
