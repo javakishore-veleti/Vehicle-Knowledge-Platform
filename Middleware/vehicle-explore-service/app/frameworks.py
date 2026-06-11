@@ -14,8 +14,8 @@ from . import config, providers, search
 
 log = logging.getLogger("vehicle-explore.frameworks")
 
-IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack"}
-KNOWN = {"langgraph", "crewai", "llamaindex", "haystack"}
+IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack", "plan-execute"}
+KNOWN = {"langgraph", "crewai", "llamaindex", "haystack", "plan-execute"}
 
 # Retrieval mode for the current request (vector | fts | hybrid), set by run() so the four
 # agent implementations don't each need a new parameter threaded through their signatures.
@@ -77,6 +77,9 @@ def run(framework: str, query: str, company_id: Optional[str], top_k: int, store
     if framework == "haystack":
         from . import haystack_agent  # real Haystack 2.x RAG Pipeline (lazy import)
         return haystack_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
+    if framework == "plan-execute":
+        from . import plan_execute_agent  # Plan-and-Execute: decompose -> retrieve each -> synthesize
+        return plan_execute_agent.run(query, company_id, top_k, store, use_llm, provider_ids)
     results = _retrieve(query, company_id, top_k, store)
     answer, source, answers = synthesize(query, results, use_llm, provider_ids)
     return answer, source, results, answers

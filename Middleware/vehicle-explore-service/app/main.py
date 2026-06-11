@@ -204,6 +204,10 @@ def search(framework_name: str, req: SearchReq,
         metrics.SEARCHES.labels(framework_name, store, "error").inc()
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
 
+    if framework_name == "plan-execute":
+        from . import plan_execute_agent  # expose the plan (sub-queries) for the UI
+        base["planSteps"] = plan_execute_agent.LAST_PLAN.get()
+
     # Output guardrail — check EVERY provider answer (and the extractive fallback).
     if answers:
         for a in answers:

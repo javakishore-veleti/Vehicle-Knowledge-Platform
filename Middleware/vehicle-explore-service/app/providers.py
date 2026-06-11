@@ -9,11 +9,14 @@ so it has its own boto3 path (kind="bedrock"). Selection: VKP_LLM_PROVIDERS (com
 A provider runs only if it's selected AND its credentials are present; failures (quota, bad key,
 no model access, ...) are captured per-provider so the UI can show them next to the working ones.
 """
+import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from openai import OpenAI
+
+log = logging.getLogger("vehicle-explore.providers")
 
 # Pricing is USD per 1M tokens (in/out), best-effort for a rough cost estimate; None = unknown.
 REGISTRY = [
@@ -86,6 +89,27 @@ def enabled_providers(selected_ids: list[str] | None = None) -> list[dict]:
             continue
         out.append(dict(p) if p.get("kind") == "bedrock" else {**p, "api_key": os.getenv(p["key_env"], "")})
     return out
+
+
+def complete(prompt: str, max_tokens: int = 300, temperature: float = 0.2) -> str | None:
+    """Single-shot completion via the first enabled OpenAI-compatible provider (used by the
+    plan-execute planner). Returns None if no provider/credentials are available, or on error."""
+    for p in enabled_providers():
+        if p.get("kind") == "bedrock":
+            continue  # the planner uses an OpenAI-compatible chat model
+        try:
+            kwargs = {"api_key": p["api_key"], "timeout": 30}
+            if p.get("base_url"):
+                kwargs["base_url"] = p["base_url"]
+            resp = OpenAI(**kwargs).chat.completions.create(
+                model=p["model"],
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temperature, max_tokens=max_tokens)
+            return (resp.choices[0].message.content or "").strip()
+        except Exception as e:  # noqa: BLE001
+            log.warning("complete() via %s failed: %s", p.get("id"), e)
+            continue
+    return None
 
 
 def _cost(provider: dict, p_in, p_out) -> float | None:
