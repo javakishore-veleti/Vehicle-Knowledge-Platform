@@ -204,7 +204,11 @@ def search(framework_name: str, req: SearchReq,
         metrics.SEARCHES.labels(framework_name, store, "error").inc()
         raise HTTPException(status_code=502, detail=f"Search backend error ({store}): {e}")
 
-    if framework_name == "plan-execute":
+    routed = framework_name
+    if framework_name == "auto":
+        routed = frameworks.ROUTED.get() or "auto"   # which framework the auto-router chose
+        base["routedTo"] = routed
+    if routed == "plan-execute":
         from . import plan_execute_agent  # expose the plan (sub-queries) for the UI
         base["planSteps"] = plan_execute_agent.LAST_PLAN.get()
 

@@ -7,6 +7,7 @@ Retrieval runs once (pgvector default, or mongodb). The answer is then generated
 enabled LLM provider (see providers.py) over the same sources, so quality can be compared.
 """
 import logging
+import re
 from contextvars import ContextVar
 from typing import Optional
 
@@ -14,8 +15,31 @@ from . import config, providers, search
 
 log = logging.getLogger("vehicle-explore.frameworks")
 
-IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack", "plan-execute"}
-KNOWN = {"langgraph", "crewai", "llamaindex", "haystack", "plan-execute"}
+IMPLEMENTED = {"langgraph", "crewai", "llamaindex", "haystack", "plan-execute", "auto"}
+KNOWN = {"langgraph", "crewai", "llamaindex", "haystack", "plan-execute", "auto"}
+
+# When the 'auto' meta-framework routes a request, the framework it chose (read by main.py for the UI).
+ROUTED: ContextVar[str] = ContextVar("routed_framework", default="")
+
+_COMPARE_RE = re.compile(
+    r"\b(compare|comparison|versus|vs\.?|difference|differences|which (is|one|of)|"
+    r"cheapest|best|better|pros and cons|trade[- ]?offs?)\b", re.I)
+_MAKES = {"toyota", "lexus", "honda", "acura", "ford", "lincoln", "chevrolet", "gmc", "buick",
+          "cadillac", "jeep", "ram", "dodge", "chrysler", "fiat", "maserati", "volkswagen", "vw",
+          "audi", "porsche", "bentley", "lamborghini", "bmw", "mini", "mercedes", "hyundai", "kia",
+          "genesis", "nissan", "infiniti", "volvo", "polestar", "jaguar", "mazda", "subaru",
+          "mitsubishi", "tesla", "rivian", "ferrari"}
+
+
+def _is_compound(query: str) -> bool:
+    """Cheap heuristic: a query is 'compound' (worth planning) if it compares things, mentions
+    multiple brands, or stacks several facets — otherwise a single retrieval (langgraph) is fine."""
+    q = (query or "").lower()
+    if _COMPARE_RE.search(q):
+        return True
+    if sum(1 for m in _MAKES if m in q) >= 2:
+        return True
+    return (q.count(" and ") + q.count(",")) >= 2
 
 # Retrieval mode for the current request (vector | fts | hybrid), set by run() so the four
 # agent implementations don't each need a new parameter threaded through their signatures.
@@ -65,6 +89,11 @@ def run(framework: str, query: str, company_id: Optional[str], top_k: int, store
         use_llm: bool = True, provider_ids: Optional[list[str]] = None,
         mode: str = "vector") -> tuple[str, str, list[dict], list[dict]]:
     _RETRIEVAL_MODE.set(mode)   # read by _retrieve, including inside the four agent implementations
+    if framework == "auto":
+        target = "plan-execute" if _is_compound(query) else "langgraph"
+        ROUTED.set(target)
+        log.info("auto-router: %r -> %s", (query or "")[:60], target)
+        return run(target, query, company_id, top_k, store, use_llm, provider_ids, mode)
     if framework == "langgraph":
         from . import langgraph_agent  # real LangGraph StateGraph (lazy import)
         return langgraph_agent.run(query, company_id, top_k, store, use_llm, provider_ids)

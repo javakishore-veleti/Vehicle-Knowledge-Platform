@@ -26,10 +26,11 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
 
     <h3>The main alternative agent / orchestration patterns</h3>
     <table class="ap-table">
-      <thead><tr><th>Pattern</th><th>Idea</th><th>One-liner</th></tr></thead>
+      <thead><tr><th>Pattern</th><th>Idea</th><th>One-liner</th><th>In VKP</th></tr></thead>
       <tbody>
-        <tr *ngFor="let p of patterns" [class.react]="p.pattern === 'ReAct'">
+        <tr *ngFor="let p of patterns" [class.react]="p.done">
           <td><b>{{ p.pattern }}</b></td><td>{{ p.idea }}</td><td>{{ p.oneliner }}</td>
+          <td [innerHTML]="p.vkp"></td>
         </tr>
       </tbody>
     </table>
@@ -72,21 +73,23 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
 })
 export class AgenticPatternsComponent {
   readonly patterns = [
-    { pattern: 'ReAct', idea: 'reason ↔ act loop', oneliner: 'dynamically decide the next tool from observations (what collect uses)' },
-    { pattern: 'Plan-and-Execute', idea: 'plan first, then do', oneliner: 'generate a full multi-step plan up front, execute each step, optionally re-plan' },
-    { pattern: 'ReWOO', idea: 'plan tools without observations', oneliner: 'decide all tool calls in one shot to save tokens/latency, then run them' },
-    { pattern: 'Reflection / Reflexion', idea: 'self-critique', oneliner: 'produce output → critique it → revise; iterate to improve quality' },
-    { pattern: 'Tree of Thoughts (ToT)', idea: 'search over reasoning', oneliner: 'branch into multiple reasoning paths, score, backtrack — for hard problems' },
-    { pattern: 'Router / dispatcher', idea: 'classify then route', oneliner: 'pick the right tool/chain/sub-agent for the input (no loop needed)' },
-    { pattern: 'RAG pipeline', idea: 'retrieve → generate', oneliner: 'fixed graph: fetch context, then answer (no autonomous tool loop)' },
-    { pattern: 'Multi-agent (supervisor / orchestrator-workers)', idea: 'delegate', oneliner: 'a supervisor splits work to specialized sub-agents that collaborate' },
-    { pattern: 'Evaluator-optimizer', idea: 'generate ↔ judge', oneliner: 'one model produces, another grades/refines in a loop' },
-    { pattern: 'Prompt chaining / parallelization', idea: 'workflows', oneliner: 'deterministic step pipelines, or fan-out-then-merge (voting/sectioning)' },
+    { pattern: 'ReAct', idea: 'reason ↔ act loop', oneliner: 'dynamically decide the next tool from observations (what collect uses)', done: true, vkp: '✅ collect · <code>langgraph</code>' },
+    { pattern: 'Plan-and-Execute', idea: 'plan first, then do', oneliner: 'generate a full multi-step plan up front, execute each step, optionally re-plan', done: true, vkp: '✅ search · <code>plan-execute</code>' },
+    { pattern: 'ReWOO', idea: 'plan tools without observations', oneliner: 'decide all tool calls in one shot to save tokens/latency, then run them', done: false, vkp: '—' },
+    { pattern: 'Reflection / Reflexion', idea: 'self-critique', oneliner: 'produce output → critique it → revise; iterate to improve quality', done: false, vkp: '—' },
+    { pattern: 'Tree of Thoughts (ToT)', idea: 'search over reasoning', oneliner: 'branch into multiple reasoning paths, score, backtrack — for hard problems', done: false, vkp: '—' },
+    { pattern: 'Router / dispatcher', idea: 'classify then route', oneliner: 'pick the right tool/chain/sub-agent for the input (no loop needed)', done: true, vkp: '✅ <code>auto</code> router + <code>frameworks.run</code>' },
+    { pattern: 'RAG pipeline', idea: 'retrieve → generate', oneliner: 'fixed graph: fetch context, then answer (no autonomous tool loop)', done: true, vkp: '✅ search · <code>langgraph</code> StateGraph' },
+    { pattern: 'Multi-agent (supervisor / orchestrator-workers)', idea: 'delegate', oneliner: 'a supervisor splits work to specialized sub-agents that collaborate', done: true, vkp: '~ <code>crewai</code> sequential crews' },
+    { pattern: 'Evaluator-optimizer', idea: 'generate ↔ judge', oneliner: 'one model produces, another grades/refines in a loop', done: false, vkp: '—' },
+    { pattern: 'Prompt chaining / parallelization', idea: 'workflows', oneliner: 'deterministic step pipelines, or fan-out-then-merge (voting/sectioning)', done: true, vkp: '✅ crewai chains · multi-provider fan-out' },
   ];
 
   readonly mapping = [
     { k: 'collect stage', v: '<b>ReAct</b> (<code>create_react_agent</code>, decides to call <code>fetch_page</code>) — <code>langgraph_agent.py</code>' },
     { k: 'search stage', v: 'a <b>RAG pipeline</b> (a fixed <code>StateGraph</code>: retrieve → generate), <i>not</i> ReAct — same file' },
+    { k: 'search · plan-execute', v: '<b>Plan-and-Execute</b> — a planner LLM splits a compound query into sub-queries, retrieves each, then synthesizes a cited comparison — <code>plan_execute_agent.py</code>' },
+    { k: 'search · auto', v: '<b>Router</b> — the <code>auto</code> framework sends compound/comparison queries to plan-execute, simple ones to langgraph (cheap heuristic, no LLM)' },
     { k: 'index stage', v: 'a <b>single structured LLM call</b> (no tools, no loop) — <code>_chunk()</code> just prompts the model to return chunk JSON' },
     { k: 'multi-provider answers (providers.py)', v: 'a <b>parallelization / voting</b>-style fan-out (ask N providers, compare)' },
     { k: 'agentic-service roster', v: 'different SDKs (openai-agents, google-adk, msagent, strands…) that each implement these patterns their own way — the point of the pluggable roster: swap the agent pattern/SDK behind the same collect/index/search API' },
