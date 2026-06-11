@@ -4,8 +4,11 @@ uvicorn[standard]>=0.29
 pydantic>=2.6
 openai>=1.30                 # shared llm.complete() + OpenAI Agents SDK model
 
-# --- framework SDKs (install the cells you want to RUN; imports are lazy) ---
-langgraph>=0.2                 # reflection/langgraph verified live
+# --- LangGraph stack (installed + verified — all 10 patterns) ---
+langgraph>=0.2
+langchain-openai>=0.1          # ChatOpenAI for the ReAct cell (create_react_agent)
+
+# --- other framework SDKs (install the cells you want to RUN; imports are lazy) ---
 # crewai>=0.40
 # crewai>=0.40
 # llama-index>=0.10 ; llama-index-llms-openai
