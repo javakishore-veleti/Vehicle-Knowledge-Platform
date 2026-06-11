@@ -68,13 +68,20 @@ Synthesize: one cited comparison over the merged results</pre>
 
     <h3 id="s-usecases">VKP use cases per pattern <span class="dim">(pick one to implement next)</span></h3>
     <p>Five project-specific use cases for each pattern — the <span class="badge">built</span> tag marks
-       what's already implemented; the rest are candidates we can build one at a time.</p>
+       what's already implemented. Each pattern's table breaks every use case down into <b>that pattern's
+       named phases</b> (e.g. ReAct → <b>Re</b>asoning / <b>Act</b>ing; ReWOO → <b>Re</b>asoning /
+       <b>W</b>ith<b>O</b>ut <b>O</b>bservation).</p>
     <div class="uc" *ngFor="let u of useCases">
       <div class="uc-h"><b>{{ u.pattern }}</b></div>
-      <ol>
-        <li *ngFor="let c of u.cases"><span [innerHTML]="c.t"></span>
-          <span *ngIf="c.done" class="badge">built</span></li>
-      </ol>
+      <table class="ap-table uc-table">
+        <thead><tr><th>Use case</th><th *ngFor="let h of u.cols" [innerHTML]="h"></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let c of u.cases">
+            <td><span [innerHTML]="c.uc"></span><span *ngIf="c.done" class="badge">built</span></td>
+            <td *ngFor="let v of c.vals" [innerHTML]="v"></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <h3 id="s-vkp">How this maps to VKP</h3>
@@ -154,11 +161,11 @@ Synthesize: one cited comparison over the merged results</pre>
     .ap-table a.src { color:#7c3aed; text-decoration:none; font-weight:700; }
     .ap-table a.src:hover { text-decoration:underline; }
     .ap-table a code { color:#3538cd; }
-    .uc { margin:.4rem 0 .9rem; }
-    .uc-h { font-weight:700; color:#4c1d95; margin:.6rem 0 .15rem; font-size:1rem; }
-    .uc ol { margin:.15rem 0; padding-left:1.35rem; }
-    .uc li { margin:.22rem 0; color:#344054; font-size:.95rem; line-height:1.5; }
-    .uc li::marker { color:#a855f7; }
+    .uc { margin:.4rem 0 1.25rem; }
+    .uc-h { font-weight:700; color:#4c1d95; margin:.7rem 0 .25rem; font-size:1.05rem; }
+    .uc-table { font-size:.92rem; }
+    .uc-table th:first-child, .uc-table td:first-child { white-space:nowrap; }
+    .uc-table td { color:#344054; }
     .badge { background:#ecfdf3; color:#0f8a5f; border:1px solid #b7f0d2; border-radius:10px;
       padding:0 .45rem; font-size:.72rem; font-weight:700; margin-left:.4rem; vertical-align:middle; white-space:nowrap; }
   `]
@@ -181,75 +188,75 @@ export class AgenticPatternsComponent {
   ];
 
   readonly useCases = [
-    { pattern: 'ReAct', cases: [
-      { t: '<b>Smart link discovery</b> — a scout crawls a seed and decides which links to follow from what it finds (the <code>collect</code> stage).', done: true },
-      { t: '<b>Single-model deep-dive</b> — given "2026 RAV4", iteratively fetch the spec → trims → pricing pages as it discovers links.' },
-      { t: '<b>Recall / safety lookup</b> — navigate manufacturer / NHTSA pages to find the specific recall for a model-year.' },
-      { t: '<b>Dealer / inventory locator</b> — step through a dealer site\'s search to find local stock for a model + ZIP.' },
-      { t: '<b>Broken-link repair</b> — when a stored resource 404s, search the site to find the moved page and update the graph.' },
+    { pattern: 'ReAct', cols: ['<b>Re</b> — Reasoning (the Thought)', '<b>Act</b> — Acting (the tool call)'], cases: [
+      { uc: '<b>Smart link discovery</b>', done: true, vals: ['judge which fetched links are real vehicle resources worth keeping', 'call <code>fetch_page</code> on the seed, then on the chosen links'] },
+      { uc: '<b>Single-model deep-dive</b>', vals: ['decide the next page to open (spec → trims → pricing) from what it has read', 'fetch that next page'] },
+      { uc: '<b>Recall / safety lookup</b>', vals: ['decide which result is the relevant recall for the model-year', 'search NHTSA / fetch the recall page'] },
+      { uc: '<b>Dealer / inventory locator</b>', vals: ['decide the next form field / link to reach local stock', 'submit the dealer search / open results'] },
+      { uc: '<b>Broken-link repair</b>', vals: ['infer where the page moved from the 404 + site structure', 'search the site / fetch candidate URLs'] },
     ]},
-    { pattern: 'Plan-and-Execute', cases: [
-      { t: '<b>Multi-brand comparison search</b> — towing / hybrid / price across Toyota vs Ford vs GMC (the <code>plan-execute</code> framework).', done: true },
-      { t: '<b>Buyer\'s-guide builder</b> — plan: list candidates → fetch specs → fetch price → fetch safety → rank.' },
-      { t: '<b>Adaptive company onboarding</b> — plan the discover → ingest → index steps per site, re-planning for JS-heavy sites.' },
-      { t: '<b>Spec-sheet assembly</b> — one retrieval per spec dimension, composed into a side-by-side table for N models.' },
-      { t: '<b>Total-cost-of-ownership report</b> — sub-queries for price, MPG, maintenance, insurance and resale per model.' },
+    { pattern: 'Plan-and-Execute', cols: ['<b>Plan</b> — all steps up front', '<b>Execute</b> — run each (+ re-plan)'], cases: [
+      { uc: '<b>Multi-brand comparison search</b>', done: true, vals: ['decompose into one sub-query per brand × facet', 'retrieve each, merge + dedup, synthesize'] },
+      { uc: '<b>Buyer\'s-guide builder</b>', vals: ['candidates → specs → price → safety → rank', 'run each step; re-plan if a candidate lacks data'] },
+      { uc: '<b>Adaptive company onboarding</b>', vals: ['discover → ingest → index per site', 'run each; re-plan to a Playwright crawl for JS sites'] },
+      { uc: '<b>Spec-sheet assembly</b>', vals: ['one retrieval per spec dimension', 'fetch each dimension, assemble the table'] },
+      { uc: '<b>Total-cost-of-ownership report</b>', vals: ['price, MPG, maintenance, insurance, resale sub-queries', 'retrieve each, compute the total'] },
     ]},
-    { pattern: 'ReWOO', cases: [
-      { t: '<b>Batch spec enrichment</b> — plan all fetch calls for a known model list up front, run them in parallel, no per-step LLM.' },
-      { t: '<b>Parallel multi-brand facts</b> — gather the same N facts for M brands in one planned batch.' },
-      { t: '<b>Nightly price refresh</b> — plan every price-fetch for tracked models upfront, execute LLM-free.' },
-      { t: '<b>Bulk image alt-text</b> — plan captions for every image in a snapshot in one shot.' },
-      { t: '<b>Fixed-dimension comparison</b> — when the facets are fixed (towing/mpg/price/seats), plan all retrievals upfront (no need to observe between).' },
+    { pattern: 'ReWOO', cols: ['<b>Re</b> — Reasoning (plan all calls blind)', '<b>WOO</b> — WithOut Observation (run all, no feedback)'], cases: [
+      { uc: '<b>Batch spec enrichment</b>', vals: ['plan every fetch call for the model list in one pass', 'run all fetches in parallel; a solver merges — no per-step LLM'] },
+      { uc: '<b>Parallel multi-brand facts</b>', vals: ['plan the N facts × M brands queries up front', 'execute them all blind, combine at the end'] },
+      { uc: '<b>Nightly price refresh</b>', vals: ['plan the price-fetch list for tracked models', 'execute LLM-free, store the results'] },
+      { uc: '<b>Bulk image alt-text</b>', vals: ['plan a caption task per image up front', 'caption all in parallel — no observation between'] },
+      { uc: '<b>Fixed-dimension comparison</b>', vals: ['plan all retrievals (towing/mpg/price/seats) at once', 'run them blind; solver synthesizes'] },
     ]},
-    { pattern: 'Reflection / Reflexion', cases: [
-      { t: '<b>Answer quality gate</b> — draft an answer, a critic checks it\'s grounded + on-topic, revise if not (cuts hallucination).' },
-      { t: '<b>Chunk quality review</b> — after chunking, critique chunks for coherence/self-containment, re-chunk the bad ones.' },
-      { t: '<b>Citation verification</b> — check every claim maps to a cited source; drop or fix the unsupported ones.' },
-      { t: '<b>Crawl coverage self-check</b> — "did I miss the EV / trucks section?" → trigger a targeted re-crawl.' },
-      { t: '<b>Spec-extraction accuracy</b> — verify extracted specs against the raw page (does towing = 5,000 lb appear?), correct mismatches.' },
+    { pattern: 'Reflection / Reflexion', cols: ['<b>Generate</b>', '<b>Reflect</b> — self-critique', '<b>Revise</b>'], cases: [
+      { uc: '<b>Answer quality gate</b>', vals: ['draft the answer from the sources', 'critic checks grounding + on-topic', 'regenerate / withhold if it fails'] },
+      { uc: '<b>Chunk quality review</b>', vals: ['chunk the content', 'critique coherence / self-containment', 're-chunk the bad ones'] },
+      { uc: '<b>Citation verification</b>', vals: ['answer with citations', 'check each claim maps to a source', 'drop / fix unsupported claims'] },
+      { uc: '<b>Crawl coverage self-check</b>', vals: ['the discovered link set', '"did I miss EV / trucks?"', 'trigger a targeted re-crawl'] },
+      { uc: '<b>Spec-extraction accuracy</b>', vals: ['extract the specs', 'verify vs the raw page', 'correct the mismatches'] },
     ]},
-    { pattern: 'Tree of Thoughts (ToT)', cases: [
-      { t: '<b>"Best car for me"</b> — branch on priority weightings (budget-first / space-first / efficiency-first), score each, pick the best.' },
-      { t: '<b>Ambiguous-query disambiguation</b> — "fast Toyota" → branch GR Corolla / Supra / Tacoma TRD, evaluate, choose.' },
-      { t: '<b>Trim / option optimizer</b> — explore trim+option combos to hit a budget/feature target, backtrack on dead ends.' },
-      { t: '<b>Multi-constraint filter</b> — AWD + 3-row + under $45k + hybrid: search the constraint tree for a vehicle that fits.' },
-      { t: '<b>Spec-conflict resolver</b> — two sources disagree on a spec → branch hypotheses (year / trim / market), resolve.' },
+    { pattern: 'Tree of Thoughts (ToT)', cols: ['<b>Branch</b> — thoughts', '<b>Evaluate</b> — score', '<b>Search</b> — backtrack / pick'], cases: [
+      { uc: '<b>"Best car for me"</b>', vals: ['different priority weightings (budget / space / efficiency)', 'score each candidate set', 'pick the best, prune weak paths'] },
+      { uc: '<b>Ambiguous-query disambiguation</b>', vals: ['interpretations of "fast Toyota"', 'match each to intent + evidence', 'choose the best interpretation'] },
+      { uc: '<b>Trim / option optimizer</b>', vals: ['trim + option combinations', 'score vs the budget / feature target', 'backtrack dead ends'] },
+      { uc: '<b>Multi-constraint filter</b>', vals: ['candidate vehicles per constraint subset', 'check constraint satisfaction', 'prune, find a fit'] },
+      { uc: '<b>Spec-conflict resolver</b>', vals: ['hypotheses (year / trim / market)', 'test each vs the sources', 'settle on the explanation'] },
     ]},
-    { pattern: 'Router / dispatcher', cases: [
-      { t: '<b>Compound-vs-simple routing</b> — the <code>auto</code> framework sends compound queries to plan-execute, simple ones to langgraph.', done: true },
-      { t: '<b>Framework router</b> — the framework name in the URL routes to langgraph / crewai / llamaindex / haystack.', done: true },
-      { t: '<b>Query-type router</b> — spec → vector search, "where to buy" → dealer tool, recall → safety source, price → pricing index.' },
-      { t: '<b>Store router</b> — route a query to pgVector / MongoDB / a specific company\'s index based on the question.' },
-      { t: '<b>Topic / guardrail router</b> — off-topic → polite refusal, vehicle → pipeline, unsafe → block.' },
+    { pattern: 'Router / dispatcher', cols: ['<b>Classify</b> — the signal', '<b>Route</b> — to the handler'], cases: [
+      { uc: '<b>Compound-vs-simple routing</b>', done: true, vals: ['compound vs simple (keywords / brands / facets)', 'plan-execute vs langgraph'] },
+      { uc: '<b>Framework router</b>', done: true, vals: ['framework name in the URL', 'langgraph / crewai / llamaindex / haystack'] },
+      { uc: '<b>Query-type router</b>', vals: ['spec / where-to-buy / recall / price', 'vector search / dealer tool / safety source / pricing index'] },
+      { uc: '<b>Store router</b>', vals: ['which store fits (company, modality)', 'pgVector / MongoDB / a company index'] },
+      { uc: '<b>Topic / guardrail router</b>', vals: ['off-topic / vehicle / unsafe', 'refuse / pipeline / block'] },
     ]},
-    { pattern: 'RAG pipeline', cases: [
-      { t: '<b>Single-fact vehicle Q&amp;A</b> — "what\'s the Camry\'s MPG?" (the <code>langgraph</code> search graph).', done: true },
-      { t: '<b>Company-scoped FAQ</b> — answers restricted to one brand\'s indexed content.' },
-      { t: '<b>Brochure / PDF lookup</b> — retrieve from ingested brochures and answer with citations.' },
-      { t: '<b>"Explain this feature"</b> — retrieve feature descriptions across models and summarize.' },
-      { t: '<b>Snapshot-grounded answer</b> — answer strictly from a specific crawl snapshot\'s content.' },
+    { pattern: 'RAG pipeline', cols: ['<b>Retrieve</b>', '<b>Generate</b>'], cases: [
+      { uc: '<b>Single-fact vehicle Q&amp;A</b>', done: true, vals: ['top-k chunks for the question', 'LLM answer over the chunks + citations'] },
+      { uc: '<b>Company-scoped FAQ</b>', vals: ['chunks filtered to one brand', 'answer within that brand'] },
+      { uc: '<b>Brochure / PDF lookup</b>', vals: ['chunks from ingested brochures', 'answer with brochure citations'] },
+      { uc: '<b>"Explain this feature"</b>', vals: ['feature descriptions across models', 'summarize'] },
+      { uc: '<b>Snapshot-grounded answer</b>', vals: ['chunks from one crawl snapshot', 'answer from that snapshot only'] },
     ]},
-    { pattern: 'Multi-agent (supervisor / workers)', cases: [
-      { t: '<b>Researcher + advisor crew</b> — a researcher gathers sources, an advisor writes the answer (the <code>crewai</code> search).', done: true },
-      { t: '<b>Per-brand workers</b> — a supervisor dispatches one worker per brand for a comparison, then merges.' },
-      { t: '<b>Onboarding crew</b> — separate crawler / extractor / indexer agents coordinated for one company.' },
-      { t: '<b>Review aggregator</b> — workers pull reviews from different sources, supervisor synthesizes a consensus.' },
-      { t: '<b>Spec / price / safety specialists</b> — three specialist agents, a supervisor composes the buyer\'s report.' },
+    { pattern: 'Multi-agent (supervisor / workers)', cols: ['<b>Supervisor</b> — delegate', '<b>Workers</b> — specialists', '<b>Merge</b>'], cases: [
+      { uc: '<b>Researcher + advisor crew</b>', done: true, vals: ['the sequential crew orchestrates', 'researcher gathers, advisor answers', 'advisor composes the final answer'] },
+      { uc: '<b>Per-brand workers</b>', vals: ['dispatch one worker per brand', 'brand researchers gather facts', 'supervisor merges into a comparison'] },
+      { uc: '<b>Onboarding crew</b>', vals: ['coordinate the pipeline', 'crawler / extractor / indexer agents', 'an indexed corpus'] },
+      { uc: '<b>Review aggregator</b>', vals: ['assign the sources', 'per-source review pullers', 'consensus synthesis'] },
+      { uc: '<b>Spec / price / safety specialists</b>', vals: ['compose the report', 'spec / price / safety agents', 'the buyer\'s report'] },
     ]},
-    { pattern: 'Evaluator-optimizer', cases: [
-      { t: '<b>Answer refiner</b> — generate → judge completeness + citations → regenerate until it passes.' },
-      { t: '<b>Chunking optimizer</b> — try chunk sizes/overlaps, judge retrieval on sample queries, keep the best.' },
-      { t: '<b>Query rewriter</b> — rewrite the search query until retrieval is relevant (boosts recall).' },
-      { t: '<b>Summary tightener</b> — optimize a spec summary for accuracy + length against the source.' },
-      { t: '<b>Embedding-model selector</b> — score candidate embedding models on a labeled query set, pick the winner.' },
+    { pattern: 'Evaluator-optimizer', cols: ['<b>Generate</b>', '<b>Evaluate</b> — judge', '<b>Optimize</b> — loop'], cases: [
+      { uc: '<b>Answer refiner</b>', vals: ['draft the answer', 'judge completeness + citations', 'regenerate until it passes'] },
+      { uc: '<b>Chunking optimizer</b>', vals: ['chunks with given params', 'retrieval quality on sample queries', 'tune params, repeat'] },
+      { uc: '<b>Query rewriter</b>', vals: ['a search query', 'is the retrieval relevant?', 'rewrite until good'] },
+      { uc: '<b>Summary tightener</b>', vals: ['a summary', 'accuracy + length vs source', 'shorten / fix, repeat'] },
+      { uc: '<b>Embedding-model selector</b>', vals: ['embeddings per candidate model', 'score on labeled queries', 'pick the winner'] },
     ]},
-    { pattern: 'Prompt chaining / parallelization', cases: [
-      { t: '<b>Multi-provider answer fan-out</b> — ask N LLMs the same question and compare (<code>providers.generate_all</code>).', done: true },
-      { t: '<b>Ingestion chain</b> — fetch → clean → extract title → hash → store (the ingestion DAG).', done: true },
-      { t: '<b>Sectioning</b> — split a long brochure into sections, summarize each in parallel, merge.' },
-      { t: '<b>Voting</b> — N models answer one spec question, take the majority (anti-hallucination).' },
-      { t: '<b>Translate-then-index</b> — translate non-English content → chunk → embed (multilingual support).' },
+    { pattern: 'Prompt chaining / parallelization', cols: ['<b>Step / Fan-out</b>', '<b>Merge / Hand-off</b>'], cases: [
+      { uc: '<b>Multi-provider answer fan-out</b>', done: true, vals: ['ask N LLMs the same question in parallel', 'compare the answers side by side'] },
+      { uc: '<b>Ingestion chain</b>', done: true, vals: ['fetch → clean → extract title → hash', 'store the record (hand to indexing)'] },
+      { uc: '<b>Sectioning</b>', vals: ['summarize each brochure section in parallel', 'stitch the sections together'] },
+      { uc: '<b>Voting</b>', vals: ['N models answer the same spec question', 'take the majority answer'] },
+      { uc: '<b>Translate-then-index</b>', vals: ['translate non-English content → chunk', 'embed + store'] },
     ]},
   ];
 
