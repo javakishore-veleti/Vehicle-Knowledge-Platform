@@ -1,0 +1,16 @@
+# --- core (required to boot the service) ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+openai>=1.30                 # shared llm.complete() + OpenAI Agents SDK model
+
+# --- framework SDKs (install the cells you want to RUN; imports are lazy) ---
+langgraph>=0.2                 # reflection/langgraph verified live
+# crewai>=0.40
+# crewai>=0.40
+# llama-index>=0.10 ; llama-index-llms-openai
+# haystack-ai>=2.0
+# openai-agents>=0.0.1
+# google-adk            ; litellm
+# agent-framework        # Microsoft Agent Framework
+# strands-agents
