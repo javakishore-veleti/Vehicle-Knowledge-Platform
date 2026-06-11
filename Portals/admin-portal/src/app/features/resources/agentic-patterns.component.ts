@@ -17,14 +17,23 @@ import { RouterLink } from '@angular/router';
       LangGraph's <code>create_react_agent</code> is just a prebuilt implementation of that pattern.
     </p>
 
-    <h3>What ReAct is</h3>
+    <nav class="toc">
+      <b>On this page</b>
+      <a (click)="go('s-react')">What ReAct is</a>
+      <a (click)="go('s-patterns')">Alternative patterns</a>
+      <a (click)="go('s-vkp')">How this maps to VKP</a>
+      <a (click)="go('s-impl')">What is plan-execute built on?</a>
+      <a (click)="go('s-ref')">Reference implementations (7 frameworks)</a>
+    </nav>
+
+    <h3 id="s-react">What ReAct is</h3>
     <p>The LLM runs a loop, interleaving <b>Thought → Action (tool call) → Observation</b>, until it has
        enough to answer:</p>
     <pre class="flow">Thought: I need the page's links  →  Action: fetch_page(seed)  →  Observation: {{ '{' }}links:[…]{{ '}' }}
 Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
     <p>That's exactly the <b>collect</b> stage in this codebase.</p>
 
-    <h3>The main alternative agent / orchestration patterns</h3>
+    <h3 id="s-patterns">The main alternative agent / orchestration patterns</h3>
     <table class="ap-table">
       <thead><tr><th>Pattern</th><th>Idea</th><th>One-liner</th><th>In VKP</th></tr></thead>
       <tbody>
@@ -42,13 +51,48 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
       flow — ReAct being the canonical agent loop.
     </p>
 
-    <h3>How this maps to VKP</h3>
+    <h3 id="s-vkp">How this maps to VKP</h3>
     <ul class="map">
       <li *ngFor="let m of mapping"><b>{{ m.k }}</b> → <span [innerHTML]="m.v"></span></li>
     </ul>
     <p class="foot">On the <a routerLink="/agents/roster">Agent Roster</a>, picking a different
        <b>framework</b> for a stage is effectively picking a different <b>agent implementation</b>
        (and sometimes a different pattern) behind the same endpoint.</p>
+
+    <h3 id="s-impl">What is plan-execute built on? <span class="dim">(no framework)</span></h3>
+    <p>VKP's live <code>plan-execute</code> search framework is <b>plain, hand-rolled Python</b> — it does
+       <b>not</b> sit on LangGraph, CrewAI, LlamaIndex, Haystack, or any agent SDK. The only SDK touched is
+       the <b>OpenAI client</b> (for the planning call + answer generation) — an LLM client, not an agent
+       framework.</p>
+    <table class="ap-table">
+      <thead><tr><th>Phase</th><th>Implementation</th><th>Framework?</th></tr></thead>
+      <tbody>
+        <tr><td><b>Plan</b></td><td><code>providers.complete()</code> — a raw chat-completion call</td><td>OpenAI client only</td></tr>
+        <tr><td><b>Execute</b></td><td>a plain loop over <code>frameworks._retrieve()</code> → <code>search.search_chunks()</code></td><td>Python + psycopg2 / pgvector</td></tr>
+        <tr><td><b>Merge</b></td><td><code>_merge()</code> — dedup by source+snippet, best score first</td><td>pure Python</td></tr>
+        <tr><td><b>Synthesize</b></td><td><code>frameworks.synthesize()</code> → <code>providers.generate_all()</code></td><td>OpenAI / Bedrock clients</td></tr>
+      </tbody>
+    </table>
+    <p>Kept dependency-free because <i>plan → loop-retrieve → synthesize</i> is simple enough that a graph
+       or crew framework would be overhead. The <code>auto</code> router (compound → plan-execute, simple →
+       langgraph) is likewise a plain regex / brand-set heuristic — no SDK.</p>
+
+    <h3 id="s-ref">Reference implementations — Plan-and-Execute on 7 frameworks</h3>
+    <p>For comparison, the repo also ships idiomatic Plan-and-Execute reference implementations of the same
+       pattern on each major framework, under
+       <code>Middleware/Reference/plan_and_execute/</code> (reference/educational — each needs its SDK + an
+       LLM key to run; not wired into the live services):</p>
+    <table class="ap-table">
+      <thead><tr><th>Framework</th><th>How it expresses Plan-and-Execute</th><th>File</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let r of refs">
+          <td><b>{{ r.fw }}</b></td><td [innerHTML]="r.how"></td><td><code>{{ r.file }}</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="foot">The shipping version that actually runs is the framework-free
+       <code>plan_execute_agent.py</code> + the <code>auto</code> router — these references are the
+       "how would I do it on X?" companions.</p>
   </div>
   `,
   styles: [`
@@ -69,9 +113,29 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
     .ap .map code { font-size:.82rem; }
     .ap .foot { color:#475467; font-size:.98rem; }
     .ap .foot a { color:#3538cd; }
+    .ap .dim { color:#94a3b8; font-weight:400; font-size:.9rem; }
+    .toc { background:#faf8ff; border:1px solid #e9e3fb; border-radius:8px; padding:.6rem .9rem; margin:.5rem 0 .25rem;
+      display:flex; flex-wrap:wrap; gap:.25rem 1.1rem; align-items:center; font-size:.95rem; }
+    .toc b { color:#4c1d95; margin-right:.4rem; }
+    .toc a { color:#3538cd; cursor:pointer; text-decoration:none; }
+    .toc a:hover { text-decoration:underline; }
   `]
 })
 export class AgenticPatternsComponent {
+  go(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  readonly refs = [
+    { fw: 'LangGraph', how: 'a compiled <code>StateGraph</code>: plan → execute → synthesize nodes', file: 'langgraph_pe.py' },
+    { fw: 'CrewAI', how: 'a planner Agent + Task emits sub-queries; synthesizer follows', file: 'crewai_pe.py' },
+    { fw: 'LlamaIndex', how: 'the built-in <code>SubQuestionQueryEngine</code> (native plan-and-execute) + manual variant', file: 'llamaindex_pe.py' },
+    { fw: 'Haystack 2.x', how: 'a <code>PromptBuilder → Generator</code> planner pipeline, then fan-out', file: 'haystack_pe.py' },
+    { fw: 'OpenAI Agents SDK', how: 'a planner <code>Agent</code> via <code>Runner.run_sync</code>', file: 'openai_pe.py' },
+    { fw: 'Google ADK', how: 'a planner <code>LlmAgent</code> driven by the async <code>InMemoryRunner</code>', file: 'google_pe.py' },
+    { fw: 'Microsoft Agent Framework', how: 'an <code>OpenAIChatClient</code> planner agent', file: 'msagent_pe.py' },
+  ];
+
   readonly patterns = [
     { pattern: 'ReAct', idea: 'reason ↔ act loop', oneliner: 'dynamically decide the next tool from observations (what collect uses)', done: true, vkp: '✅ collect · <code>langgraph</code>' },
     { pattern: 'Plan-and-Execute', idea: 'plan first, then do', oneliner: 'generate a full multi-step plan up front, execute each step, optionally re-plan', done: true, vkp: '✅ search · <code>plan-execute</code>' },
