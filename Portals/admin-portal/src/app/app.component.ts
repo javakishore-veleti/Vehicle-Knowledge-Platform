@@ -135,7 +135,8 @@ export class AppComponent {
     {
       label: 'Design Patterns', icon: 'pi pi-sitemap', expanded: true,
       items: [
-        { label: 'Agentic Patterns', icon: 'pi pi-android', routerLink: '/resources/design-patterns/agentic-patterns' }
+        { label: 'Agentic Patterns', icon: 'pi pi-android', routerLink: '/resources/design-patterns/agentic-patterns' },
+        { label: 'LangGraph', icon: 'pi pi-share-alt', routerLink: '/resources/design-patterns/langgraph' }
       ]
     },
     {
