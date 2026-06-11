@@ -21,7 +21,8 @@ import { RouterLink } from '@angular/router';
       <div class="toc-title">Contents</div>
       <ol>
         <li><a (click)="go('s-react')">What ReAct is</a></li>
-        <li><a (click)="go('s-patterns')">The main alternative agent / orchestration patterns</a></li>
+        <li><a (click)="go('s-plan')">What Plan-and-Execute is</a></li>
+        <li><a (click)="go('s-patterns')">The main agent / orchestration patterns</a></li>
         <li><a (click)="go('s-vkp')">How this maps to VKP</a></li>
         <li><a (click)="go('s-impl')">What is plan-execute built on?</a></li>
         <li><a (click)="go('s-ref')">Reference implementations — Plan-and-Execute on 7 frameworks</a></li>
@@ -35,13 +36,24 @@ import { RouterLink } from '@angular/router';
 Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
     <p>That's exactly the <b>collect</b> stage in this codebase.</p>
 
-    <h3 id="s-patterns">The main alternative agent / orchestration patterns</h3>
+    <h3 id="s-plan">What Plan-and-Execute is</h3>
+    <p>Instead of deciding one tool at a time (ReAct), the model first writes a <b>plan</b> — the whole
+       list of steps — then an executor runs each step, <b>optionally re-planning</b> when a step fails or
+       new information appears:</p>
+    <pre class="flow">Plan:       1. towing capacity of the Tacoma   2. hybrid options for the Ranger   3. 2026 price of the Canyon
+Execute:    retrieve each sub-query  →  (re-plan if a step returns nothing)
+Synthesize: one cited comparison over the merged results</pre>
+    <p>That's exactly the <b>search · plan-execute</b> framework here — best for compound questions a single
+       retrieval can't cover. See <a class="ilink" (click)="go('s-impl')">what it's built on</a> below.</p>
+
+    <h3 id="s-patterns">The main agent / orchestration patterns</h3>
     <table class="ap-table">
       <thead><tr><th>Pattern</th><th>Idea</th><th>One-liner</th><th>In VKP</th></tr></thead>
       <tbody>
         <tr *ngFor="let p of patterns" [class.react]="p.done">
           <td><b>{{ p.pattern }}</b></td><td>{{ p.idea }}</td><td>{{ p.oneliner }}</td>
-          <td [innerHTML]="p.vkp"></td>
+          <td><span [innerHTML]="p.vkp"></span><a *ngIf="p.src" class="src" [href]="repo + '/' + p.src"
+              target="_blank" rel="noopener" [title]="'Source: ' + p.src">&nbsp;↗</a></td>
         </tr>
       </tbody>
     </table>
@@ -88,7 +100,8 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
       <thead><tr><th>Framework</th><th>How it expresses Plan-and-Execute</th><th>File</th></tr></thead>
       <tbody>
         <tr *ngFor="let r of refs">
-          <td><b>{{ r.fw }}</b></td><td [innerHTML]="r.how"></td><td><code>{{ r.file }}</code></td>
+          <td><b>{{ r.fw }}</b></td><td [innerHTML]="r.how"></td>
+          <td><a [href]="repo + '/Middleware/Reference/plan_and_execute/' + r.file" target="_blank" rel="noopener"><code>{{ r.file }}</code></a></td>
         </tr>
       </tbody>
     </table>
@@ -125,9 +138,15 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
     .toc li::marker { color:#a855f7; font-weight:700; }
     .toc a { color:#3538cd; cursor:pointer; text-decoration:none; }
     .toc a:hover { text-decoration:underline; }
+    .ap .ilink { color:#3538cd; cursor:pointer; text-decoration:underline; }
+    .ap-table a.src { color:#7c3aed; text-decoration:none; font-weight:700; }
+    .ap-table a.src:hover { text-decoration:underline; }
+    .ap-table a code { color:#3538cd; }
   `]
 })
 export class AgenticPatternsComponent {
+  readonly repo = 'https://github.com/javakishore-veleti/Vehicle-Knowledge-Platform/blob/main';
+
   go(id: string): void {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -143,16 +162,16 @@ export class AgenticPatternsComponent {
   ];
 
   readonly patterns = [
-    { pattern: 'ReAct', idea: 'reason ↔ act loop', oneliner: 'dynamically decide the next tool from observations (what collect uses)', done: true, vkp: '✅ collect · <code>langgraph</code>' },
-    { pattern: 'Plan-and-Execute', idea: 'plan first, then do', oneliner: 'generate a full multi-step plan up front, execute each step, optionally re-plan', done: true, vkp: '✅ search · <code>plan-execute</code>' },
-    { pattern: 'ReWOO', idea: 'plan tools without observations', oneliner: 'decide all tool calls in one shot to save tokens/latency, then run them', done: false, vkp: '—' },
-    { pattern: 'Reflection / Reflexion', idea: 'self-critique', oneliner: 'produce output → critique it → revise; iterate to improve quality', done: false, vkp: '—' },
-    { pattern: 'Tree of Thoughts (ToT)', idea: 'search over reasoning', oneliner: 'branch into multiple reasoning paths, score, backtrack — for hard problems', done: false, vkp: '—' },
-    { pattern: 'Router / dispatcher', idea: 'classify then route', oneliner: 'pick the right tool/chain/sub-agent for the input (no loop needed)', done: true, vkp: '✅ <code>auto</code> router + <code>frameworks.run</code>' },
-    { pattern: 'RAG pipeline', idea: 'retrieve → generate', oneliner: 'fixed graph: fetch context, then answer (no autonomous tool loop)', done: true, vkp: '✅ search · <code>langgraph</code> StateGraph' },
-    { pattern: 'Multi-agent (supervisor / orchestrator-workers)', idea: 'delegate', oneliner: 'a supervisor splits work to specialized sub-agents that collaborate', done: true, vkp: '~ <code>crewai</code> sequential crews' },
-    { pattern: 'Evaluator-optimizer', idea: 'generate ↔ judge', oneliner: 'one model produces, another grades/refines in a loop', done: false, vkp: '—' },
-    { pattern: 'Prompt chaining / parallelization', idea: 'workflows', oneliner: 'deterministic step pipelines, or fan-out-then-merge (voting/sectioning)', done: true, vkp: '✅ crewai chains · multi-provider fan-out' },
+    { pattern: 'ReAct', idea: 'reason ↔ act loop', oneliner: 'dynamically decide the next tool from observations (what collect uses)', done: true, vkp: '✅ collect · <code>langgraph</code>', src: 'Middleware/vehicle-explore-service/app/langgraph_agent.py#L89' },
+    { pattern: 'Plan-and-Execute', idea: 'plan first, then do', oneliner: 'generate a full multi-step plan up front, execute each step, optionally re-plan', done: true, vkp: '✅ search · <code>plan-execute</code>', src: 'Middleware/vehicle-explore-service/app/plan_execute_agent.py#L64' },
+    { pattern: 'ReWOO', idea: 'plan tools without observations', oneliner: 'decide all tool calls in one shot to save tokens/latency, then run them', done: false, vkp: '—', src: null },
+    { pattern: 'Reflection / Reflexion', idea: 'self-critique', oneliner: 'produce output → critique it → revise; iterate to improve quality', done: false, vkp: '—', src: null },
+    { pattern: 'Tree of Thoughts (ToT)', idea: 'search over reasoning', oneliner: 'branch into multiple reasoning paths, score, backtrack — for hard problems', done: false, vkp: '—', src: null },
+    { pattern: 'Router / dispatcher', idea: 'classify then route', oneliner: 'pick the right tool/chain/sub-agent for the input (no loop needed)', done: true, vkp: '✅ <code>auto</code> router + <code>frameworks.run</code>', src: 'Middleware/vehicle-explore-service/app/frameworks.py#L34' },
+    { pattern: 'RAG pipeline', idea: 'retrieve → generate', oneliner: 'fixed graph: fetch context, then answer (no autonomous tool loop)', done: true, vkp: '✅ search · <code>langgraph</code> StateGraph', src: 'Middleware/vehicle-explore-service/app/langgraph_agent.py#L51' },
+    { pattern: 'Multi-agent (supervisor / orchestrator-workers)', idea: 'delegate', oneliner: 'a supervisor splits work to specialized sub-agents that collaborate', done: true, vkp: '~ <code>crewai</code> sequential crews', src: 'Middleware/vehicle-explore-service/app/crewai_agent.py#L35' },
+    { pattern: 'Evaluator-optimizer', idea: 'generate ↔ judge', oneliner: 'one model produces, another grades/refines in a loop', done: false, vkp: '—', src: null },
+    { pattern: 'Prompt chaining / parallelization', idea: 'workflows', oneliner: 'deterministic step pipelines, or fan-out-then-merge (voting/sectioning)', done: true, vkp: '✅ crewai chains · multi-provider fan-out', src: 'Middleware/vehicle-explore-service/app/providers.py#L193' },
   ];
 
   readonly mapping = [
