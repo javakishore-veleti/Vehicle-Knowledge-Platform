@@ -22,7 +22,7 @@ import { InteractiveLabComponent } from './features/resources/interactive-lab.co
 import { CollectionVsIngestionComponent } from './features/resources/collection-vs-ingestion.component';
 import { DbModelComponent } from './features/resources/db-model.component';
 import { MasteryMapComponent } from './features/resources/mastery-map.component';
-import { LanggraphPatternsComponent } from './features/resources/langgraph-patterns.component';
+import { FrameworkPatternsComponent } from './features/resources/framework-patterns.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
@@ -32,7 +32,8 @@ export const routes: Routes = [
   { path: 'resources/mastery/map', component: MasteryMapComponent, title: 'Mastery Map' },
   { path: 'resources/design-patterns', redirectTo: 'resources/design-patterns/agentic-patterns', pathMatch: 'full' },
   { path: 'resources/design-patterns/agentic-patterns', component: AgenticPatternsComponent, title: 'Agentic Patterns' },
-  { path: 'resources/design-patterns/langgraph', component: LanggraphPatternsComponent, title: 'LangGraph Patterns' },
+  { path: 'resources/design-patterns/langgraph', component: FrameworkPatternsComponent, data: { fw: 'langgraph' }, title: 'LangGraph Patterns' },
+  { path: 'resources/design-patterns/crewai', component: FrameworkPatternsComponent, data: { fw: 'crewai' }, title: 'CrewAI Patterns' },
   { path: 'resources/tools', redirectTo: 'resources/tools/pydantic', pathMatch: 'full' },
   { path: 'resources/tools/pydantic', component: PydanticComponent, title: 'Pydantic' },
   { path: 'resources/architecture', redirectTo: 'resources/architecture/data-management/pipelines', pathMatch: 'full' },
