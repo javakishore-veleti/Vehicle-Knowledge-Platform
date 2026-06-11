@@ -12,7 +12,7 @@ import time
 
 from fastapi import FastAPI, HTTPException
 
-from . import config, registry
+from . import config, registry, usecases
 from .models import RunReq, RunResp
 from . import patterns  # noqa: F401  — importing triggers cell registration
 
@@ -33,6 +33,11 @@ def patterns_matrix():
     return registry.matrix()
 
 
+@app.get("/agent-patterns/{pattern}/usecases")
+def pattern_usecases(pattern: str):
+    return {"pattern": pattern, "useCases": usecases.for_pattern(pattern)}
+
+
 @app.post("/agent-patterns/{pattern}/{framework}/run", response_model=RunResp)
 def run_cell(pattern: str, framework: str, req: RunReq):
     if not registry.implemented(pattern, framework):
@@ -49,6 +54,7 @@ def run_cell(pattern: str, framework: str, req: RunReq):
     return RunResp(
         pattern=pattern, framework=framework, input=req.input,
         answer=out.get("answer"), draft=out.get("draft"), critique=out.get("critique"),
-        steps=out.get("steps"), iterations=req.maxIterations, model=config.model_name(),
+        useCase=out.get("useCase") or req.useCase, steps=out.get("steps"),
+        iterations=req.maxIterations, model=config.model_name(),
         latencyMs=int((time.perf_counter() - t0) * 1000),
     )

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 class RunReq(BaseModel):
     input: str                         # the question / task for the pattern
+    useCase: Optional[str] = None      # selects a concrete VKP use case (e.g. 'chunk-quality-review')
     maxIterations: int = 1             # for looping patterns (reflection, evaluator-optimizer)
 
 
@@ -13,10 +14,11 @@ class RunResp(BaseModel):
     pattern: str
     framework: str
     input: str
-    answer: Optional[str] = None       # the final result of the pattern
-    draft: Optional[str] = None        # intermediate (reflection/evaluator: the first attempt)
-    critique: Optional[str] = None     # intermediate (reflection/evaluator: the critique)
-    steps: Optional[list] = None       # intermediate (plan/react/tot: the plan or trace)
+    useCase: Optional[str] = None
+    answer: Optional[str] = None
+    draft: Optional[str] = None
+    critique: Optional[str] = None
+    steps: Optional[list] = None
     iterations: int = 1
     model: Optional[str] = None
     ok: bool = True
