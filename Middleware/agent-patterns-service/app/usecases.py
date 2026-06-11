@@ -33,7 +33,8 @@ CATALOG = {
 }
 
 # (pattern, framework, useCase) cells with a real use-case-specific implementation.
-IMPLEMENTED = {("reflection", "langgraph", uc) for uc, _ in CATALOG["reflection"]}
+IMPLEMENTED = ({("reflection", "langgraph", uc) for uc, _ in CATALOG["reflection"]}
+               | {("rag", "langgraph", uc) for uc, _ in CATALOG["rag"]})
 
 
 def for_pattern(pattern: str) -> list:
