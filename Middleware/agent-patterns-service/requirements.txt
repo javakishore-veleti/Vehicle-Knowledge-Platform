@@ -8,8 +8,11 @@ openai>=1.30                 # shared llm.complete() + OpenAI Agents SDK model
 langgraph>=0.2
 langchain-openai>=0.1          # ChatOpenAI for the ReAct cell (create_react_agent)
 
+# --- CrewAI (installed + verified — all 10 patterns; needs Python <= 3.12) ---
+crewai>=0.80
+
 # --- other framework SDKs (install the cells you want to RUN; imports are lazy) ---
-# crewai>=0.40
+# llama-index... handled in their own cycle
 # crewai>=0.40
 # llama-index>=0.10 ; llama-index-llms-openai
 # haystack-ai>=2.0

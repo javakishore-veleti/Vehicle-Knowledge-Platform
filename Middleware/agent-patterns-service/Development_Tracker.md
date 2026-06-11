@@ -40,9 +40,9 @@ reusable reference library and a stack-comparison harness.
 
 ## Progress summary
 - **Patterns:** 10 · **Frameworks:** 8 · **Cells:** 80
-- **Done:** 17 / 80 — Reflection × 8 (frameworks) + **LangGraph × all 10 patterns** — every one verified live · **Planned:** 63
-- **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 17 cells, `/agent-patterns/patterns`)
-- **Installs:** all via `requirements.txt` (`pip install -r requirements.txt`, or `uv pip install -r requirements.txt`)
+- **Done:** 26 / 80 — Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** — all verified live · **Planned:** 54
+- **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 26 cells, `/agent-patterns/patterns`)
+- **Installs:** all via `requirements.txt` — `uv pip install -r requirements.txt` (or pip). **venv = Python 3.12** (CrewAI/most agent SDKs lack 3.14 wheels).
 
 ---
 
@@ -67,7 +67,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `react/langgraph.py` | ✅ | `create_react_agent` + tool |
-| CrewAI | `react/crewai.py` | ⬜ | agent with tools |
+| CrewAI | `react/crewai.py` | ✅ | agent with tools |
 | LlamaIndex | `react/llamaindex.py` | ⬜ | `ReActAgent` |
 | Haystack | `react/haystack.py` | ⬜ | ToolInvoker loop |
 | OpenAI Agents SDK | `react/openai_agents.py` | ⬜ | `function_tool` + Agent |
@@ -79,7 +79,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `rag/langgraph.py` | ✅ | retrieve → generate StateGraph |
-| CrewAI | `rag/crewai.py` | ⬜ | retriever tool + answer agent |
+| CrewAI | `rag/crewai.py` | ✅ | retriever tool + answer agent |
 | LlamaIndex | `rag/llamaindex.py` | ⬜ | `RetrieverQueryEngine` (native) |
 | Haystack | `rag/haystack.py` | ⬜ | Retriever → PromptBuilder → Generator pipeline |
 | OpenAI Agents SDK | `rag/openai_agents.py` | ⬜ | retrieval tool + Agent |
@@ -91,7 +91,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `plan_execute/langgraph.py` | ✅ | plan → execute → synthesize graph |
-| CrewAI | `plan_execute/crewai.py` | ⬜ | planner + executor crew |
+| CrewAI | `plan_execute/crewai.py` | ✅ | planner + executor crew |
 | LlamaIndex | `plan_execute/llamaindex.py` | ⬜ | `SubQuestionQueryEngine` |
 | Haystack | `plan_execute/haystack.py` | ⬜ | planner pipeline + fan-out |
 | OpenAI Agents SDK | `plan_execute/openai_agents.py` | ⬜ | planner Agent + executors |
@@ -103,7 +103,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `router/langgraph.py` | ✅ | conditional edges |
-| CrewAI | `router/crewai.py` | ⬜ | router agent → delegated crew |
+| CrewAI | `router/crewai.py` | ✅ | router agent → delegated crew |
 | LlamaIndex | `router/llamaindex.py` | ⬜ | `RouterQueryEngine` |
 | Haystack | `router/haystack.py` | ⬜ | conditional router component |
 | OpenAI Agents SDK | `router/openai_agents.py` | ⬜ | agent handoffs |
@@ -115,7 +115,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `chaining/langgraph.py` | ✅ | sequential / fan-out graph |
-| CrewAI | `chaining/crewai.py` | ⬜ | sequential tasks |
+| CrewAI | `chaining/crewai.py` | ✅ | sequential tasks |
 | LlamaIndex | `chaining/llamaindex.py` | ⬜ | `QueryPipeline` |
 | Haystack | `chaining/haystack.py` | ⬜ | multi-component pipeline |
 | OpenAI Agents SDK | `chaining/openai_agents.py` | ⬜ | chained Runner calls |
@@ -127,7 +127,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `multi_agent/langgraph.py` | ✅ | supervisor graph |
-| CrewAI | `multi_agent/crewai.py` | ⬜ | hierarchical crew |
+| CrewAI | `multi_agent/crewai.py` | ✅ | hierarchical crew |
 | LlamaIndex | `multi_agent/llamaindex.py` | ⬜ | `AgentRunner` + sub-agents |
 | Haystack | `multi_agent/haystack.py` | ⬜ | multi-agent pipeline |
 | OpenAI Agents SDK | `multi_agent/openai_agents.py` | ⬜ | supervisor + handoffs |
@@ -139,7 +139,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `evaluator/langgraph.py` | ✅ | generate ↔ evaluate cycle (conditional) |
-| CrewAI | `evaluator/crewai.py` | ⬜ | maker + judge crew, looped |
+| CrewAI | `evaluator/crewai.py` | ✅ | maker + judge crew, looped |
 | LlamaIndex | `evaluator/llamaindex.py` | ⬜ | `Evaluator` + retry |
 | Haystack | `evaluator/haystack.py` | ⬜ | loop with eval component |
 | OpenAI Agents SDK | `evaluator/openai_agents.py` | ⬜ | producer + judge Agents |
@@ -151,7 +151,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `rewoo/langgraph.py` | ✅ | planner → worker (no obs) → solver graph |
-| CrewAI | `rewoo/crewai.py` | ⬜ | planner + parallel workers + solver |
+| CrewAI | `rewoo/crewai.py` | ✅ | planner + parallel workers + solver |
 | LlamaIndex | `rewoo/llamaindex.py` | ⬜ | plan tools upfront, batch run |
 | Haystack | `rewoo/haystack.py` | ⬜ | planner → parallel branches → solver |
 | OpenAI Agents SDK | `rewoo/openai_agents.py` | ⬜ | planner emits calls, batch execute |
@@ -163,7 +163,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | Framework | File | Development Status | Notes |
 |---|---|---|---|
 | LangGraph | `tot/langgraph.py` | ✅ | branch/evaluate/select graph |
-| CrewAI | `tot/crewai.py` | ⬜ | proposer + scorer crew |
+| CrewAI | `tot/crewai.py` | ✅ | proposer + scorer crew |
 | LlamaIndex | `tot/llamaindex.py` | ⬜ | multi-branch + evaluator |
 | Haystack | `tot/haystack.py` | ⬜ | branch pipeline + scorer |
 | OpenAI Agents SDK | `tot/openai_agents.py` | ⬜ | proposer + evaluator Agents |

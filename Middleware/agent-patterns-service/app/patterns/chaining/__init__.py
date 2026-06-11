@@ -1,2 +1,2 @@
 """chaining pattern — frameworks register here."""
-from . import langgraph  # noqa: F401
+from . import langgraph, crewai  # noqa: F401
