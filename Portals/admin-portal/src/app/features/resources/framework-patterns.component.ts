@@ -40,6 +40,18 @@ curl -X POST localhost:8094/agent-patterns/<span class="ph">&lt;pattern&gt;</spa
       </tbody>
     </table>
 
+    <h3>VKP use cases per pattern <span class="dim">(✓ = runnable in {{ fw.name }} now · ○ = planned)</span></h3>
+    <p class="hint">The 5 concrete use cases per pattern. Run one: <code>POST /agent-patterns/&lt;pattern&gt;/{{ fwKey }}/run</code>
+       with <code>{{ '{' }}"input":"…","useCase":"&lt;id&gt;"{{ '}' }}</code>.</p>
+    <div class="ucp" *ngFor="let p of fw.rows">
+      <div class="ucp-h"><b>{{ p.name }}</b></div>
+      <div class="ucs">
+        <span class="uc" *ngFor="let u of ucs(p.key)" [class.done]="u.done">
+          <span class="b">{{ u.done ? '✓' : '○' }}</span> {{ u.name }} <code>{{ u.id }}</code>
+        </span>
+      </div>
+    </div>
+
     <p class="foot">
       Service: <a [href]="repo + '/Middleware/agent-patterns-service'" target="_blank" rel="noopener">agent-patterns-service</a>
       · matrix: <a [href]="repo + '/Middleware/agent-patterns-service/Development_Tracker.md'" target="_blank" rel="noopener">Development_Tracker.md</a>
@@ -62,6 +74,14 @@ curl -X POST localhost:8094/agent-patterns/<span class="ph">&lt;pattern&gt;</spa
     .t thead th { background:#f6f1ff; color:#4c1d95; }
     .t tbody tr:hover { background:#faf8ff; }
     .t td:first-child { white-space:nowrap; }
+    .ucp { margin:.3rem 0 .6rem; }
+    .ucp-h { font-weight:700; color:#4c1d95; margin:.55rem 0 .2rem; }
+    .ucs { display:flex; flex-wrap:wrap; gap:.4rem; }
+    .uc { font-size:.85rem; color:#64748b; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:.1rem .6rem; }
+    .uc.done { color:#0f8a5f; background:#ecfdf3; border-color:#b7f0d2; }
+    .uc .b { font-weight:800; }
+    .uc code { font-size:.74rem; background:transparent; }
+    .hint { color:#475467; font-size:.9rem; margin:.2rem 0 .7rem; }
     .t .ex { color:#0f8a5f; font-size:.88rem; } .t .run { white-space:nowrap; }
     .src { color:#7c3aed; text-decoration:none; font-weight:700; } .src:hover { text-decoration:underline; }
     .arch .foot { color:#475467; font-size:.95rem; margin-top:1rem; }
@@ -77,7 +97,30 @@ export class FrameworkPatternsComponent implements OnInit {
     this.fwKey = this.route.snapshot.data['fw'] || 'langgraph';
     this.fw = FRAMEWORKS[this.fwKey];
   }
+
+  ucs(patternKey: string): { id: string; name: string; done: boolean }[] {
+    const impl = IMPL[this.fwKey] || new Set<string>();
+    return (USECASES[patternKey] || []).map(u => ({ ...u, done: impl.has(patternKey + ':' + u.id) }));
+  }
 }
+
+const USECASES: Record<string, { id: string; name: string }[]> = {
+  reflection: [{ id: 'answer-quality-gate', name: 'Answer quality gate' }, { id: 'chunk-quality-review', name: 'Chunk quality review' }, { id: 'citation-verification', name: 'Citation verification' }, { id: 'crawl-coverage-self-check', name: 'Crawl coverage self-check' }, { id: 'spec-extraction-accuracy', name: 'Spec-extraction accuracy' }],
+  react: [{ id: 'smart-link-discovery', name: 'Smart link discovery' }, { id: 'single-model-deep-dive', name: 'Single-model deep-dive' }, { id: 'recall-safety-lookup', name: 'Recall / safety lookup' }, { id: 'dealer-inventory-locator', name: 'Dealer / inventory locator' }, { id: 'broken-link-repair', name: 'Broken-link repair' }],
+  'plan-execute': [{ id: 'multi-brand-comparison', name: 'Multi-brand comparison' }, { id: 'buyers-guide-builder', name: "Buyer's-guide builder" }, { id: 'adaptive-onboarding', name: 'Adaptive onboarding' }, { id: 'spec-sheet-assembly', name: 'Spec-sheet assembly' }, { id: 'tco-report', name: 'TCO report' }],
+  rag: [{ id: 'single-fact-qa', name: 'Single-fact Q&A' }, { id: 'company-scoped-faq', name: 'Company-scoped FAQ' }, { id: 'brochure-pdf-lookup', name: 'Brochure / PDF lookup' }, { id: 'explain-feature', name: 'Explain this feature' }, { id: 'snapshot-grounded', name: 'Snapshot-grounded' }],
+  router: [{ id: 'compound-vs-simple', name: 'Compound-vs-simple' }, { id: 'framework-router', name: 'Framework router' }, { id: 'query-type-router', name: 'Query-type router' }, { id: 'store-router', name: 'Store router' }, { id: 'topic-guardrail-router', name: 'Topic / guardrail router' }],
+  chaining: [{ id: 'multi-provider-fanout', name: 'Multi-provider fan-out' }, { id: 'ingestion-chain', name: 'Ingestion chain' }, { id: 'sectioning', name: 'Sectioning' }, { id: 'voting', name: 'Voting' }, { id: 'translate-then-index', name: 'Translate-then-index' }],
+  'multi-agent': [{ id: 'researcher-advisor', name: 'Researcher + advisor' }, { id: 'per-brand-workers', name: 'Per-brand workers' }, { id: 'onboarding-crew', name: 'Onboarding crew' }, { id: 'review-aggregator', name: 'Review aggregator' }, { id: 'spec-price-safety', name: 'Spec/price/safety specialists' }],
+  'evaluator-optimizer': [{ id: 'answer-refiner', name: 'Answer refiner' }, { id: 'chunking-optimizer', name: 'Chunking optimizer' }, { id: 'query-rewriter', name: 'Query rewriter' }, { id: 'summary-tightener', name: 'Summary tightener' }, { id: 'embedding-model-selector', name: 'Embedding-model selector' }],
+  rewoo: [{ id: 'batch-spec-enrichment', name: 'Batch spec enrichment' }, { id: 'parallel-multi-brand-facts', name: 'Parallel multi-brand facts' }, { id: 'nightly-price-refresh', name: 'Nightly price refresh' }, { id: 'bulk-image-alt-text', name: 'Bulk image alt-text' }, { id: 'fixed-dimension-comparison', name: 'Fixed-dimension comparison' }],
+  tot: [{ id: 'best-car-for-me', name: '"Best car for me"' }, { id: 'ambiguous-query', name: 'Ambiguous-query' }, { id: 'trim-optimizer', name: 'Trim / option optimizer' }, { id: 'multi-constraint-filter', name: 'Multi-constraint filter' }, { id: 'spec-conflict-resolver', name: 'Spec-conflict resolver' }],
+};
+
+const IMPL: Record<string, Set<string>> = {
+  langgraph: new Set(['reflection:answer-quality-gate', 'reflection:chunk-quality-review', 'reflection:citation-verification', 'reflection:crawl-coverage-self-check', 'reflection:spec-extraction-accuracy']),
+  crewai: new Set<string>(),
+};
 
 const ROWS = {
   react: { name: 'ReAct', key: 'react', dir: 'react' },
