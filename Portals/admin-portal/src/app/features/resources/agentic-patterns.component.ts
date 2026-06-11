@@ -18,12 +18,14 @@ import { RouterLink } from '@angular/router';
     </p>
 
     <nav class="toc">
-      <b>On this page</b>
-      <a (click)="go('s-react')">What ReAct is</a>
-      <a (click)="go('s-patterns')">Alternative patterns</a>
-      <a (click)="go('s-vkp')">How this maps to VKP</a>
-      <a (click)="go('s-impl')">What is plan-execute built on?</a>
-      <a (click)="go('s-ref')">Reference implementations (7 frameworks)</a>
+      <div class="toc-title">Contents</div>
+      <ol>
+        <li><a (click)="go('s-react')">What ReAct is</a></li>
+        <li><a (click)="go('s-patterns')">The main alternative agent / orchestration patterns</a></li>
+        <li><a (click)="go('s-vkp')">How this maps to VKP</a></li>
+        <li><a (click)="go('s-impl')">What is plan-execute built on?</a></li>
+        <li><a (click)="go('s-ref')">Reference implementations — Plan-and-Execute on 7 frameworks</a></li>
+      </ol>
     </nav>
 
     <h3 id="s-react">What ReAct is</h3>
@@ -114,9 +116,13 @@ Thought: these are the vehicle pages  →  Final answer: [JSON links]</pre>
     .ap .foot { color:#475467; font-size:.98rem; }
     .ap .foot a { color:#3538cd; }
     .ap .dim { color:#94a3b8; font-weight:400; font-size:.9rem; }
-    .toc { background:#faf8ff; border:1px solid #e9e3fb; border-radius:8px; padding:.6rem .9rem; margin:.5rem 0 .25rem;
-      display:flex; flex-wrap:wrap; gap:.25rem 1.1rem; align-items:center; font-size:.95rem; }
-    .toc b { color:#4c1d95; margin-right:.4rem; }
+    .toc { background:#faf8ff; border:1px solid #e9e3fb; border-left:3px solid #7c3aed; border-radius:8px;
+      padding:.7rem 1rem .8rem; margin:1rem 0 1.5rem; max-width:560px; }
+    .toc-title { font-size:.74rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700;
+      color:#7b74a8; margin-bottom:.45rem; }
+    .toc ol { margin:0; padding-left:1.4rem; }
+    .toc li { margin:.28rem 0; font-size:.96rem; }
+    .toc li::marker { color:#a855f7; font-weight:700; }
     .toc a { color:#3538cd; cursor:pointer; text-decoration:none; }
     .toc a:hover { text-decoration:underline; }
   `]
