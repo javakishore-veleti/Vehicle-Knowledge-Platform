@@ -113,6 +113,12 @@ export class AppComponent {
 
   private readonly resourcesMenu: MenuItem[] = [
     {
+      label: 'Mastery', icon: 'pi pi-compass', expanded: true,
+      items: [
+        { label: 'Map', icon: 'pi pi-map', routerLink: '/resources/mastery/map' }
+      ]
+    },
+    {
       label: 'Architecture', icon: 'pi pi-objects-column', expanded: true,
       items: [
         {

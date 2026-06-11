@@ -21,11 +21,14 @@ import { DmPipelinesComponent } from './features/resources/dm-pipelines.componen
 import { InteractiveLabComponent } from './features/resources/interactive-lab.component';
 import { CollectionVsIngestionComponent } from './features/resources/collection-vs-ingestion.component';
 import { DbModelComponent } from './features/resources/db-model.component';
+import { MasteryMapComponent } from './features/resources/mastery-map.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'companies', pathMatch: 'full' },
 
-  { path: 'resources', redirectTo: 'resources/design-patterns/agentic-patterns', pathMatch: 'full' },
+  { path: 'resources', redirectTo: 'resources/mastery/map', pathMatch: 'full' },
+  { path: 'resources/mastery', redirectTo: 'resources/mastery/map', pathMatch: 'full' },
+  { path: 'resources/mastery/map', component: MasteryMapComponent, title: 'Mastery Map' },
   { path: 'resources/design-patterns', redirectTo: 'resources/design-patterns/agentic-patterns', pathMatch: 'full' },
   { path: 'resources/design-patterns/agentic-patterns', component: AgenticPatternsComponent, title: 'Agentic Patterns' },
   { path: 'resources/tools', redirectTo: 'resources/tools/pydantic', pathMatch: 'full' },
