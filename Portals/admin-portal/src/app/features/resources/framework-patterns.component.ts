@@ -119,7 +119,8 @@ const USECASES: Record<string, { id: string; name: string }[]> = {
 
 const IMPL: Record<string, Set<string>> = {
   langgraph: new Set(['reflection:answer-quality-gate', 'reflection:chunk-quality-review', 'reflection:citation-verification', 'reflection:crawl-coverage-self-check', 'reflection:spec-extraction-accuracy',
-    'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded']),
+    'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded',
+    'evaluator-optimizer:answer-refiner', 'evaluator-optimizer:chunking-optimizer', 'evaluator-optimizer:query-rewriter', 'evaluator-optimizer:summary-tightener', 'evaluator-optimizer:embedding-model-selector']),
   crewai: new Set<string>(),
 };
 
