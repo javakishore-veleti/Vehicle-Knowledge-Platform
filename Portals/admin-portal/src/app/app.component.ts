@@ -139,7 +139,8 @@ export class AppComponent {
         { label: 'Agentic Patterns', icon: 'pi pi-android', routerLink: '/resources/design-patterns/agentic-patterns' },
         { label: 'LangGraph', icon: 'pi pi-share-alt', routerLink: '/resources/design-patterns/langgraph' },
         { label: 'CrewAI', icon: 'pi pi-users', routerLink: '/resources/design-patterns/crewai' },
-        { label: 'LlamaIndex', icon: 'pi pi-database', routerLink: '/resources/design-patterns/llamaindex' }
+        { label: 'LlamaIndex', icon: 'pi pi-database', routerLink: '/resources/design-patterns/llamaindex' },
+        { label: 'Haystack', icon: 'pi pi-server', routerLink: '/resources/design-patterns/haystack' }
       ]
     },
     {

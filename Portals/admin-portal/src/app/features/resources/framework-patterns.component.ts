@@ -193,4 +193,20 @@ const FRAMEWORKS: Record<string, FW> = {
       { ...ROWS.reflect, idiom: '<code>li.complete</code> drives draft → critique → revise', example: 'refined RAV4 answer' },
     ],
   },
+  haystack: {
+    name: 'Haystack', file: 'haystack',
+    blurb: 'The <b>Haystack column</b> of <code>agent-patterns-service</code> (:8094): Haystack 2.x shows best where its <b>Pipeline</b> graph and components fit — native <code>Agent</code>+<code>Tool</code> for ReAct, a BM25 <code>Pipeline</code> for RAG, and an <code>OutputAdapter</code>-wired chain — the rest orchestrate the <code>OpenAIGenerator</code>. All 9 verified live.',
+    rows: [
+      { ...ROWS.react, idiom: 'native <code>agents.Agent</code> + <code>tools.Tool</code> (chat-generator loop)', example: 'tool-called → F-150 13,500 lb' },
+      { ...ROWS.plan, idiom: 'plan sub-questions → answer each → synthesize', example: 'RAV4 Prime vs Camry for a commuter' },
+      { ...ROWS.rag, idiom: 'native <b>Pipeline</b>: BM25 retriever → PromptBuilder → generator', example: '"RAV4 Prime range is 42 miles"' },
+      { ...ROWS.router, idiom: 'generator classifies → tailored prompt', example: 'routed → recommend' },
+      { ...ROWS.chain, idiom: 'native <b>Pipeline</b>: rewrite → <code>OutputAdapter</code> → answer', example: 'RAV4 Prime 94 MPGe / 38 MPG' },
+      { ...ROWS.multi, idiom: 'spec/pricing/safety specialists → lead composes', example: 'Model 3 buyer\'s report' },
+      { ...ROWS.eval, idiom: 'generate → judge → revise (one round)', example: 'Highlander seating answer refined' },
+      { ...ROWS.rewoo, idiom: 'planner (blind) → execute (no LLM) → solve', example: 'Tacoma base price $31,500' },
+      { ...ROWS.tot, idiom: 'branch (propose 3) → evaluate (score) → select', example: 'F-150 vs Tacoma towing → best pick' },
+      { ...ROWS.reflect, idiom: 'generator drives draft → critique → revise', example: 'refined RAV4 answer' },
+    ],
+  },
 };
