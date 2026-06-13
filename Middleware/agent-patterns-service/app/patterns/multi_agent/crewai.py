@@ -1,26 +1,29 @@
-"""Multi-agent on **CrewAI** — spec/pricing/safety specialists + a lead synthesizer (CrewAI's native strength)."""
+"""Multi-agent on **CrewAI** — parallel specialist agents + a lead synthesizer (CrewAI's native strength).
+
+Implements the 5 VKP use cases via ctx['useCase']: each use case's worker roster (from `_base.USE_CASES`,
+shared with every framework cell) becomes one agent + async Task per specialist; a lead agent composes
+the final answer via Task context. per-brand-workers spins one agent per brand in the query."""
 from ... import registry, crew
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     from crewai import Agent, Task, Crew, Process
     q = ctx["input"]
+    uc, workers, merge_instr = _base.spec_for(ctx.get("useCase"), q)
 
-    def sp(role, goal):
-        return Agent(role=role, goal=goal, backstory=role, llm=crew.crew_llm(), verbose=False)
+    agents, tasks = [], []
+    for label, prompt in workers:
+        a = Agent(role=f"{label} specialist", goal=f"Provide the {label} findings.",
+                  backstory=f"A {label} specialist.", llm=crew.crew_llm(), verbose=False)
+        agents.append(a)
+        tasks.append(Task(description=prompt, expected_output=f"{label} findings.", agent=a, async_execution=True))
 
-    spec = sp("Specs Specialist", "Provide spec facts.")
-    price = sp("Pricing Specialist", "Provide pricing/value facts.")
-    safety = sp("Safety Specialist", "Provide safety/reliability facts.")
-    lead = sp("Lead Advisor", "Compose the final answer from the specialists.")
-
-    t1 = Task(description=f"Spec facts for: {q}", expected_output="Specs.", agent=spec, async_execution=True)
-    t2 = Task(description=f"Pricing/value for: {q}", expected_output="Pricing.", agent=price, async_execution=True)
-    t3 = Task(description=f"Safety/reliability for: {q}", expected_output="Safety.", agent=safety, async_execution=True)
-    final = Task(description=f"Compose a final answer to '{q}' from your specialists.",
-                 expected_output="Final answer.", agent=lead, context=[t1, t2, t3])
-    out = Crew(agents=[spec, price, safety, lead], tasks=[t1, t2, t3, final], process=Process.sequential, verbose=False).kickoff()
-    return {"answer": str(out), "steps": ["spec", "pricing", "safety"]}
+    lead = Agent(role="Lead Advisor", goal="Compose the final answer from the specialists.",
+                 backstory="The lead advisor.", llm=crew.crew_llm(), verbose=False)
+    final = Task(description=f"{merge_instr}\n\nTASK: {q}", expected_output="The final answer.", agent=lead, context=tasks)
+    out = Crew(agents=agents + [lead], tasks=tasks + [final], process=Process.sequential, verbose=False).kickoff()
+    return {"answer": str(out), "steps": [l for l, _ in workers], "useCase": uc}
 
 
 registry.register("multi-agent", "crewai", run)
