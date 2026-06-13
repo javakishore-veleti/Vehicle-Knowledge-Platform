@@ -146,7 +146,8 @@ const IMPL: Record<string, Set<string>> = {
     'evaluator-optimizer:answer-refiner', 'evaluator-optimizer:chunking-optimizer', 'evaluator-optimizer:query-rewriter', 'evaluator-optimizer:summary-tightener', 'evaluator-optimizer:embedding-model-selector',
     'rewoo:batch-spec-enrichment', 'rewoo:parallel-multi-brand-facts', 'rewoo:nightly-price-refresh', 'rewoo:bulk-image-alt-text', 'rewoo:fixed-dimension-comparison',
     'react:smart-link-discovery', 'react:single-model-deep-dive', 'react:recall-safety-lookup', 'react:dealer-inventory-locator', 'react:broken-link-repair',
-    'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded']),
+    'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded',
+    'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report']),
 };
 
 const ROWS = {
