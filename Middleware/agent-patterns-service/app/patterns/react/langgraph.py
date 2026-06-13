@@ -1,8 +1,10 @@
 """ReAct on **LangGraph** — create_react_agent + tools (reason → act → observe loop).
 
 Implements the 5 VKP ReAct use cases via ctx['useCase'] (default = single-model-deep-dive): each gives the
-agent the relevant tool(s) + a use-case system prompt. Tools are mocks in app/tools.py (crawl, NHTSA, dealer)."""
+agent the relevant tool(s) + a use-case system prompt. The toolset/system config lives in `_base.USE_CASES`
+(shared with every framework cell); tool implementations are mocks in app/tools.py (crawl, NHTSA, dealer)."""
 from ... import registry, tools, config
+from . import _base
 
 
 def _model():
@@ -17,7 +19,7 @@ def run(ctx: dict) -> dict:
     from langgraph.prebuilt import create_react_agent
     from langchain_core.tools import tool as lc_tool
     q = ctx["input"]
-    uc = ctx.get("useCase") or "single-model-deep-dive"
+    uc, tool_names, system = _base.spec_for(ctx.get("useCase"))
 
     @lc_tool
     def vehicle_spec(model: str, field: str = "") -> dict:
@@ -44,21 +46,9 @@ def run(ctx: dict) -> dict:
         """Given a 404 URL, search the site for the page's likely new location."""
         return tools.find_moved(url)
 
-    cfg = {
-        "smart-link-discovery": ([crawl_page],
-            "You are a resource scout. Use crawl_page on the seed URL, then return ONLY the relevant vehicle "
-            "resource links (model / spec / pricing pages); skip nav, about, contact."),
-        "single-model-deep-dive": ([crawl_page, vehicle_spec],
-            "You research one model in depth. Use crawl_page to find its spec/trims/pricing pages and "
-            "vehicle_spec for facts; then summarize what you found."),
-        "recall-safety-lookup": ([nhtsa_recalls],
-            "You handle recall lookups. Use nhtsa_recalls for the model/year in the question, then report them."),
-        "dealer-inventory-locator": ([dealer_inventory],
-            "You locate local inventory. Use dealer_inventory with the model and ZIP from the question, then report nearby stock."),
-        "broken-link-repair": ([find_moved],
-            "A stored link 404'd. Use find_moved to locate where the page moved, then report the new URL."),
-    }
-    toolset, system = cfg.get(uc, cfg["single-model-deep-dive"])
+    tool_map = {"vehicle_spec": vehicle_spec, "crawl_page": crawl_page, "nhtsa_recalls": nhtsa_recalls,
+                "dealer_inventory": dealer_inventory, "find_moved": find_moved}
+    toolset = [tool_map[n] for n in tool_names]
     agent = create_react_agent(_model(), toolset)
     out = agent.invoke({"messages": [("system", system), ("user", q)]})
     msgs = out["messages"]
