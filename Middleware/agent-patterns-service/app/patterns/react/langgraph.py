@@ -1,4 +1,7 @@
-"""ReAct on **LangGraph** — `create_react_agent` + a vehicle_spec tool: reason -> act(tool) -> observe -> answer."""
+"""ReAct on **LangGraph** — create_react_agent + tools (reason → act → observe loop).
+
+Implements the 5 VKP ReAct use cases via ctx['useCase'] (default = single-model-deep-dive): each gives the
+agent the relevant tool(s) + a use-case system prompt. Tools are mocks in app/tools.py (crawl, NHTSA, dealer)."""
 from ... import registry, tools, config
 
 
@@ -13,20 +16,55 @@ def _model():
 def run(ctx: dict) -> dict:
     from langgraph.prebuilt import create_react_agent
     from langchain_core.tools import tool as lc_tool
+    q = ctx["input"]
+    uc = ctx.get("useCase") or "single-model-deep-dive"
 
     @lc_tool
     def vehicle_spec(model: str, field: str = "") -> dict:
         """Look up specs (type, electric_range_mi, mpg, towing_lb, base_price_usd, seats) for a known model."""
         return tools.vehicle_spec(model, field)
 
-    agent = create_react_agent(_model(), [vehicle_spec])
-    out = agent.invoke({"messages": [
-        ("system", "You are a vehicle expert. Use the vehicle_spec tool for any spec/price/range/towing fact."),
-        ("user", ctx["input"])]})
+    @lc_tool
+    def crawl_page(url: str) -> dict:
+        """Fetch a web page; returns the outbound links found on it."""
+        return tools.crawl_page(url)
+
+    @lc_tool
+    def nhtsa_recalls(model: str, year: str = "") -> dict:
+        """Look up NHTSA safety recalls for a vehicle model / year."""
+        return tools.nhtsa_recalls(model, year)
+
+    @lc_tool
+    def dealer_inventory(model: str, zip_code: str = "") -> dict:
+        """Find local dealer inventory / stock for a model near a ZIP code."""
+        return tools.dealer_inventory(model, zip_code)
+
+    @lc_tool
+    def find_moved(url: str) -> dict:
+        """Given a 404 URL, search the site for the page's likely new location."""
+        return tools.find_moved(url)
+
+    cfg = {
+        "smart-link-discovery": ([crawl_page],
+            "You are a resource scout. Use crawl_page on the seed URL, then return ONLY the relevant vehicle "
+            "resource links (model / spec / pricing pages); skip nav, about, contact."),
+        "single-model-deep-dive": ([crawl_page, vehicle_spec],
+            "You research one model in depth. Use crawl_page to find its spec/trims/pricing pages and "
+            "vehicle_spec for facts; then summarize what you found."),
+        "recall-safety-lookup": ([nhtsa_recalls],
+            "You handle recall lookups. Use nhtsa_recalls for the model/year in the question, then report them."),
+        "dealer-inventory-locator": ([dealer_inventory],
+            "You locate local inventory. Use dealer_inventory with the model and ZIP from the question, then report nearby stock."),
+        "broken-link-repair": ([find_moved],
+            "A stored link 404'd. Use find_moved to locate where the page moved, then report the new URL."),
+    }
+    toolset, system = cfg.get(uc, cfg["single-model-deep-dive"])
+    agent = create_react_agent(_model(), toolset)
+    out = agent.invoke({"messages": [("system", system), ("user", q)]})
     msgs = out["messages"]
-    steps = [f"tool: vehicle_spec({c.get('args')})"
+    steps = [f"tool: {c.get('name')}({c.get('args')})"
              for m in msgs for c in (getattr(m, "tool_calls", None) or [])]
-    return {"answer": msgs[-1].content, "steps": steps}
+    return {"answer": msgs[-1].content, "steps": steps, "useCase": uc}
 
 
 registry.register("react", "langgraph", run)

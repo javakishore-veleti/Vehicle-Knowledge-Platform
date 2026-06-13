@@ -43,7 +43,7 @@ reusable reference library and a stack-comparison harness.
 - **Done:** 26 / 80 — Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** — all verified live · **Planned:** 54
 - **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 26 cells, `/agent-patterns/patterns`)
 - **Installs:** all via `requirements.txt` — `uv pip install -r requirements.txt` (or pip). **venv = Python 3.12** (CrewAI/most agent SDKs lack 3.14 wheels).
-- **Use-case axis** (the 5 concrete VKP use cases per pattern, 50 total): selectable via `useCase` in the request. **Done: 45/50** — every pattern except ReAct now has its 5 use cases (LangGraph), all verified live (Chaining: real ingestion chain fetch→clean→title→hash→store; provider fan-out; sectioning; voting; translate-then-index). `GET /agent-patterns/{pattern}/usecases` lists them.
+- **Use-case axis** (the 5 concrete VKP use cases per pattern, 50 total): selectable via `useCase` in the request. **✅ Done: 50/50 — COMPLETE in LangGraph.** All 10 patterns × 5 use cases verified live (ReAct uses a real reason→act tool loop with mock crawl/NHTSA/dealer tools). `GET /agent-patterns/{pattern}/usecases` lists them.
 
 ---
 
