@@ -1,26 +1,23 @@
-"""ReWOO on the **Microsoft Agent Framework** — planner Agent emits blind tool calls → execute (no LLM) → solver Agent."""
-import json
-import re
+"""ReWOO on the **Microsoft Agent Framework** — blind plan → execute (no LLM in the loop) → solver Agent.
 
-from ... import registry, msa, tools
+Implements the 5 VKP use cases via ctx['useCase']. The plan/worker/solver spec comes from
+`_base.USE_CASES` (shared with every framework cell): the plan is blind + deterministic, the worker runs
+the vehicle_spec calls with no LLM, and an Agent does the solve (nightly-price-refresh is LLM-free)."""
+from ... import registry, msa
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     q = ctx["input"]
+    uc, spec = _base.spec_for(ctx.get("useCase"), q)
+    plan = spec["plan"]
+    evidence = spec["worker"](plan)        # blind execute — no LLM in the loop
+    kind, builder = spec["solver"]
 
     async def _go():
-        raw = await msa.acomplete('Plan the vehicle_spec(model, field) calls needed (no results yet). '
-                                  'Return ONLY a JSON array of {"model":..,"field":..}.\n\n' + q, "You are a planner.")
-        m = re.search(r"\[.*\]", raw, re.S)
-        try:
-            plan = json.loads(m.group(0)) if m else []
-        except Exception:
-            plan = []
-        ev = "\n".join(f"{c} -> {tools.vehicle_spec(c.get('model', ''), c.get('field', ''))}" for c in plan[:6])
-        return await msa.acomplete(f"Using ONLY this evidence, answer: {q}\n\nEVIDENCE:\n{ev}"), [str(c) for c in plan]
+        return await msa.acomplete(builder(q, evidence)) if kind == "llm" else builder(q, evidence)
 
-    ans, steps = msa.run_sync(_go())
-    return {"answer": ans, "steps": steps}
+    return {"answer": msa.run_sync(_go()), "steps": [str(c) for c in plan], "useCase": uc}
 
 
 registry.register("rewoo", "msagent", run)

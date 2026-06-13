@@ -1,19 +1,29 @@
-"""Plan-and-Execute on the **Microsoft Agent Framework** — planner Agent → execute sub-steps → synthesizer Agent."""
+"""Plan-and-Execute on the **Microsoft Agent Framework** — planner Agent → execute → synthesizer Agent.
+
+Implements the 5 VKP use cases via ctx['useCase']. The plan/execute/synthesize spec comes from
+`_base.USE_CASES` (shared with every framework cell): LLM plans decompose via a planner Agent, the execute
+step gathers evidence deterministically (corpus retrieval / vehicle_spec tool), and a synthesizer Agent
+writes the final answer. All calls run in ONE event loop (AF telemetry)."""
 from ... import registry, msa
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     q = ctx["input"]
+    uc, spec = _base.spec_for(ctx.get("useCase"), q)
 
     async def _go():
-        plan = await msa.acomplete(f"List 2-4 sub-questions (one per line) needed to answer: {q}", "You are a planner.")
-        subs = [s.strip("-* ").strip() for s in plan.splitlines() if s.strip()][:4]
-        parts = [f"{s} -> {await msa.acomplete('Answer briefly: ' + s)}" for s in subs]
-        ans = await msa.acomplete(f"Using these findings, answer: {q}\n\n" + "\n".join(parts))
-        return ans, subs
+        if spec["plan"][0] == "llm":
+            n = spec["plan"][1]
+            raw = await msa.acomplete(f"Break this into {n} focused sub-queries. Return ONLY a JSON array of strings.\n\n{q}", "You are a planner.")
+            steps = _base.parse_steps(raw, q, n)
+        else:
+            steps = list(spec["plan"][1])
+        evidence = spec["exec"](q, steps)        # deterministic execute — no LLM in the loop
+        return steps, await msa.acomplete(_base.synth_prompt(spec["instr"], q, evidence))
 
-    ans, subs = msa.run_sync(_go())
-    return {"answer": ans, "steps": subs}
+    steps, ans = msa.run_sync(_go())
+    return {"answer": ans, "steps": steps, "useCase": uc}
 
 
 registry.register("plan-execute", "msagent", run)
