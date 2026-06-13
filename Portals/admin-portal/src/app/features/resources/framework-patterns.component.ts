@@ -172,7 +172,10 @@ const IMPL: Record<string, Set<string>> = {
     'tot:best-car-for-me', 'tot:ambiguous-query', 'tot:trim-optimizer', 'tot:multi-constraint-filter', 'tot:spec-conflict-resolver',
     'multi-agent:researcher-advisor', 'multi-agent:per-brand-workers', 'multi-agent:onboarding-crew', 'multi-agent:review-aggregator', 'multi-agent:spec-price-safety',
     'chaining:multi-provider-fanout', 'chaining:ingestion-chain', 'chaining:sectioning', 'chaining:voting', 'chaining:translate-then-index',
-    'router:compound-vs-simple', 'router:framework-router', 'router:query-type-router', 'router:store-router', 'router:topic-guardrail-router']),
+    'router:compound-vs-simple', 'router:framework-router', 'router:query-type-router', 'router:store-router', 'router:topic-guardrail-router',
+    'evaluator-optimizer:answer-refiner', 'evaluator-optimizer:chunking-optimizer', 'evaluator-optimizer:query-rewriter', 'evaluator-optimizer:summary-tightener', 'evaluator-optimizer:embedding-model-selector',
+    'rewoo:batch-spec-enrichment', 'rewoo:parallel-multi-brand-facts', 'rewoo:nightly-price-refresh', 'rewoo:bulk-image-alt-text', 'rewoo:fixed-dimension-comparison',
+    'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report']),
 };
 
 const ROWS = {
