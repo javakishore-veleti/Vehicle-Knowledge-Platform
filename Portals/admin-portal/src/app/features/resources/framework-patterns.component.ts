@@ -1,22 +1,52 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AgentPatternsService, RunResult } from '../../core/agent-patterns.service';
 
 interface Row { name: string; key: string; dir: string; idiom: string; example: string; }
 interface FW { name: string; file: string; blurb: string; rows: Row[]; }
 
 /** Resources → Design Patterns → <Framework>. One reusable, data-driven page: all 10 agentic patterns
- *  implemented in the framework given by the route's `fw` data, each linking to its cell on GitHub. */
+ *  implemented in the framework given by the route's `fw` data, each linking to its cell on GitHub —
+ *  and each runnable LIVE against the agent-patterns-service (:8094) via the ▶ Run buttons. */
 @Component({
   selector: 'app-framework-patterns',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
   <div class="vkp-page arch" *ngIf="fw">
-    <h2>{{ fw.name }} — all 10 agentic patterns</h2>
+    <h2>{{ fw.name }} — all 10 agentic patterns
+      <span class="badge" [class.on]="live === true" [class.off]="live === false">
+        {{ live === true ? '● service live :8094' : live === false ? '○ service offline' : '… checking' }}
+      </span>
+    </h2>
     <p class="lead" [innerHTML]="fw.blurb"></p>
 
-    <h3>Run it</h3>
+    <h3>Try it live</h3>
+    <div class="tryit">
+      <input class="qin" [(ngModel)]="input" (keyup.enter)="run(lastPattern || 'reflection')"
+             placeholder="Ask a vehicle question…" />
+      <span class="hint2">Click <b>▶ Run</b> on any pattern below (or a use-case chip) to call
+        <code>POST /agent-patterns/&lt;pattern&gt;/{{ fwKey }}/run</code> live.</span>
+    </div>
+    <div class="result" *ngIf="result || running">
+      <div class="result-h">
+        <b>{{ running ? 'Running…' : 'Result' }}</b>
+        <span class="rk" *ngIf="running">{{ running }}</span>
+        <span class="rk" *ngIf="!running && result">{{ result!.pattern }} · {{ fwKey }}<span *ngIf="result!.useCase"> · {{ result!.useCase }}</span></span>
+        <span class="lat" *ngIf="!running && result?.latencyMs != null">{{ result!.latencyMs }} ms</span>
+        <span class="spin" *ngIf="running"></span>
+      </div>
+      <div class="err" *ngIf="!running && result && result.ok === false">⚠ {{ result.error || 'run failed' }}</div>
+      <div class="err" *ngIf="!running && runError">⚠ {{ runError }} — start the service: <code>uvicorn app.main:app --port 8094</code></div>
+      <pre class="ans" *ngIf="!running && result?.answer">{{ result!.answer }}</pre>
+      <div class="steps" *ngIf="!running && result?.steps?.length">
+        <span class="st" *ngFor="let s of result!.steps">{{ s }}</span>
+      </div>
+    </div>
+
+    <details class="curl"><summary>or run it from a terminal (curl)</summary>
     <pre class="code">cd Middleware/agent-patterns-service
 uv pip install -r requirements.txt        # or: pip install -r requirements.txt   (Python 3.12)
 export OPENAI_API_KEY=...                  # or GROQ_API_KEY=... (free)
@@ -24,6 +54,7 @@ uvicorn app.main:app --port 8094
 
 curl -X POST localhost:8094/agent-patterns/<span class="ph">&lt;pattern&gt;</span>/{{ fwKey }}/run \\
   -H 'content-type: application/json' -d '{{ '{' }}"input":"Does the F-150 tow more than the Tacoma?"{{ '}' }}'</pre>
+    </details>
 
     <h3>The 10 {{ fw.name }} cells <span class="dim">(all verified live)</span></h3>
     <table class="t">
@@ -33,7 +64,8 @@ curl -X POST localhost:8094/agent-patterns/<span class="ph">&lt;pattern&gt;</spa
           <td><b>{{ p.name }}</b></td>
           <td [innerHTML]="p.idiom"></td>
           <td class="ex">{{ p.example }}</td>
-          <td class="run"><code>{{ p.key }}</code>
+          <td class="run">
+            <button class="runbtn" (click)="run(p.key)" [disabled]="!!running" [title]="'Run ' + p.key + ' / ' + fwKey">▶ Run</button>
             <a class="src" [href]="repo + '/Middleware/agent-patterns-service/app/patterns/' + p.dir + '/' + fw.file + '.py'"
                target="_blank" rel="noopener" [title]="p.dir + '/' + fw.file + '.py'">&nbsp;↗ code</a></td>
         </tr>
@@ -46,8 +78,9 @@ curl -X POST localhost:8094/agent-patterns/<span class="ph">&lt;pattern&gt;</spa
     <div class="ucp" *ngFor="let p of fw.rows">
       <div class="ucp-h"><b>{{ p.name }}</b></div>
       <div class="ucs">
-        <span class="uc" *ngFor="let u of ucs(p.key)" [class.done]="u.done">
-          <span class="b">{{ u.done ? '✓' : '○' }}</span> {{ u.name }} <code>{{ u.id }}</code>
+        <span class="uc" *ngFor="let u of ucs(p.key)" [class.done]="u.done" [class.run-uc]="u.done"
+              (click)="u.done && run(p.key, u.id)" [title]="u.done ? 'Run ' + p.key + ' / ' + u.id : 'planned'">
+          <span class="b">{{ u.done ? '▶' : '○' }}</span> {{ u.name }} <code>{{ u.id }}</code>
         </span>
       </div>
     </div>
@@ -85,6 +118,26 @@ curl -X POST localhost:8094/agent-patterns/<span class="ph">&lt;pattern&gt;</spa
     .t .ex { color:#0f8a5f; font-size:.88rem; } .t .run { white-space:nowrap; }
     .src { color:#7c3aed; text-decoration:none; font-weight:700; } .src:hover { text-decoration:underline; }
     .arch .foot { color:#475467; font-size:.95rem; margin-top:1rem; }
+    .badge { font-size:.72rem; font-weight:600; padding:.12rem .5rem; border-radius:12px; vertical-align:middle; margin-left:.5rem; background:#f1f5f9; color:#64748b; }
+    .badge.on { background:#ecfdf3; color:#0f8a5f; } .badge.off { background:#fef3f2; color:#b42318; }
+    .tryit { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin:.3rem 0 .6rem; }
+    .qin { flex:1 1 380px; min-width:260px; padding:.5rem .7rem; border:1px solid #cbd5e1; border-radius:8px; font-size:.95rem; }
+    .qin:focus { outline:none; border-color:#7c3aed; box-shadow:0 0 0 3px #ede9fe; }
+    .hint2 { color:#475467; font-size:.86rem; }
+    .runbtn { background:#7c3aed; color:#fff; border:0; border-radius:6px; padding:.28rem .6rem; font-size:.82rem; font-weight:700; cursor:pointer; }
+    .runbtn:hover { background:#6d28d9; } .runbtn:disabled { background:#c4b5fd; cursor:not-allowed; }
+    .result { border:1px solid #e9d5ff; background:#faf5ff; border-radius:10px; padding:.7rem .85rem; margin:.2rem 0 .8rem; }
+    .result-h { display:flex; align-items:center; gap:.55rem; font-size:.9rem; color:#4c1d95; }
+    .result-h .rk { font-family:monospace; font-size:.82rem; color:#6d28d9; background:#f3e8ff; padding:.05rem .4rem; border-radius:4px; }
+    .result-h .lat { margin-left:auto; color:#94a3b8; font-size:.8rem; }
+    .ans { white-space:pre-wrap; background:#fff; border:1px solid #eceaf3; border-radius:8px; padding:.6rem .7rem; margin:.5rem 0 .3rem; font-size:.9rem; line-height:1.5; color:#1f2933; max-height:360px; overflow:auto; }
+    .steps { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.3rem; }
+    .steps .st { font-size:.74rem; font-family:monospace; color:#475467; background:#fff; border:1px solid #e2e8f0; border-radius:4px; padding:.05rem .4rem; }
+    .err { color:#b42318; font-size:.88rem; margin:.3rem 0; }
+    .spin { width:13px; height:13px; border:2px solid #d8b4fe; border-top-color:#7c3aed; border-radius:50%; display:inline-block; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .curl { margin:.2rem 0 .6rem; } .curl summary { cursor:pointer; color:#6d28d9; font-size:.88rem; font-weight:600; }
+    .uc.run-uc { cursor:pointer; } .uc.run-uc:hover { background:#dcfce7; border-color:#86efac; }
   `]
 })
 export class FrameworkPatternsComponent implements OnInit {
@@ -92,15 +145,42 @@ export class FrameworkPatternsComponent implements OnInit {
   fw!: FW;
   fwKey = 'langgraph';
 
-  constructor(private route: ActivatedRoute) {}
+  input = 'Does the F-150 tow more than the Tacoma?';
+  running: string | null = null;     // 'pattern' or 'pattern:useCase' currently running
+  result: RunResult | null = null;
+  runError: string | null = null;
+  live: boolean | null = null;       // null = checking, true = reachable, false = offline
+  lastPattern: string | null = null;
+
+  constructor(private route: ActivatedRoute, private api: AgentPatternsService) {}
+
   ngOnInit(): void {
     this.fwKey = this.route.snapshot.data['fw'] || 'langgraph';
     this.fw = FRAMEWORKS[this.fwKey];
+    this.api.patterns().subscribe({ next: () => (this.live = true), error: () => (this.live = false) });
   }
 
   ucs(patternKey: string): { id: string; name: string; done: boolean }[] {
     const impl = IMPL[this.fwKey] || new Set<string>();
     return (USECASES[patternKey] || []).map(u => ({ ...u, done: impl.has(patternKey + ':' + u.id) }));
+  }
+
+  run(patternKey: string, useCaseId?: string): void {
+    if (this.running) { return; }
+    const q = (this.input || '').trim();
+    if (!q) { return; }
+    this.lastPattern = patternKey;
+    this.running = useCaseId ? `${patternKey}:${useCaseId}` : patternKey;
+    this.result = null;
+    this.runError = null;
+    this.api.run(patternKey, this.fwKey, q, useCaseId).subscribe({
+      next: r => { this.result = r; this.live = true; this.running = null; },
+      error: err => {
+        this.running = null;
+        this.runError = err?.error?.detail || err?.message || 'request failed';
+        if (err?.status === 0) { this.live = false; }
+      }
+    });
   }
 }
 
