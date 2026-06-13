@@ -38,6 +38,7 @@ export const routes: Routes = [
   { path: 'resources/design-patterns/crewai', component: FrameworkPatternsComponent, data: { fw: 'crewai' }, title: 'CrewAI Patterns' },
   { path: 'resources/design-patterns/llamaindex', component: FrameworkPatternsComponent, data: { fw: 'llamaindex' }, title: 'LlamaIndex Patterns' },
   { path: 'resources/design-patterns/haystack', component: FrameworkPatternsComponent, data: { fw: 'haystack' }, title: 'Haystack Patterns' },
+  { path: 'resources/design-patterns/openai-agents', component: FrameworkPatternsComponent, data: { fw: 'openai_agents' }, title: 'OpenAI Agents SDK Patterns' },
   { path: 'resources/tools', redirectTo: 'resources/tools/pydantic', pathMatch: 'full' },
   { path: 'resources/tools/pydantic', component: PydanticComponent, title: 'Pydantic' },
   { path: 'resources/architecture', redirectTo: 'resources/architecture/data-management/pipelines', pathMatch: 'full' },

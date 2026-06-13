@@ -18,6 +18,9 @@ llama-index-question-gen-openai>=0.3    # SubQuestionQueryEngine (plan-execute c
 # --- Haystack (installed + verified — all 9 patterns) ---
 haystack-ai>=2.0                        # native Agent+Tool, RAG Pipeline (BM25), OutputAdapter chain
 
+# --- OpenAI Agents SDK (installed + verified — all 9 patterns) ---
+openai-agents>=0.17                     # native Agent + @function_tool + Runner.run_sync
+
 # --- other framework SDKs (install the cells you want to RUN; imports are lazy) ---
 # crewai>=0.40
 # llama-index>=0.10 ; llama-index-llms-openai

@@ -209,4 +209,20 @@ const FRAMEWORKS: Record<string, FW> = {
       { ...ROWS.reflect, idiom: 'generator drives draft → critique → revise', example: 'refined RAV4 answer' },
     ],
   },
+  openai_agents: {
+    name: 'OpenAI Agents SDK', file: 'openai_agents',
+    blurb: 'The <b>OpenAI Agents SDK column</b> of <code>agent-patterns-service</code> (:8094): every pattern runs through the SDK\'s <code>Agent</code> + <code>Runner.run_sync</code> — ReAct and RAG use a real <code>@function_tool</code> agent loop, the rest compose multiple <code>Agent</code> runs. All 9 verified live on gpt-4o-mini.',
+    rows: [
+      { ...ROWS.react, idiom: 'native <code>Agent</code> + <code>@function_tool</code> + <code>Runner.run_sync</code>', example: 'tool-called → F-150 13,500 lb' },
+      { ...ROWS.plan, idiom: 'planner Agent → execute sub-steps → synthesizer Agent', example: 'RAV4 Prime vs Camry for a commuter' },
+      { ...ROWS.rag, idiom: 'Agent whose <code>@function_tool</code> retrieves from the corpus', example: '"RAV4 Prime range is 42 miles"' },
+      { ...ROWS.router, idiom: 'classifier Agent → tailored specialist Agent', example: 'routed → recommend' },
+      { ...ROWS.chain, idiom: '2-Agent chain: rewrite → answer (Runner)', example: 'RAV4 Prime 94 MPGe / 38 MPG' },
+      { ...ROWS.multi, idiom: 'spec/pricing/safety Agents → lead Agent composes', example: 'Model 3 buyer\'s report' },
+      { ...ROWS.eval, idiom: 'generator Agent → judge Agent → revise (one round)', example: 'Highlander seating answer refined' },
+      { ...ROWS.rewoo, idiom: 'planner Agent (blind) → execute (no LLM) → solver Agent', example: 'Tacoma base price $31,500' },
+      { ...ROWS.tot, idiom: 'proposer Agent (3) → judge Agent scores → select', example: 'F-150 vs Tacoma towing → best pick' },
+      { ...ROWS.reflect, idiom: 'writer + critic Agents, Runner.run_sync', example: 'refined RAV4 answer' },
+    ],
+  },
 };

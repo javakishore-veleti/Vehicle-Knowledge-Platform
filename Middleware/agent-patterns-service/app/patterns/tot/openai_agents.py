@@ -1,0 +1,20 @@
+"""Tree of Thoughts on the **OpenAI Agents SDK** — branch (propose 3) → evaluate (score) → select."""
+import re
+
+from ... import registry, oa
+
+
+def run(ctx: dict) -> dict:
+    q = ctx["input"]
+    raw = oa.complete(f"Propose 3 DISTINCT candidate answers to: {q}. Separate each with '---'.")
+    thoughts = [p.strip() for p in raw.split("---") if p.strip()][:3] or [raw]
+    scores = []
+    for t in thoughts:
+        r = oa.complete(f"Rate 1-10 how well this answers '{q}'. Reply only the number.\n\n{t}", "You are a strict judge.")
+        mm = re.search(r"\d+", r)
+        scores.append(int(mm.group(0)) if mm else 5)
+    best = max(range(len(thoughts)), key=lambda i: scores[i])
+    return {"answer": thoughts[best], "steps": [f"thought{i+1}: score {s}" for i, s in enumerate(scores)]}
+
+
+registry.register("tot", "openai_agents", run)
