@@ -1,22 +1,20 @@
-"""ReWOO on the **OpenAI Agents SDK** — planner Agent emits blind tool calls → execute (no LLM) → solver Agent."""
-import json
-import re
+"""ReWOO on the **OpenAI Agents SDK** — blind plan → execute (no LLM in the loop) → solver Agent.
 
-from ... import registry, oa, tools
+Implements the 5 VKP use cases via ctx['useCase']. The plan/worker/solver spec comes from
+`_base.USE_CASES` (shared with every framework cell): the plan is blind + deterministic, the worker runs
+the vehicle_spec calls with no LLM, and an Agent does the solve (nightly-price-refresh is LLM-free)."""
+from ... import registry, oa
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     q = ctx["input"]
-    raw = oa.complete('Plan the vehicle_spec(model, field) calls needed (no results yet). '
-                      'Return ONLY a JSON array of {"model":..,"field":..}.\n\n' + q, "You are a planner.")
-    m = re.search(r"\[.*\]", raw, re.S)
-    try:
-        plan = json.loads(m.group(0)) if m else []
-    except Exception:
-        plan = []
-    ev = "\n".join(f"{c} -> {tools.vehicle_spec(c.get('model', ''), c.get('field', ''))}" for c in plan[:6])
-    return {"answer": oa.complete(f"Using ONLY this evidence, answer: {q}\n\nEVIDENCE:\n{ev}"),
-            "steps": [str(c) for c in plan]}
+    uc, spec = _base.spec_for(ctx.get("useCase"), q)
+    plan = spec["plan"]
+    evidence = spec["worker"](plan)        # blind execute — no LLM in the loop
+    kind, builder = spec["solver"]
+    ans = oa.complete(builder(q, evidence)) if kind == "llm" else builder(q, evidence)
+    return {"answer": ans, "steps": [str(c) for c in plan], "useCase": uc}
 
 
 registry.register("rewoo", "openai_agents", run)
