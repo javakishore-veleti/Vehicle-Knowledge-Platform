@@ -128,7 +128,7 @@ const IMPL: Record<string, Set<string>> = {
     'tot:best-car-for-me', 'tot:ambiguous-query', 'tot:trim-optimizer', 'tot:multi-constraint-filter', 'tot:spec-conflict-resolver',
     'chaining:multi-provider-fanout', 'chaining:ingestion-chain', 'chaining:sectioning', 'chaining:voting', 'chaining:translate-then-index',
     'react:smart-link-discovery', 'react:single-model-deep-dive', 'react:recall-safety-lookup', 'react:dealer-inventory-locator', 'react:broken-link-repair']),
-  crewai: new Set<string>(),
+  crewai: new Set(['reflection:answer-quality-gate', 'reflection:chunk-quality-review', 'reflection:citation-verification', 'reflection:crawl-coverage-self-check', 'reflection:spec-extraction-accuracy']),
 };
 
 const ROWS = {
