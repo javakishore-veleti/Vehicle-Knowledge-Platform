@@ -1,32 +1,31 @@
-"""ReWOO on **CrewAI** — a planner agent emits all tool calls blind; Python executes them; a solver answers."""
-import json
-import re
+"""ReWOO on **CrewAI** — a blind plan is executed with NO LLM in the loop, then a Solver agent answers
+from the collected evidence (nightly-price-refresh stays fully LLM-free).
 
-from ... import registry, tools, crew
+Implements the 5 VKP use cases via ctx['useCase']. The plan, worker, and solver spec come from
+`_base.USE_CASES` (shared with every framework cell); this cell shows ONLY the CrewAI mechanics."""
+from ... import registry, crew
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     from crewai import Agent, Task, Crew, Process
     q = ctx["input"]
-    planner = Agent(role="Planner", goal="Plan the tool calls without executing.",
-                    backstory="Plans blind, no observations.", llm=crew.crew_llm(), verbose=False)
-    pt = Task(description='Plan the vehicle_spec(model, field) calls needed (no results yet). '
-                          'Return ONLY a JSON array of {"model":..,"field":..} objects.\n\n' + q,
-              expected_output="A JSON array.", agent=planner)
-    raw = str(Crew(agents=[planner], tasks=[pt], process=Process.sequential, verbose=False).kickoff())
-    m = re.search(r"\[.*\]", raw, re.S)
-    try:
-        plan = json.loads(m.group(0)) if m else []
-    except Exception:
-        plan = []
-    evidence = "\n".join(f"{c} -> {tools.vehicle_spec(c.get('model', ''), c.get('field', ''))}" for c in plan[:6])
+    uc, spec = _base.spec_for(ctx.get("useCase"), q)
 
-    solver = Agent(role="Solver", goal="Answer from the evidence.", backstory="Combines evidence into an answer.",
-                   llm=crew.crew_llm(), verbose=False)
-    st = Task(description=f"Using ONLY this evidence, answer: {q}\n\nEVIDENCE:\n{evidence}",
-              expected_output="Final answer.", agent=solver)
-    ans = str(Crew(agents=[solver], tasks=[st], process=Process.sequential, verbose=False).kickoff())
-    return {"answer": ans, "steps": [str(c) for c in plan]}
+    plan = spec["plan"]
+    evidence = spec["worker"](plan)        # blind execute — NO LLM in the loop
+    solver_kind, solver_builder = spec["solver"]
+
+    if solver_kind == "llm":
+        solver = Agent(role="Solver", goal="Answer from the blind-collected evidence.",
+                       backstory="Combines pre-collected tool evidence into a single answer.",
+                       llm=crew.crew_llm(), verbose=False)
+        st = Task(description=solver_builder(q, evidence), expected_output="Final answer.", agent=solver)
+        ans = str(Crew(agents=[solver], tasks=[st], process=Process.sequential, verbose=False).kickoff())
+    else:
+        ans = solver_builder(q, evidence)  # LLM-free solver
+
+    return {"answer": ans, "steps": [str(c) for c in plan], "useCase": uc}
 
 
 registry.register("rewoo", "crewai", run)
