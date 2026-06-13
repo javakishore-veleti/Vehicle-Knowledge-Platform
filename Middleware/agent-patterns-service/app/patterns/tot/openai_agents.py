@@ -1,20 +1,19 @@
-"""Tree of Thoughts on the **OpenAI Agents SDK** — branch (propose 3) → evaluate (score) → select."""
-import re
+"""Tree of Thoughts on the **OpenAI Agents SDK** — branch (propose 3) → evaluate (score) → select.
 
+Implements the 5 VKP use cases via ctx['useCase']; branch prompts + eval criteria come from
+`_base.USE_CASES` (shared with every framework cell). Each step is an Agent run via oa.complete."""
 from ... import registry, oa
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     q = ctx["input"]
-    raw = oa.complete(f"Propose 3 DISTINCT candidate answers to: {q}. Separate each with '---'.")
-    thoughts = [p.strip() for p in raw.split("---") if p.strip()][:3] or [raw]
-    scores = []
-    for t in thoughts:
-        r = oa.complete(f"Rate 1-10 how well this answers '{q}'. Reply only the number.\n\n{t}", "You are a strict judge.")
-        mm = re.search(r"\d+", r)
-        scores.append(int(mm.group(0)) if mm else 5)
+    uc, branch_p, eval_crit = _base.spec_for(ctx.get("useCase"), q)
+    thoughts = _base.parse_thoughts(oa.complete(branch_p))
+    scores = [_base.score_of(oa.complete(_base.eval_prompt(eval_crit, t))) for t in thoughts]
     best = max(range(len(thoughts)), key=lambda i: scores[i])
-    return {"answer": thoughts[best], "steps": [f"thought{i+1}: score {s}" for i, s in enumerate(scores)]}
+    return {"answer": thoughts[best], "useCase": uc,
+            "steps": [f"thought{i+1}: score {s}" for i, s in enumerate(scores)]}
 
 
 registry.register("tot", "openai_agents", run)

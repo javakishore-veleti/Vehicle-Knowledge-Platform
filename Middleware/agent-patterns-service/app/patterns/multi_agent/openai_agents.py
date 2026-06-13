@@ -1,14 +1,19 @@
-"""Multi-agent on the **OpenAI Agents SDK** — spec/pricing/safety specialist Agents → a lead Agent composes."""
+"""Multi-agent on the **OpenAI Agents SDK** — parallel specialist Agents → a lead Agent composes.
+
+Implements the 5 VKP use cases via ctx['useCase']; the worker rosters + merge instructions come from
+`_base.USE_CASES` (shared with every framework cell). per-brand-workers spins one specialist per brand
+in the query. Each specialist + the lead is an Agent run via oa.complete."""
 from ... import registry, oa
+from . import _base
 
 
 def run(ctx: dict) -> dict:
     q = ctx["input"]
-    notes = [(role, oa.complete(q, f"You are the {role} specialist. {sysp}"))
-             for role, sysp in [("spec", "Give spec facts."), ("pricing", "Give pricing/value."), ("safety", "Give safety/reliability.")]]
-    body = "\n\n".join(f"{r}: {t}" for r, t in notes)
-    return {"answer": oa.complete(f"Compose a buyer's report from:\n\n{body}", "You are the lead advisor."),
-            "steps": [r for r, _ in notes]}
+    uc, workers, merge_instr = _base.spec_for(ctx.get("useCase"), q)
+    notes = [(label, oa.complete(prompt)) for label, prompt in workers]
+    body = "\n\n".join(f"{l}: {t}" for l, t in notes)
+    return {"answer": oa.complete(_base.merge_prompt(merge_instr, q, body)), "useCase": uc,
+            "steps": [l for l, _ in workers]}
 
 
 registry.register("multi-agent", "openai_agents", run)

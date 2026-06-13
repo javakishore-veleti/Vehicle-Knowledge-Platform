@@ -1,29 +1,18 @@
-"""Reflection on the **OpenAI Agents SDK** (`agents`) — a Writer agent and a Critic agent;
-draft -> critique -> revise via `Runner.run_sync`."""
-from ... import config, registry
+"""Reflection on the **OpenAI Agents SDK** — its Agent + Runner drive draft -> critique -> revise.
+
+Implements the 5 VKP Reflection use cases via ctx['useCase']; the use-case instructions come from
+`_base.USE_CASES` (shared with every framework cell). Each step is an Agent run via oa.complete."""
+from ... import registry, oa
 from . import _base
 
 
-def _model():
-    from agents import OpenAIChatCompletionsModel, set_tracing_disabled
-    set_tracing_disabled(True)
-    if config.OPENAI_API_KEY:
-        return config.OPENAI_MODEL
-    from openai import AsyncOpenAI
-    client = AsyncOpenAI(base_url=config.GROQ_BASE_URL, api_key=config.GROQ_API_KEY)
-    return OpenAIChatCompletionsModel(model=config.GROQ_MODEL, openai_client=client)
-
-
 def run(ctx: dict) -> dict:
-    from agents import Agent, Runner
     q = ctx["input"]
-    m = _model()
-    writer = Agent(name="Automotive Writer", instructions=_base.DRAFT_SYS, model=m)
-    critic = Agent(name="Fact Critic", instructions=_base.CRITIC_SYS, model=m)
-    draft = str(Runner.run_sync(writer, q).final_output)
-    critique = str(Runner.run_sync(critic, _base.CRITIQUE.format(q=q, a=draft)).final_output)
-    answer = str(Runner.run_sync(writer, _base.REVISE.format(q=q, a=draft, c=critique)).final_output)
-    return _base.result(draft, critique, answer)
+    uc, spec = _base.spec_for(ctx.get("useCase"))
+    draft = oa.complete(spec["generate"].format(q=q))
+    critique = oa.complete(f"{spec['critique']}\n\nDRAFT:\n{draft}")
+    answer = oa.complete(f"{spec['revise']}\n\nDRAFT:\n{draft}\n\nCRITIQUE:\n{critique}")
+    return {**_base.result(draft, critique, answer), "useCase": uc}
 
 
-registry.register("reflection", "openai-agents", run)
+registry.register("reflection", "openai_agents", run)
