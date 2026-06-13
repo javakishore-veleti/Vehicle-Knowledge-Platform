@@ -143,7 +143,8 @@ export class AppComponent {
         { label: 'Haystack', icon: 'pi pi-server', routerLink: '/resources/design-patterns/haystack' },
         { label: 'OpenAI Agents SDK', icon: 'pi pi-bolt', routerLink: '/resources/design-patterns/openai-agents' },
         { label: 'Google ADK', icon: 'pi pi-google', routerLink: '/resources/design-patterns/google-adk' },
-        { label: 'Microsoft Agent Framework', icon: 'pi pi-microsoft', routerLink: '/resources/design-patterns/microsoft-agent-framework' }
+        { label: 'Microsoft Agent Framework', icon: 'pi pi-microsoft', routerLink: '/resources/design-patterns/microsoft-agent-framework' },
+        { label: 'AWS Strands', icon: 'pi pi-amazon', routerLink: '/resources/design-patterns/aws-strands' }
       ]
     },
     {

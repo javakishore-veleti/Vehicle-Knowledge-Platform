@@ -40,8 +40,8 @@ reusable reference library and a stack-comparison harness.
 
 ## Progress summary
 - **Patterns:** 10 · **Frameworks:** 8 · **Cells:** 80
-- **Done:** 71 / 80 — Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** + **LlamaIndex × 9** + **Haystack × 9** + **OpenAI Agents × 9** + **Google ADK × 9** + **Microsoft Agent Framework × 9** — all verified live · **Planned:** 9
-- **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 71 cells, `/agent-patterns/patterns`)
+- **Done:** 80 / 80 — ✅ **MATRIX COMPLETE.** Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** + **LlamaIndex × 9** + **Haystack × 9** + **OpenAI Agents × 9** + **Google ADK × 9** + **Microsoft Agent Framework × 9** + **AWS Strands × 9** — every pattern × framework cell verified live · **Planned:** 0
+- **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 80 cells, `/agent-patterns/patterns`)
 - **Installs:** all via `requirements.txt` — `uv pip install -r requirements.txt` (or pip). **venv = Python 3.12** (CrewAI/most agent SDKs lack 3.14 wheels).
 - **Use-case axis** (the 5 concrete VKP use cases per pattern, 50 total): selectable via `useCase` in the request. **✅ Done: 50/50 — COMPLETE in LangGraph.** All 10 patterns × 5 use cases verified live (ReAct uses a real reason→act tool loop with mock crawl/NHTSA/dealer tools). `GET /agent-patterns/{pattern}/usecases` lists them.
 
@@ -74,7 +74,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `react/openai_agents.py` | ✅ | native **Agent** + **`@function_tool`** + `Runner.run_sync` |
 | Google ADK | `react/google_adk.py` | ✅ | native **LlmAgent** + **FunctionTool** (ADK tool loop) |
 | Microsoft Agent Framework | `react/msagent.py` | ✅ | native **Agent** + **`@tool`** (AF tool loop) |
-| AWS Strands | `react/strands.py` | ⬜ | `@tool` + Agent |
+| AWS Strands | `react/strands.py` | ✅ | native **Agent** + **`@tool`** (Strands agent loop) |
 
 ### 3. RAG pipeline  — *retrieve → generate*
 | Framework | File | Development Status | Notes |
@@ -86,7 +86,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `rag/openai_agents.py` | ✅ | Agent whose `@function_tool` retrieves from the corpus |
 | Google ADK | `rag/google_adk.py` | ✅ | LlmAgent whose FunctionTool retrieves from the corpus |
 | Microsoft Agent Framework | `rag/msagent.py` | ✅ | Agent whose `@tool` retrieves from the corpus |
-| AWS Strands | `rag/strands.py` | ⬜ | retrieval tool + Agent |
+| AWS Strands | `rag/strands.py` | ✅ | Agent whose `@tool` retrieves from the corpus |
 
 ### 4. Plan-and-Execute  — *plan up front → execute each (+ re-plan)*
 | Framework | File | Development Status | Notes |
@@ -98,7 +98,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `plan_execute/openai_agents.py` | ✅ | planner Agent → execute sub-steps → synthesizer Agent |
 | Google ADK | `plan_execute/google_adk.py` | ✅ | planner LlmAgent → execute sub-steps → synthesizer LlmAgent |
 | Microsoft Agent Framework | `plan_execute/msagent.py` | ✅ | planner Agent → execute sub-steps → synthesizer Agent |
-| AWS Strands | `plan_execute/strands.py` | ⬜ | planner + worker Agents |
+| AWS Strands | `plan_execute/strands.py` | ✅ | planner Agent → execute sub-steps → synthesizer Agent |
 
 ### 5. Router / dispatcher  — *classify → route*
 | Framework | File | Development Status | Notes |
@@ -110,7 +110,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `router/openai_agents.py` | ✅ | classifier Agent → tailored specialist Agent |
 | Google ADK | `router/google_adk.py` | ✅ | classifier LlmAgent → tailored specialist LlmAgent |
 | Microsoft Agent Framework | `router/msagent.py` | ✅ | classifier Agent → tailored specialist Agent |
-| AWS Strands | `router/strands.py` | ⬜ | router Agent |
+| AWS Strands | `router/strands.py` | ✅ | classifier Agent → tailored specialist Agent |
 
 ### 6. Prompt chaining / parallelization  — *deterministic chain · fan-out → merge*
 | Framework | File | Development Status | Notes |
@@ -122,7 +122,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `chaining/openai_agents.py` | ✅ | 2-Agent chain: rewrite → answer (Runner) |
 | Google ADK | `chaining/google_adk.py` | ✅ | 2-LlmAgent chain: rewrite → answer (InMemoryRunner) |
 | Microsoft Agent Framework | `chaining/msagent.py` | ✅ | 2-Agent chain: rewrite → answer (one event loop) |
-| AWS Strands | `chaining/strands.py` | ⬜ | chained Agents |
+| AWS Strands | `chaining/strands.py` | ✅ | 2-Agent chain: rewrite → answer (sync) |
 
 ### 7. Multi-agent (supervisor / workers)  — *delegate → specialists → merge*
 | Framework | File | Development Status | Notes |
@@ -134,7 +134,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `multi_agent/openai_agents.py` | ✅ | spec/pricing/safety Agents → lead Agent composes |
 | Google ADK | `multi_agent/google_adk.py` | ✅ | spec/pricing/safety LlmAgents → lead LlmAgent composes |
 | Microsoft Agent Framework | `multi_agent/msagent.py` | ✅ | spec/pricing/safety Agents → lead Agent composes |
-| AWS Strands | `multi_agent/strands.py` | ⬜ | agents-as-tools |
+| AWS Strands | `multi_agent/strands.py` | ✅ | spec/pricing/safety Agents → lead Agent composes |
 
 ### 8. Evaluator-optimizer  — *generate ↔ judge loop*
 | Framework | File | Development Status | Notes |
@@ -146,7 +146,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `evaluator/openai_agents.py` | ✅ | generator Agent → judge Agent → revise (one round) |
 | Google ADK | `evaluator/google_adk.py` | ✅ | generator LlmAgent → judge LlmAgent → revise |
 | Microsoft Agent Framework | `evaluator/msagent.py` | ✅ | generator Agent → judge Agent → revise |
-| AWS Strands | `evaluator/strands.py` | ⬜ | producer + judge Agents |
+| AWS Strands | `evaluator/strands.py` | ✅ | generator Agent → judge Agent → revise |
 
 ### 9. ReWOO  — *plan all tool calls blind, run WithOut Observation*
 | Framework | File | Development Status | Notes |
@@ -158,7 +158,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `rewoo/openai_agents.py` | ✅ | planner Agent (blind) → execute (no LLM) → solver Agent |
 | Google ADK | `rewoo/google_adk.py` | ✅ | planner LlmAgent (blind) → execute (no LLM) → solver LlmAgent |
 | Microsoft Agent Framework | `rewoo/msagent.py` | ✅ | planner Agent (blind) → execute (no LLM) → solver Agent |
-| AWS Strands | `rewoo/strands.py` | ⬜ | plan + batch tool exec |
+| AWS Strands | `rewoo/strands.py` | ✅ | planner Agent (blind) → execute (no LLM) → solver Agent |
 
 ### 10. Tree of Thoughts (ToT)  — *branch → evaluate → backtrack*
 | Framework | File | Development Status | Notes |
@@ -170,7 +170,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 | OpenAI Agents SDK | `tot/openai_agents.py` | ✅ | proposer Agent (3) → judge Agent scores → select |
 | Google ADK | `tot/google_adk.py` | ✅ | proposer LlmAgent (3) → judge LlmAgent scores → select |
 | Microsoft Agent Framework | `tot/msagent.py` | ✅ | proposer Agent (3) → judge Agent scores → select |
-| AWS Strands | `tot/strands.py` | ⬜ | proposer + evaluator Agents |
+| AWS Strands | `tot/strands.py` | ✅ | proposer Agent (3) → judge Agent scores → select |
 
 ---
 

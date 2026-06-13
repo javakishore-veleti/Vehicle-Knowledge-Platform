@@ -41,6 +41,7 @@ export const routes: Routes = [
   { path: 'resources/design-patterns/openai-agents', component: FrameworkPatternsComponent, data: { fw: 'openai_agents' }, title: 'OpenAI Agents SDK Patterns' },
   { path: 'resources/design-patterns/google-adk', component: FrameworkPatternsComponent, data: { fw: 'google_adk' }, title: 'Google ADK Patterns' },
   { path: 'resources/design-patterns/microsoft-agent-framework', component: FrameworkPatternsComponent, data: { fw: 'msagent' }, title: 'Microsoft Agent Framework Patterns' },
+  { path: 'resources/design-patterns/aws-strands', component: FrameworkPatternsComponent, data: { fw: 'strands' }, title: 'AWS Strands Patterns' },
   { path: 'resources/tools', redirectTo: 'resources/tools/pydantic', pathMatch: 'full' },
   { path: 'resources/tools/pydantic', component: PydanticComponent, title: 'Pydantic' },
   { path: 'resources/architecture', redirectTo: 'resources/architecture/data-management/pipelines', pathMatch: 'full' },

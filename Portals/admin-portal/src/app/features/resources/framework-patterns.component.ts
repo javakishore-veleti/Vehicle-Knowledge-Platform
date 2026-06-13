@@ -257,4 +257,20 @@ const FRAMEWORKS: Record<string, FW> = {
       { ...ROWS.reflect, idiom: 'writer + critic Agents (one event loop)', example: 'refined RAV4 answer' },
     ],
   },
+  strands: {
+    name: 'AWS Strands', file: 'strands',
+    blurb: 'The <b>AWS Strands column</b> of <code>agent-patterns-service</code> (:8094): every pattern is a synchronous Strands <code>Agent</code> over <code>OpenAIModel</code> — ReAct and RAG with a native <code>@tool</code> loop. Strands is callable and sync (no asyncio), the simplest of the six SDKs. All 9 verified live.',
+    rows: [
+      { ...ROWS.react, idiom: 'native <code>Agent</code> + <code>@tool</code> (Strands agent loop)', example: 'tool-called → F-150 13,500 lb' },
+      { ...ROWS.plan, idiom: 'planner Agent → execute sub-steps → synthesizer Agent', example: 'RAV4 Prime vs Camry for a commuter' },
+      { ...ROWS.rag, idiom: 'Agent whose <code>@tool</code> retrieves from the corpus', example: '"RAV4 Prime range is 42 miles"' },
+      { ...ROWS.router, idiom: 'classifier Agent → tailored specialist Agent', example: 'routed → recommend' },
+      { ...ROWS.chain, idiom: '2-Agent chain: rewrite → answer (sync)', example: 'RAV4 Prime 38 MPG combined' },
+      { ...ROWS.multi, idiom: 'spec/pricing/safety Agents → lead Agent composes', example: 'Model 3 buyer\'s report' },
+      { ...ROWS.eval, idiom: 'generator Agent → judge Agent → revise', example: 'Highlander seating answer refined' },
+      { ...ROWS.rewoo, idiom: 'planner Agent (blind) → execute (no LLM) → solver Agent', example: 'Tacoma base price $31,500' },
+      { ...ROWS.tot, idiom: 'proposer Agent (3) → judge Agent scores → select', example: 'F-150 vs Tacoma towing → best pick' },
+      { ...ROWS.reflect, idiom: 'writer + critic Agents (sync)', example: 'refined RAV4 answer' },
+    ],
+  },
 };

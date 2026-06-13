@@ -29,6 +29,9 @@ google-adk[extensions]>=2.0             # LlmAgent + InMemoryRunner + native Fun
 agent-framework-core>=1.8                # Agent + @tool + OpenAIChatClient.as_agent
 agent-framework-openai>=1.8              # OpenAIChatClient provider
 
+# --- AWS Strands (installed + verified — all 9 patterns; synchronous Agent) ---
+strands-agents[openai]>=1.0             # Agent + @tool over OpenAIModel (sync, callable)
+
 # --- other framework SDKs (install the cells you want to RUN; imports are lazy) ---
 # crewai>=0.40
 # llama-index>=0.10 ; llama-index-llms-openai
