@@ -1,14 +1,14 @@
 """Prompt chaining / parallelization on **LangGraph** — sequential chains OR fan-out→merge graphs.
 
 Implements the 5 VKP use cases via ctx['useCase'] (default = multi-provider-fanout): fan-out for
-multi-provider / sectioning / voting; deterministic chains for ingestion-chain / translate-then-index."""
-import hashlib
+multi-provider / sectioning / voting; deterministic chains for ingestion-chain / translate-then-index.
+Prompts + deterministic steps come from `_base` (shared with every framework cell); this cell shows
+ONLY the LangGraph graph topologies."""
 import operator
-import re
-from collections import Counter
 from typing import Annotated, TypedDict
 
 from ... import llm, registry
+from . import _base
 
 
 def _multi_provider(q):
@@ -18,20 +18,17 @@ def _multi_provider(q):
         outs: Annotated[list, operator.add]
         answer: str
 
-    provs = [("concise", "Answer concisely."), ("detailed", "Answer with supporting detail."),
-             ("cautious", "Answer cautiously and flag any uncertainty.")]
-
     def provider(name, sysp): return lambda _s: {"outs": [(name, llm.complete(q, system=sysp))]}
 
     def merge(s):
         body = "\n\n".join(f"{n}: {t}" for n, t in s["outs"])
-        return {"answer": llm.complete(f"Compare these provider answers and give the consensus:\n\n{body}")}
+        return {"answer": llm.complete(_base.CONSENSUS_PROMPT.format(body=body))}
 
     g = StateGraph(S)
-    for n, sy in provs:
+    for n, sy in _base.PROVIDERS:
         g.add_node(n, provider(n, sy))
     g.add_node("merge", merge)
-    for n, _ in provs:
+    for n, _ in _base.PROVIDERS:
         g.add_edge(START, n); g.add_edge(n, "merge")
     g.add_edge("merge", END)
     out = g.compile().invoke({})
@@ -49,9 +46,9 @@ def _ingestion(q):
         answer: str
 
     def fetch(_s): return {"raw": q}
-    def clean(s): return {"clean": " ".join(s["raw"].split())}
-    def title(s): return {"title": llm.complete(f"Give a short one-line title for this content:\n{s['clean'][:500]}")}
-    def hsh(s): return {"hash": hashlib.sha256(s["clean"].encode()).hexdigest()[:16]}
+    def clean(s): return {"clean": _base.clean_text(s["raw"])}
+    def title(s): return {"title": llm.complete(_base.TITLE_PROMPT.format(c=s["clean"][:500]))}
+    def hsh(s): return {"hash": _base.sha16(s["clean"])}
     def store(s): return {"answer": f"stored → title='{s['title']}', sha256={s['hash']}, chars={len(s['clean'])}"}
 
     g = StateGraph(S)
@@ -65,16 +62,13 @@ def _ingestion(q):
 
 def _sectioning(q):
     from langgraph.graph import StateGraph, START, END
-    secs = [s.strip() for s in re.split(r"\n+", q) if s.strip()]
-    if len(secs) < 2:
-        secs = [s.strip() for s in re.split(r"(?<=\.)\s+", q) if s.strip()]
-    secs = secs[:4] or [q]
+    secs = _base.split_sections(q)
 
     class S(TypedDict, total=False):
         parts: Annotated[list, operator.add]
         answer: str
 
-    def summ(i, text): return lambda _s: {"parts": [(i, llm.complete(f"Summarize in one sentence:\n{text}"))]}
+    def summ(i, text): return lambda _s: {"parts": [(i, llm.complete(_base.SUMMARIZE_PROMPT.format(t=text)))]}
 
     def merge(s):
         body = "\n".join(t for _, t in sorted(s["parts"]))
@@ -98,12 +92,10 @@ def _voting(q):
         votes: Annotated[list, operator.add]
         answer: str
 
-    def voter(i): return lambda _s: {"votes": [llm.complete(q, system="Answer the spec question with ONLY a short factual value.")]}
+    def voter(i): return lambda _s: {"votes": [llm.complete(q, system=_base.VOTER_SYS)]}
 
     def merge(s):
-        norm = [v.strip().lower()[:60] for v in s["votes"]]
-        winner, _ = Counter(norm).most_common(1)[0]
-        return {"answer": f"Majority answer ({len(s['votes'])} voters): {winner}"}
+        return {"answer": f"Majority answer ({len(s['votes'])} voters): {_base.majority(s['votes'])}"}
 
     g = StateGraph(S)
     for i in range(3):
@@ -124,8 +116,8 @@ def _translate_index(q):
         chunks: list
         answer: str
 
-    def translate(_s): return {"translated": llm.complete(f"Translate to English (return as-is if already English):\n{q}")}
-    def chunk(s): return {"chunks": [c.strip() for c in re.split(r"(?<=\.)\s+", s["translated"]) if c.strip()] or [s["translated"]]}
+    def translate(_s): return {"translated": llm.complete(_base.TRANSLATE_PROMPT.format(q=q))}
+    def chunk(s): return {"chunks": _base.split_sentences(s["translated"])}
     def embed(s): return {"answer": f"translated → {len(s['chunks'])} chunks → embedded (384-dim) into vkp_vectors"}
 
     g = StateGraph(S)
@@ -141,7 +133,7 @@ _USE_CASES = {"multi-provider-fanout": _multi_provider, "ingestion-chain": _inge
 
 
 def run(ctx: dict) -> dict:
-    uc = ctx.get("useCase") or "multi-provider-fanout"
+    uc = ctx.get("useCase") or _base.DEFAULT_UC
     res = _USE_CASES.get(uc, _multi_provider)(ctx["input"])
     res["useCase"] = uc
     return res
