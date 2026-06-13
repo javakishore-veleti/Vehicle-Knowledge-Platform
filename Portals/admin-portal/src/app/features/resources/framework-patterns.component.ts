@@ -122,7 +122,8 @@ const IMPL: Record<string, Set<string>> = {
     'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded',
     'evaluator-optimizer:answer-refiner', 'evaluator-optimizer:chunking-optimizer', 'evaluator-optimizer:query-rewriter', 'evaluator-optimizer:summary-tightener', 'evaluator-optimizer:embedding-model-selector',
     'router:compound-vs-simple', 'router:framework-router', 'router:query-type-router', 'router:store-router', 'router:topic-guardrail-router',
-    'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report']),
+    'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report',
+    'multi-agent:researcher-advisor', 'multi-agent:per-brand-workers', 'multi-agent:onboarding-crew', 'multi-agent:review-aggregator', 'multi-agent:spec-price-safety']),
   crewai: new Set<string>(),
 };
 

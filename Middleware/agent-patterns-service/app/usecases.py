@@ -37,7 +37,8 @@ IMPLEMENTED = ({("reflection", "langgraph", uc) for uc, _ in CATALOG["reflection
                | {("rag", "langgraph", uc) for uc, _ in CATALOG["rag"]}
                | {("evaluator-optimizer", "langgraph", uc) for uc, _ in CATALOG["evaluator-optimizer"]}
                | {("router", "langgraph", uc) for uc, _ in CATALOG["router"]}
-               | {("plan-execute", "langgraph", uc) for uc, _ in CATALOG["plan-execute"]})
+               | {("plan-execute", "langgraph", uc) for uc, _ in CATALOG["plan-execute"]}
+               | {("multi-agent", "langgraph", uc) for uc, _ in CATALOG["multi-agent"]})
 
 
 def for_pattern(pattern: str) -> list:

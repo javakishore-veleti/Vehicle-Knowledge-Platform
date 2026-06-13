@@ -43,7 +43,7 @@ reusable reference library and a stack-comparison harness.
 - **Done:** 26 / 80 — Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** — all verified live · **Planned:** 54
 - **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 26 cells, `/agent-patterns/patterns`)
 - **Installs:** all via `requirements.txt` — `uv pip install -r requirements.txt` (or pip). **venv = Python 3.12** (CrewAI/most agent SDKs lack 3.14 wheels).
-- **Use-case axis** (the 5 concrete VKP use cases per pattern, 50 total): selectable via `useCase` in the request. **Done: 25/50 (halfway)** — Reflection + RAG + Evaluator-optimizer + Router + Plan-Execute, ×5 each (LangGraph), all verified live (Plan-Execute's spec-sheet-assembly emits a real table via the vehicle_spec tool). `GET /agent-patterns/{pattern}/usecases` lists them.
+- **Use-case axis** (the 5 concrete VKP use cases per pattern, 50 total): selectable via `useCase` in the request. **Done: 30/50** — Reflection + RAG + Evaluator-optimizer + Router + Plan-Execute + Multi-agent, ×5 each (LangGraph), all verified live (Multi-agent's per-brand-workers spins up one worker per brand in the query). `GET /agent-patterns/{pattern}/usecases` lists them.
 
 ---
 
