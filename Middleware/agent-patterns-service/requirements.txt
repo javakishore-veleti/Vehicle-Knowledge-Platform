@@ -11,8 +11,11 @@ langchain-openai>=0.1          # ChatOpenAI for the ReAct cell (create_react_age
 # --- CrewAI (installed + verified — all 10 patterns; needs Python <= 3.12) ---
 crewai>=0.80
 
+# --- LlamaIndex (installed + verified — all 9 patterns) ---
+llama-index>=0.11                       # core: VectorStoreIndex RAG, workflow ReActAgent
+llama-index-question-gen-openai>=0.3    # SubQuestionQueryEngine (plan-execute cell)
+
 # --- other framework SDKs (install the cells you want to RUN; imports are lazy) ---
-# llama-index... handled in their own cycle
 # crewai>=0.40
 # llama-index>=0.10 ; llama-index-llms-openai
 # haystack-ai>=2.0

@@ -177,4 +177,20 @@ const FRAMEWORKS: Record<string, FW> = {
       { ...ROWS.reflect, idiom: 'writer + critic agents, sequential crew (context)', example: 'draft → critique → refined RAV4 answer' },
     ],
   },
+  llamaindex: {
+    name: 'LlamaIndex', file: 'llamaindex',
+    blurb: 'The <b>LlamaIndex column</b> of <code>agent-patterns-service</code> (:8094): each pattern leans on a LlamaIndex-native construct where one exists — <code>VectorStoreIndex</code> for RAG, the 0.14 workflow <code>ReActAgent</code> for ReAct, and <code>SubQuestionQueryEngine</code> for plan-and-execute — the rest are LLM-orchestrated over <code>li.complete</code>. All 9 verified live.',
+    rows: [
+      { ...ROWS.react, idiom: 'native 0.14 workflow <code>ReActAgent</code> + <code>FunctionTool</code> (async run)', example: 'tool-called → F-150 13,500 lb' },
+      { ...ROWS.plan, idiom: 'native <code>SubQuestionQueryEngine</code> (plan → sub-query → combine)', example: 'RAV4 Prime vs Camry decomposed for a commuter' },
+      { ...ROWS.rag, idiom: 'native <code>VectorStoreIndex.as_query_engine</code> over the corpus', example: '"RAV4 Prime range is 42 miles"' },
+      { ...ROWS.router, idiom: 'LLM classify → tailored handler (<code>li.complete</code>)', example: 'routed → recommend' },
+      { ...ROWS.chain, idiom: '2-step LLM chain: rewrite → answer', example: 'RAV4 Prime 94 MPGe / 38 MPG' },
+      { ...ROWS.multi, idiom: 'spec/pricing/safety specialists → lead composes', example: 'Model 3 buyer\'s report' },
+      { ...ROWS.eval, idiom: 'generate → judge → revise (one round)', example: 'Highlander seating answer refined' },
+      { ...ROWS.rewoo, idiom: 'planner emits blind tool calls → execute (no LLM) → solve', example: 'Tacoma base price $31,500' },
+      { ...ROWS.tot, idiom: 'branch (propose 3) → evaluate (score) → select', example: 'F-150 vs Tacoma towing → best pick' },
+      { ...ROWS.reflect, idiom: '<code>li.complete</code> drives draft → critique → revise', example: 'refined RAV4 answer' },
+    ],
+  },
 };

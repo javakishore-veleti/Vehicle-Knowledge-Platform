@@ -1,2 +1,2 @@
 """multi_agent pattern — frameworks register here."""
-from . import langgraph, crewai  # noqa: F401
+from . import langgraph, crewai, llamaindex  # noqa: F401

@@ -40,8 +40,8 @@ reusable reference library and a stack-comparison harness.
 
 ## Progress summary
 - **Patterns:** 10 · **Frameworks:** 8 · **Cells:** 80
-- **Done:** 26 / 80 — Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** — all verified live · **Planned:** 54
-- **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 26 cells, `/agent-patterns/patterns`)
+- **Done:** 35 / 80 — Reflection × 8 + **LangGraph × 10** + **CrewAI × 10** + **LlamaIndex × 9** — all verified live · **Planned:** 45
+- **Scaffold (service skeleton + registry + API + venv):** ✅ done & verified (`/health` → 35 cells, `/agent-patterns/patterns`)
 - **Installs:** all via `requirements.txt` — `uv pip install -r requirements.txt` (or pip). **venv = Python 3.12** (CrewAI/most agent SDKs lack 3.14 wheels).
 - **Use-case axis** (the 5 concrete VKP use cases per pattern, 50 total): selectable via `useCase` in the request. **✅ Done: 50/50 — COMPLETE in LangGraph.** All 10 patterns × 5 use cases verified live (ReAct uses a real reason→act tool loop with mock crawl/NHTSA/dealer tools). `GET /agent-patterns/{pattern}/usecases` lists them.
 
@@ -69,7 +69,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `react/langgraph.py` | ✅ | `create_react_agent` + tool |
 | CrewAI | `react/crewai.py` | ✅ | agent with tools |
-| LlamaIndex | `react/llamaindex.py` | ⬜ | `ReActAgent` |
+| LlamaIndex | `react/llamaindex.py` | ✅ | native 0.14 **workflow `ReActAgent`** + `FunctionTool` (async `.run`) |
 | Haystack | `react/haystack.py` | ⬜ | ToolInvoker loop |
 | OpenAI Agents SDK | `react/openai_agents.py` | ⬜ | `function_tool` + Agent |
 | Google ADK | `react/google_adk.py` | ⬜ | LlmAgent + FunctionTool |
@@ -81,7 +81,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `rag/langgraph.py` | ✅ | retrieve → generate StateGraph |
 | CrewAI | `rag/crewai.py` | ✅ | retriever tool + answer agent |
-| LlamaIndex | `rag/llamaindex.py` | ⬜ | `RetrieverQueryEngine` (native) |
+| LlamaIndex | `rag/llamaindex.py` | ✅ | native **`VectorStoreIndex.as_query_engine`** over the corpus |
 | Haystack | `rag/haystack.py` | ⬜ | Retriever → PromptBuilder → Generator pipeline |
 | OpenAI Agents SDK | `rag/openai_agents.py` | ⬜ | retrieval tool + Agent |
 | Google ADK | `rag/google_adk.py` | ⬜ | retrieval tool + LlmAgent |
@@ -93,7 +93,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `plan_execute/langgraph.py` | ✅ | plan → execute → synthesize graph |
 | CrewAI | `plan_execute/crewai.py` | ✅ | planner + executor crew |
-| LlamaIndex | `plan_execute/llamaindex.py` | ⬜ | `SubQuestionQueryEngine` |
+| LlamaIndex | `plan_execute/llamaindex.py` | ✅ | native **`SubQuestionQueryEngine`** (plan → sub-query → combine) |
 | Haystack | `plan_execute/haystack.py` | ⬜ | planner pipeline + fan-out |
 | OpenAI Agents SDK | `plan_execute/openai_agents.py` | ⬜ | planner Agent + executors |
 | Google ADK | `plan_execute/google_adk.py` | ⬜ | `SequentialAgent` |
@@ -105,7 +105,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `router/langgraph.py` | ✅ | conditional edges |
 | CrewAI | `router/crewai.py` | ✅ | router agent → delegated crew |
-| LlamaIndex | `router/llamaindex.py` | ⬜ | `RouterQueryEngine` |
+| LlamaIndex | `router/llamaindex.py` | ✅ | LLM classify → tailored handler (`li.complete`) |
 | Haystack | `router/haystack.py` | ⬜ | conditional router component |
 | OpenAI Agents SDK | `router/openai_agents.py` | ⬜ | agent handoffs |
 | Google ADK | `router/google_adk.py` | ⬜ | LlmAgent routing / transfer |
@@ -117,7 +117,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `chaining/langgraph.py` | ✅ | sequential / fan-out graph |
 | CrewAI | `chaining/crewai.py` | ✅ | sequential tasks |
-| LlamaIndex | `chaining/llamaindex.py` | ⬜ | `QueryPipeline` |
+| LlamaIndex | `chaining/llamaindex.py` | ✅ | 2-step LLM chain rewrite → answer (`li.complete`) |
 | Haystack | `chaining/haystack.py` | ⬜ | multi-component pipeline |
 | OpenAI Agents SDK | `chaining/openai_agents.py` | ⬜ | chained Runner calls |
 | Google ADK | `chaining/google_adk.py` | ⬜ | SequentialAgent / ParallelAgent |
@@ -129,7 +129,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `multi_agent/langgraph.py` | ✅ | supervisor graph |
 | CrewAI | `multi_agent/crewai.py` | ✅ | hierarchical crew |
-| LlamaIndex | `multi_agent/llamaindex.py` | ⬜ | `AgentRunner` + sub-agents |
+| LlamaIndex | `multi_agent/llamaindex.py` | ✅ | spec/pricing/safety specialists → lead composes |
 | Haystack | `multi_agent/haystack.py` | ⬜ | multi-agent pipeline |
 | OpenAI Agents SDK | `multi_agent/openai_agents.py` | ⬜ | supervisor + handoffs |
 | Google ADK | `multi_agent/google_adk.py` | ⬜ | parent LlmAgent + sub-agents |
@@ -141,7 +141,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `evaluator/langgraph.py` | ✅ | generate ↔ evaluate cycle (conditional) |
 | CrewAI | `evaluator/crewai.py` | ✅ | maker + judge crew, looped |
-| LlamaIndex | `evaluator/llamaindex.py` | ⬜ | `Evaluator` + retry |
+| LlamaIndex | `evaluator/llamaindex.py` | ✅ | generate → judge → revise (one round) |
 | Haystack | `evaluator/haystack.py` | ⬜ | loop with eval component |
 | OpenAI Agents SDK | `evaluator/openai_agents.py` | ⬜ | producer + judge Agents |
 | Google ADK | `evaluator/google_adk.py` | ⬜ | LoopAgent |
@@ -153,7 +153,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `rewoo/langgraph.py` | ✅ | planner → worker (no obs) → solver graph |
 | CrewAI | `rewoo/crewai.py` | ✅ | planner + parallel workers + solver |
-| LlamaIndex | `rewoo/llamaindex.py` | ⬜ | plan tools upfront, batch run |
+| LlamaIndex | `rewoo/llamaindex.py` | ✅ | planner emits blind tool calls → execute (no LLM) → solve |
 | Haystack | `rewoo/haystack.py` | ⬜ | planner → parallel branches → solver |
 | OpenAI Agents SDK | `rewoo/openai_agents.py` | ⬜ | planner emits calls, batch execute |
 | Google ADK | `rewoo/google_adk.py` | ⬜ | plan + ParallelAgent workers |
@@ -165,7 +165,7 @@ LangGraph · CrewAI · LlamaIndex · Haystack · OpenAI Agents SDK · Google ADK
 |---|---|---|---|
 | LangGraph | `tot/langgraph.py` | ✅ | branch/evaluate/select graph |
 | CrewAI | `tot/crewai.py` | ✅ | proposer + scorer crew |
-| LlamaIndex | `tot/llamaindex.py` | ⬜ | multi-branch + evaluator |
+| LlamaIndex | `tot/llamaindex.py` | ✅ | branch (propose 3) → evaluate (score) → select |
 | Haystack | `tot/haystack.py` | ⬜ | branch pipeline + scorer |
 | OpenAI Agents SDK | `tot/openai_agents.py` | ⬜ | proposer + evaluator Agents |
 | Google ADK | `tot/google_adk.py` | ⬜ | branches + evaluator agent |
