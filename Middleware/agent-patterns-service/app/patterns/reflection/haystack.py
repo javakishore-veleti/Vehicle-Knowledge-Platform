@@ -1,28 +1,18 @@
-"""Reflection on **Haystack 2.x** — an OpenAIGenerator drives draft -> critique -> revise."""
-from ... import config, registry
+"""Reflection on **Haystack** — an OpenAIGenerator drives draft -> critique -> revise.
+
+Implements the 5 VKP Reflection use cases via ctx['useCase']; the use-case instructions come from
+`_base.USE_CASES` (shared with every framework cell). This cell uses Haystack's generator for each step."""
+from ... import registry, hay
 from . import _base
 
 
-def _gen():
-    from haystack.components.generators import OpenAIGenerator
-    from haystack.utils import Secret
-    if config.OPENAI_API_KEY:
-        return OpenAIGenerator(model=config.OPENAI_MODEL, api_key=Secret.from_token(config.OPENAI_API_KEY))
-    return OpenAIGenerator(model=config.GROQ_MODEL, api_key=Secret.from_token(config.GROQ_API_KEY),
-                           api_base_url=config.GROQ_BASE_URL)
-
-
-def _ask(gen, prompt: str) -> str:
-    return (gen.run(prompt=prompt).get("replies") or [""])[0]
-
-
 def run(ctx: dict) -> dict:
-    gen = _gen()
     q = ctx["input"]
-    draft = _ask(gen, f"{_base.DRAFT_SYS}\n\nQuestion: {q}")
-    critique = _ask(gen, _base.CRITIQUE.format(q=q, a=draft))
-    answer = _ask(gen, _base.REVISE.format(q=q, a=draft, c=critique))
-    return _base.result(draft, critique, answer)
+    uc, spec = _base.spec_for(ctx.get("useCase"))
+    draft = hay.complete(spec["generate"].format(q=q))
+    critique = hay.complete(f"{spec['critique']}\n\nDRAFT:\n{draft}")
+    answer = hay.complete(f"{spec['revise']}\n\nDRAFT:\n{draft}\n\nCRITIQUE:\n{critique}")
+    return {**_base.result(draft, critique, answer), "useCase": uc}
 
 
 registry.register("reflection", "haystack", run)

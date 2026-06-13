@@ -1,23 +1,53 @@
-"""Prompt chaining on **Haystack** — a native Pipeline: rewrite → OutputAdapter → answer."""
+"""Prompt chaining / parallelization on **Haystack** — chains + fan-outs driven by its generator.
+
+Implements the 5 VKP use cases via ctx['useCase']: multi-provider/sectioning/voting fan out across
+generator calls; ingestion/translate are deterministic chains with one LLM step. Prompts + the
+deterministic steps (clean/hash/section-split/sentence-chunk/majority) come from `_base` (shared with
+every framework cell), so sha256/chunk-count/majority match the other cells exactly."""
 from ... import registry, hay
+from . import _base
+
+
+def _multi_provider(q):
+    outs = [(n, hay.complete(f"{sysp}\n\nQuestion: {q}")) for n, sysp in _base.PROVIDERS]
+    body = "\n\n".join(f"{n}: {t}" for n, t in outs)
+    return {"answer": hay.complete(_base.CONSENSUS_PROMPT.format(body=body)), "steps": [n for n, _ in _base.PROVIDERS]}
+
+
+def _ingestion(q):
+    clean = _base.clean_text(q)
+    title = hay.complete(_base.TITLE_PROMPT.format(c=clean[:500])).strip()
+    return {"answer": f"stored → title='{title}', sha256={_base.sha16(clean)}, chars={len(clean)}",
+            "steps": ["fetch", "clean", "title", "hash", "store"]}
+
+
+def _sectioning(q):
+    secs = _base.split_sections(q)
+    parts = [hay.complete(_base.SUMMARIZE_PROMPT.format(t=s)) for s in secs]
+    return {"answer": "Stitched summary:\n" + "\n".join(parts), "steps": [f"section{i+1}" for i in range(len(secs))]}
+
+
+def _voting(q):
+    votes = [hay.complete(f"{_base.VOTER_SYS}\n\nQuestion: {q}") for _ in range(3)]
+    return {"answer": f"Majority answer ({len(votes)} voters): {_base.majority(votes)}", "steps": ["vote1", "vote2", "vote3"]}
+
+
+def _translate_index(q):
+    translated = hay.complete(_base.TRANSLATE_PROMPT.format(q=q))
+    chunks = _base.split_sentences(translated)
+    return {"answer": f"translated → {len(chunks)} chunks → embedded (384-dim) into vkp_vectors",
+            "steps": ["translate", "chunk", "embed"]}
+
+
+_USE_CASES = {"multi-provider-fanout": _multi_provider, "ingestion-chain": _ingestion,
+              "sectioning": _sectioning, "voting": _voting, "translate-then-index": _translate_index}
 
 
 def run(ctx: dict) -> dict:
-    from haystack import Pipeline
-    from haystack.components.builders import PromptBuilder
-    from haystack.components.converters import OutputAdapter
-    pipe = Pipeline()
-    pipe.add_component("p1", PromptBuilder(template="Rewrite as a precise vehicle question. Return only the question:\n{{ q }}", required_variables=["q"]))
-    pipe.add_component("g1", hay.generator())
-    pipe.add_component("pick", OutputAdapter(template="{{ replies[0] }}", output_type=str))
-    pipe.add_component("p2", PromptBuilder(template="Answer concisely:\n{{ question }}", required_variables=["question"]))
-    pipe.add_component("g2", hay.generator())
-    pipe.connect("p1.prompt", "g1.prompt")
-    pipe.connect("g1.replies", "pick.replies")
-    pipe.connect("pick.output", "p2.question")
-    pipe.connect("p2.prompt", "g2.prompt")
-    res = pipe.run({"p1": {"q": ctx["input"]}})
-    return {"answer": res["g2"]["replies"][0], "steps": ["rewrite", "answer"]}
+    uc = ctx.get("useCase") if ctx.get("useCase") in _USE_CASES else _base.DEFAULT_UC
+    res = _USE_CASES[uc](ctx["input"])
+    res["useCase"] = uc
+    return res
 
 
 registry.register("chaining", "haystack", run)
