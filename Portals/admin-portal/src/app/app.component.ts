@@ -141,7 +141,8 @@ export class AppComponent {
         { label: 'CrewAI', icon: 'pi pi-users', routerLink: '/resources/design-patterns/crewai' },
         { label: 'LlamaIndex', icon: 'pi pi-database', routerLink: '/resources/design-patterns/llamaindex' },
         { label: 'Haystack', icon: 'pi pi-server', routerLink: '/resources/design-patterns/haystack' },
-        { label: 'OpenAI Agents SDK', icon: 'pi pi-bolt', routerLink: '/resources/design-patterns/openai-agents' }
+        { label: 'OpenAI Agents SDK', icon: 'pi pi-bolt', routerLink: '/resources/design-patterns/openai-agents' },
+        { label: 'Google ADK', icon: 'pi pi-google', routerLink: '/resources/design-patterns/google-adk' }
       ]
     },
     {

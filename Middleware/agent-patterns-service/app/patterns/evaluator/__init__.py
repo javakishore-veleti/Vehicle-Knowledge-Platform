@@ -1,2 +1,2 @@
 """evaluator pattern — frameworks register here."""
-from . import langgraph, crewai, llamaindex, haystack, openai_agents  # noqa: F401
+from . import langgraph, crewai, llamaindex, haystack, openai_agents, google_adk  # noqa: F401

@@ -225,4 +225,20 @@ const FRAMEWORKS: Record<string, FW> = {
       { ...ROWS.reflect, idiom: 'writer + critic Agents, Runner.run_sync', example: 'refined RAV4 answer' },
     ],
   },
+  google_adk: {
+    name: 'Google ADK', file: 'google_adk',
+    blurb: 'The <b>Google ADK column</b> of <code>agent-patterns-service</code> (:8094): every pattern is an ADK <code>LlmAgent</code> run through <code>InMemoryRunner</code> — ReAct and RAG use a native <code>FunctionTool</code> loop. ADK defaults to Gemini; here it is routed through <code>LiteLlm</code> → OpenAI (gpt-4o-mini). All 9 verified live.',
+    rows: [
+      { ...ROWS.react, idiom: 'native <code>LlmAgent</code> + <code>FunctionTool</code> (ADK tool loop)', example: 'tool-called → F-150 13,500 lb' },
+      { ...ROWS.plan, idiom: 'planner LlmAgent → execute sub-steps → synthesizer LlmAgent', example: 'RAV4 Prime vs Camry for a commuter' },
+      { ...ROWS.rag, idiom: 'LlmAgent whose <code>FunctionTool</code> retrieves from the corpus', example: '"RAV4 Prime range is 42 miles"' },
+      { ...ROWS.router, idiom: 'classifier LlmAgent → tailored specialist LlmAgent', example: 'routed → recommend (CR-V)' },
+      { ...ROWS.chain, idiom: '2-LlmAgent chain: rewrite → answer (InMemoryRunner)', example: 'RAV4 Prime 38 MPG combined' },
+      { ...ROWS.multi, idiom: 'spec/pricing/safety LlmAgents → lead LlmAgent composes', example: 'Model 3 buyer\'s report' },
+      { ...ROWS.eval, idiom: 'generator LlmAgent → judge LlmAgent → revise', example: 'Highlander seating answer refined' },
+      { ...ROWS.rewoo, idiom: 'planner LlmAgent (blind) → execute (no LLM) → solver LlmAgent', example: 'Tacoma base price $31,500' },
+      { ...ROWS.tot, idiom: 'proposer LlmAgent (3) → judge LlmAgent scores → select', example: 'F-150 vs Tacoma towing → best pick' },
+      { ...ROWS.reflect, idiom: 'writer + critic LlmAgents via InMemoryRunner', example: 'refined RAV4 answer' },
+    ],
+  },
 };
