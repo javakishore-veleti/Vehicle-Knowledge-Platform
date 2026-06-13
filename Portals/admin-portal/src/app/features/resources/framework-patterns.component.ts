@@ -135,7 +135,8 @@ const IMPL: Record<string, Set<string>> = {
     'tot:best-car-for-me', 'tot:ambiguous-query', 'tot:trim-optimizer', 'tot:multi-constraint-filter', 'tot:spec-conflict-resolver',
     'rewoo:batch-spec-enrichment', 'rewoo:parallel-multi-brand-facts', 'rewoo:nightly-price-refresh', 'rewoo:bulk-image-alt-text', 'rewoo:fixed-dimension-comparison',
     'multi-agent:researcher-advisor', 'multi-agent:per-brand-workers', 'multi-agent:onboarding-crew', 'multi-agent:review-aggregator', 'multi-agent:spec-price-safety',
-    'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report']),
+    'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report',
+    'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded']),
 };
 
 const ROWS = {
