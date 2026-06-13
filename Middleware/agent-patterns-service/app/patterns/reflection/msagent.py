@@ -1,36 +1,24 @@
-"""Reflection on the **Microsoft Agent Framework** (`agent_framework`) — OpenAIChatClient agents."""
-import asyncio
-import inspect
+"""Reflection on the **Microsoft Agent Framework** — an Agent drives draft -> critique -> revise.
 
-from ... import config, registry
+Implements the 5 VKP Reflection use cases via ctx['useCase']; the use-case instructions come from
+`_base.USE_CASES` (shared with every framework cell). All calls run in ONE event loop (AF telemetry
+ContextVar breaks across repeated asyncio.run)."""
+from ... import registry, msa
 from . import _base
-
-
-def _client():
-    from agent_framework.openai import OpenAIChatClient
-    if config.OPENAI_API_KEY:
-        return OpenAIChatClient(model=config.OPENAI_MODEL, api_key=config.OPENAI_API_KEY)
-    return OpenAIChatClient(model=config.GROQ_MODEL, api_key=config.GROQ_API_KEY, base_url=config.GROQ_BASE_URL)
-
-
-def _ask(instructions: str, prompt: str) -> str:
-    agent = _client().create_agent(name="agent", instructions=instructions)
-
-    async def _run() -> str:
-        result = agent.run(prompt)
-        if inspect.isawaitable(result):
-            result = await result
-        return getattr(result, "text", str(result))
-
-    return asyncio.run(_run())
 
 
 def run(ctx: dict) -> dict:
     q = ctx["input"]
-    draft = _ask(_base.DRAFT_SYS, q)
-    critique = _ask(_base.CRITIC_SYS, _base.CRITIQUE.format(q=q, a=draft))
-    answer = _ask(_base.DRAFT_SYS, _base.REVISE.format(q=q, a=draft, c=critique))
-    return _base.result(draft, critique, answer)
+    uc, spec = _base.spec_for(ctx.get("useCase"))
+
+    async def _go():
+        draft = await msa.acomplete(spec["generate"].format(q=q))
+        critique = await msa.acomplete(f"{spec['critique']}\n\nDRAFT:\n{draft}")
+        answer = await msa.acomplete(f"{spec['revise']}\n\nDRAFT:\n{draft}\n\nCRITIQUE:\n{critique}")
+        return draft, critique, answer
+
+    draft, critique, answer = msa.run_sync(_go())
+    return {**_base.result(draft, critique, answer), "useCase": uc}
 
 
 registry.register("reflection", "msagent", run)

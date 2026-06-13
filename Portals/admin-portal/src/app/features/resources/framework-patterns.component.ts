@@ -178,6 +178,11 @@ const IMPL: Record<string, Set<string>> = {
     'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report',
     'rag:single-fact-qa', 'rag:company-scoped-faq', 'rag:brochure-pdf-lookup', 'rag:explain-feature', 'rag:snapshot-grounded',
     'react:smart-link-discovery', 'react:single-model-deep-dive', 'react:recall-safety-lookup', 'react:dealer-inventory-locator', 'react:broken-link-repair']),
+  msagent: new Set(['reflection:answer-quality-gate', 'reflection:chunk-quality-review', 'reflection:citation-verification', 'reflection:crawl-coverage-self-check', 'reflection:spec-extraction-accuracy',
+    'tot:best-car-for-me', 'tot:ambiguous-query', 'tot:trim-optimizer', 'tot:multi-constraint-filter', 'tot:spec-conflict-resolver',
+    'multi-agent:researcher-advisor', 'multi-agent:per-brand-workers', 'multi-agent:onboarding-crew', 'multi-agent:review-aggregator', 'multi-agent:spec-price-safety',
+    'chaining:multi-provider-fanout', 'chaining:ingestion-chain', 'chaining:sectioning', 'chaining:voting', 'chaining:translate-then-index',
+    'router:compound-vs-simple', 'router:framework-router', 'router:query-type-router', 'router:store-router', 'router:topic-guardrail-router']),
 };
 
 const ROWS = {
