@@ -124,7 +124,8 @@ const IMPL: Record<string, Set<string>> = {
     'router:compound-vs-simple', 'router:framework-router', 'router:query-type-router', 'router:store-router', 'router:topic-guardrail-router',
     'plan-execute:multi-brand-comparison', 'plan-execute:buyers-guide-builder', 'plan-execute:adaptive-onboarding', 'plan-execute:spec-sheet-assembly', 'plan-execute:tco-report',
     'multi-agent:researcher-advisor', 'multi-agent:per-brand-workers', 'multi-agent:onboarding-crew', 'multi-agent:review-aggregator', 'multi-agent:spec-price-safety',
-    'rewoo:batch-spec-enrichment', 'rewoo:parallel-multi-brand-facts', 'rewoo:nightly-price-refresh', 'rewoo:bulk-image-alt-text', 'rewoo:fixed-dimension-comparison']),
+    'rewoo:batch-spec-enrichment', 'rewoo:parallel-multi-brand-facts', 'rewoo:nightly-price-refresh', 'rewoo:bulk-image-alt-text', 'rewoo:fixed-dimension-comparison',
+    'tot:best-car-for-me', 'tot:ambiguous-query', 'tot:trim-optimizer', 'tot:multi-constraint-filter', 'tot:spec-conflict-resolver']),
   crewai: new Set<string>(),
 };
 
