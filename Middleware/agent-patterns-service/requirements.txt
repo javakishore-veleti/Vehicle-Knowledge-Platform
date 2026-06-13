@@ -24,6 +24,11 @@ openai-agents>=0.17                     # native Agent + @function_tool + Runner
 # --- Google ADK (installed + verified — all 9 patterns; routed via LiteLLM→OpenAI) ---
 google-adk[extensions]>=2.0             # LlmAgent + InMemoryRunner + native FunctionTool; LiteLlm bridge
 
+# --- Microsoft Agent Framework (installed + verified — all 9 patterns) ---
+# pre-release: install with `uv pip install --prerelease=allow -r requirements.txt`
+agent-framework-core>=1.8                # Agent + @tool + OpenAIChatClient.as_agent
+agent-framework-openai>=1.8              # OpenAIChatClient provider
+
 # --- other framework SDKs (install the cells you want to RUN; imports are lazy) ---
 # crewai>=0.40
 # llama-index>=0.10 ; llama-index-llms-openai

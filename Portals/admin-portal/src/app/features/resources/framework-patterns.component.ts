@@ -241,4 +241,20 @@ const FRAMEWORKS: Record<string, FW> = {
       { ...ROWS.reflect, idiom: 'writer + critic LlmAgents via InMemoryRunner', example: 'refined RAV4 answer' },
     ],
   },
+  msagent: {
+    name: 'Microsoft Agent Framework', file: 'msagent',
+    blurb: 'The <b>Microsoft Agent Framework column</b> of <code>agent-patterns-service</code> (:8094): every pattern uses an <code>OpenAIChatClient.as_agent</code> Agent — ReAct and RAG with a native <code>@tool</code> loop. Each cell runs all its calls inside one event loop (AF\'s telemetry ContextVar breaks across repeated <code>asyncio.run</code>). All 9 verified live.',
+    rows: [
+      { ...ROWS.react, idiom: 'native <code>Agent</code> + <code>@tool</code> (AF tool loop)', example: 'tool-called → F-150 13,500 lb' },
+      { ...ROWS.plan, idiom: 'planner Agent → execute sub-steps → synthesizer Agent', example: 'RAV4 Prime vs Camry for a commuter' },
+      { ...ROWS.rag, idiom: 'Agent whose <code>@tool</code> retrieves from the corpus', example: '"RAV4 Prime range is 42 miles"' },
+      { ...ROWS.router, idiom: 'classifier Agent → tailored specialist Agent', example: 'routed → recommend' },
+      { ...ROWS.chain, idiom: '2-Agent chain: rewrite → answer (one event loop)', example: 'RAV4 Prime 94 MPGe' },
+      { ...ROWS.multi, idiom: 'spec/pricing/safety Agents → lead Agent composes', example: 'Model 3 buyer\'s report' },
+      { ...ROWS.eval, idiom: 'generator Agent → judge Agent → revise', example: 'Highlander seating answer refined' },
+      { ...ROWS.rewoo, idiom: 'planner Agent (blind) → execute (no LLM) → solver Agent', example: 'Tacoma base price $31,500' },
+      { ...ROWS.tot, idiom: 'proposer Agent (3) → judge Agent scores → select', example: 'F-150 vs Tacoma towing → best pick' },
+      { ...ROWS.reflect, idiom: 'writer + critic Agents (one event loop)', example: 'refined RAV4 answer' },
+    ],
+  },
 };
