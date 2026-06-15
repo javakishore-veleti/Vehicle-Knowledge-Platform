@@ -314,5 +314,5 @@ Architecture" for full field-level schemas before creating models.
   data-management category (e.g. DataCollection = links only; Ingestion = fetch content).
 - Reuse Docker images already on the machine; don't introduce new infra images casually.
 - Keep the `README.md`, this file, and `AGENTS.md` in sync if the architecture changes.
-- Conventional/working branch is `main`; commit/push only when asked. Commit as
-  `javakishore-veleti <javakishore@gmail.com>` (the repo identity).
+- Conventional/working branch is `main`; commit/push only when asked. Commit using the **repo's
+  configured git identity** (`git config user.name` / `user.email`) — not the agent session identity.

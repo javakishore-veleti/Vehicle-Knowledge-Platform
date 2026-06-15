@@ -174,5 +174,5 @@ These are load-bearing constraints — preserve them in any implementation:
 - New DAGs go under `Middleware/Workflows/AirflowDAGS/<Domain>/<UseCase>/`.
 - Reuse Docker images already on the machine; don't introduce new infra images casually.
 - Keep the `README.md`, `CLAUDE.md`, and this file in sync when the architecture changes.
-- Conventional/working branch is `main`; commit/push only when asked. Commit as
-  `javakishore-veleti <javakishore@gmail.com>` (the repo identity).
+- Conventional/working branch is `main`; commit/push only when asked. Commit using the **repo's
+  configured git identity** (`git config user.name` / `user.email`) — not the agent session identity.
