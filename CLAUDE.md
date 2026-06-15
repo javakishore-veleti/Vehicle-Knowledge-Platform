@@ -4,12 +4,24 @@ Guidance for Claude Code when working in this repository.
 
 ## Project status
 
-This is a **greenfield repository**. As of now it contains only `README.md`, `LICENSE`,
-and `.gitignore` — there is no application code, build system, or tests yet. The
-`README.md` is a detailed **architecture and design specification**, not documentation of
-existing code. Treat the structures, services, and APIs below as the *intended* design to
-be built, not as code that already exists. When asked to implement something, scaffold it
-to match this spec.
+This is **no longer greenfield — the platform is substantially built and runs end to end.** The
+`README.md` is now the *business + architecture narrative* (strategic, not a code map); this file is
+the *as-built engineering guide*. What exists today:
+
+- **Portals (Angular 19 + PrimeNG):** Admin (`:4200`), Vehicle Search (`:4201`), and a
+  Context-Engineering workbench (`:4202`), reaching the backend via a dev proxy (`proxy.conf.json`).
+- **Middleware:** multiple Spring Boot (Java 21) services (`:8081`–`:8088`, `:8094`) and Python /
+  FastAPI services (`:8090`–`:8093`), plus the Airflow **DAG workflows**.
+- **A complete agentic-pattern matrix** in `Middleware/agent-patterns-service/` (`:8094`): **10 agent
+  patterns × 8 frameworks × 5 vehicle use cases — every cell verified live** (see that service's
+  `Development_Tracker.md`).
+- **Pipeline verified live:** Companies → Discovery → Ingestion → Indexing, plus guardrails, session
+  security, request telemetry, and an AWS deploy path.
+
+When asked to implement something, **match the as-built conventions below** (clone a reference service)
+rather than scaffolding from the README's older prose. Some sketches below (flat `airflow/dags/`,
+`admin-service`/`customer-management-service` names, "(planned)" markers) are the *original intended
+design*; where they disagree with a built reference service, the **reference service wins**.
 
 ## What VKP is
 
@@ -135,6 +147,15 @@ present (`docker images`) over introducing a new one.
 >   stubbed); Phase 2 wires Spring AI `TransformersEmbeddingModel`→`PgVectorStore` + a Python
 >   embed DAG. (Note: `java-start-all.sh` starts only the `api` module; run `wfs-java`'s jar
 >   separately.)
+> - **`Middleware/vector-config-service/`** — config-driven vector-store selection (port 8088, rule #3):
+>   a resource declares which store(s) it indexes into; nothing is hardcoded.
+> - **`Middleware/agent-patterns-service/`** — the agentic-pattern lab (port 8094, FastAPI, Python 3.12).
+>   Every agent pattern in every framework, selectable by use case via
+>   `POST /agent-patterns/{pattern}/{framework}/run` with an optional `useCase`. Each pattern's
+>   use-case behaviour lives in a shared `app/patterns/<pattern>/_base.py` catalog consumed by ALL
+>   framework cells, so the cells differ only in framework mechanics. **Matrix complete: 10 patterns ×
+>   8 frameworks × 5 use cases, every cell verified live** — see its `Development_Tracker.md`. The
+>   Admin Portal's Resources → Design Patterns pages run any cell live against `:8094` (proxied).
 >
 > Real DAGs live under `Middleware/Workflows/AirflowDAGS/Vehicles/` —
 > `DataCollection/vkp_discover_resources.py` and `Ingestion/vkp_process_resources.py`
@@ -216,11 +237,12 @@ Select via Spring profile; do not hardcode a datasource.
 
 - **Frontend**: **Angular** (the `portals/` folder; 2+ portals). *(The README's prose still
   says React/Next.js — Angular is the decided direction; prefer it.)*
-- **Spring Boot services** (Java 21, MongoDB): admin, customer-management, user-management,
-  data-collection, ingestion, airflow-adapter, vector-config
-- **Python AI service**: `vehicle-explore-service` — **FastAPI preferred** (Flask only for
-  simple prototypes), LangGraph, CrewAI, LLM + vector DB SDKs
-- **Orchestration**: Apache Airflow + LangGraph
+- **Spring Boot services** (Java 21): company, user, data-collection, ingestion, airflow-adapter,
+  indexing, vector-config, agent-patterns
+- **Python services**: `vehicle-explore`, `guardrails`, `agentic`, `context-engine` — **FastAPI
+  preferred** (Flask only for simple prototypes), LangGraph + agent SDKs, LLM + vector DB SDKs
+- **Orchestration**: Apache Airflow + LangGraph (plus 7 more agent frameworks — CrewAI, LlamaIndex,
+  Haystack, OpenAI Agents, Google ADK, Microsoft Agent Framework, AWS Strands — in agent-patterns-service)
 - **AI**: OpenAI / Azure OpenAI
 - **Vector stores** (config-driven, none hardcoded): MongoDB Atlas Vector Search, ChromaDB,
   pgVector, Weaviate, Pinecone
@@ -243,9 +265,10 @@ These are load-bearing design constraints — preserve them in any implementatio
    (→ `company_resource_content`), and triggers indexing.
 3. **Vector store selection is configuration-driven.** A resource may index into one or many
    stores via `company_resource_vector_config`; never hardcode a store choice.
-4. **AI framework is part of the URL** for search routing:
-   `POST /api/vehicle-explore/{frameworkName}/search` (e.g. `langgraph`, `crewai`,
-   `llamaindex`, `haystack`) so requests route dynamically to different implementations.
+4. **AI framework is part of the URL** for routing:
+   `POST /api/vehicle-explore/{frameworkName}/search` (e.g. `langgraph`, `crewai`, `llamaindex`,
+   `haystack`) for search, and `POST /agent-patterns/{pattern}/{framework}/run` in the pattern lab —
+   so requests route dynamically to different implementations.
 
 ## Data model (MongoDB collections + owning service)
 
@@ -279,15 +302,17 @@ Architecture" for full field-level schemas before creating models.
 
 ## Working in this repo
 
-- **Ops commands exist** (root `package.json` → `npm run localhost:*`); there is **no
-  service build/test command yet** because no services exist. Don't invent service tooling;
-  scaffold per the conventions above and say so.
-- When implementing a Spring Boot service, follow the multi-module + `ReqDTO`/`RespDTO`/`Ctx`
-  + JPA-profile conventions above and the example APIs in the README.
+- **Ops commands** live in the root `package.json` (`npm run localhost:*`). Java services build/run
+  via Maven (`mvn -pl api -am spring-boot:run`); Python services run from their own `.venv` (each
+  FastAPI service manages its own). Always **record installs** — add any installed package to the
+  relevant `requirements.txt` / `pom.xml` in the same change.
+- When implementing a Spring Boot service, **clone a reference service** (above) and follow the
+  multi-module + `ReqDTO`/`RespDTO`/`Ctx` + JPA-profile conventions.
 - When implementing a Python service, default to FastAPI under `Middleware/<service>/` with
   an `app/main.py` (or `main.py`) `app` so the runner script finds it.
 - New DAGs go under `Middleware/Workflows/AirflowDAGS/<Domain>/<UseCase>/`, matching the
   data-management category (e.g. DataCollection = links only; Ingestion = fetch content).
 - Reuse Docker images already on the machine; don't introduce new infra images casually.
-- Keep the README and this file in sync if the architecture changes.
-- Conventional/working branch is `main`; commit/push only when asked.
+- Keep the `README.md`, this file, and `AGENTS.md` in sync if the architecture changes.
+- Conventional/working branch is `main`; commit/push only when asked. Commit as
+  `javakishore-veleti <javakishore@gmail.com>` (the repo identity).
